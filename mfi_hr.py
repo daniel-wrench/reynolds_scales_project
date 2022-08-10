@@ -9,7 +9,7 @@ def get_subfolders(path):
 def get_cdf_paths(subfolder):
   return glob.iglob(subfolder + '/*.cdf')
 
-taylor_paths = [[get_cdf_paths(subfolder) for subfolder in get_subfolders(project_path + 'full_data\\WI_H2_MFI')][3]] 
+taylor_paths = [[get_cdf_paths(subfolder) for subfolder in get_subfolders(project_path + 'data\\raw\\wi_h2_mfi')][3]] 
 # Index = 3 corresponds to 2019
 # Changed / in file path to \\
 print(list(taylor_paths))
@@ -19,4 +19,4 @@ wih2mfi_hr = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'BF
 
 wih2mfi_hr = wih2mfi_hr.sort_index()
 
-wih2mfi_hr.to_pickle(project_path + 'wih2mfi_hr_19')
+wih2mfi_hr.to_pickle(project_path + 'data\\processed\\wi_h2_mfi_hr_19')
