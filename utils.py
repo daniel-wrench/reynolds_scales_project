@@ -7,6 +7,7 @@ from pprint import pprint
 import statsmodels.api as sm
 
 from scipy.optimize import curve_fit
+from scipy.interpolate import UnivariateSpline
 
 
 def read_cdf(cdf_file_path: str) -> cdflib.cdfread.CDF:
@@ -49,17 +50,16 @@ def convert_cdf_to_dataframe(cdf_file_object: cdflib.cdfread.CDF, varlist=None) 
     return pd.DataFrame(result_dict)
 
 
-def replace_fill_values(dataframe: pd.DataFrame) -> None:
+def replace_fill_values(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Replace dataframe fill values with numpy NaN. Fill values are documented in https://omniweb.gsfc.nasa.gov/html/omni_min_data.html.
-    Changes are done in place.
     args:
       dataframe: pandas dataframe to remove fill values from
     """
-    dataframe.replace({9.9: np.nan, 999: np.nan, 999.99: np.nan, 999999: np.nan,
+    df_cleaned = dataframe.replace({9.9: np.nan, 999: np.nan, 999.99: np.nan, 999999: np.nan,
                        99.99: np.nan, 9999.99: np.nan, 9999999.: np.nan, 99999.99: np.nan,
-                       99999.9: np.nan, 99999: np.nan}, inplace=True)
-    return
+                       99999.9: np.nan, 99999: np.nan}, inplace=False)
+    return df_cleaned
 
 
 def format_epochs(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -121,11 +121,13 @@ def mask_and_interpolate_outliers(dataframe: pd.DataFrame, threshold_dict: dict)
     if (dataframe.isna().sum()/dataframe.shape[0] >= 0.4).any():
         return None
     if not threshold_dict:
-        return dataframe.copy().interpolate().ffill().bfill()
+        dataframe.iloc[:,1:] = dataframe.iloc[:,1:].interpolate()
+        return dataframe
+        # Selected only non-time columns due to issues with pd.DataFrame.interpolate not handling certain time columns
     result_dataframe = dataframe.copy()
     for column_name, thresholds in threshold_dict.items():
         result_dataframe[column_name] = result_dataframe[column_name].mask((result_dataframe[column_name] <= thresholds[0]) | (
-            result_dataframe[column_name] >= thresholds[-1])).interpolate().ffill().bfill()
+            result_dataframe[column_name] >= thresholds[-1])).interpolate()
     return result_dataframe
 
 
@@ -155,7 +157,7 @@ def pipeline(file_path, varlist, cadence='5T', thresholds={}):
     """
     try:
         df = convert_cdf_to_dataframe(read_cdf(file_path), varlist=varlist)
-        replace_fill_values(df)
+        df = replace_fill_values(df)
         df = format_epochs(df)
         df = mask_and_interpolate_outliers(df, thresholds)
         if df is None or df.shape[0] == 0:
@@ -202,14 +204,6 @@ def para_fit(x, a):
     fit function for determining taylor scale, through the optimal lambda_c value
     """
     return a*x**2 + 1
-
-
-def convert_cadence_to_string(seconds) -> str:
-    """
-    helper function
-    """
-    return f'{seconds}S'
-
 
 # OLD METHOD
 
