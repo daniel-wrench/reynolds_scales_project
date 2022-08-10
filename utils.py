@@ -260,7 +260,6 @@ def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y:
             # print(autocorrelation_x[idx_2], autocorrelation_y[idx_2])
             # print('e:', np.exp(-1))
             # print(x_opt)
-            print(x_opt)
             try:
                 return round(x_opt[0], 3)
             except Exception:
