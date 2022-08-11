@@ -241,7 +241,7 @@ def para_fit(x, a):
 #     print(f'transverse taylor (time) scale: {round(lambda_t, 3)} [sec]')
 #   return ind_1, round(lambda_c, 5), round(lambda_t, 5), sample_interval
 
-def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray):
+def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray, show = False):
     """
     computes the correlation scale through the "1/e" estimation method.
     autocorrelation_x assumed already in time scale
@@ -260,10 +260,18 @@ def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y:
             # print(autocorrelation_x[idx_2], autocorrelation_y[idx_2])
             # print('e:', np.exp(-1))
             # print(x_opt)
+
+            if show == True:
+                plt.plot(autocorrelation_x, autocorrelation_y)
+                plt.axhline(np.exp(-1), color = 'black')
+                plt.axvline(x_opt[0], color = 'black')
+                plt.show()
+
             try:
                 return round(x_opt[0], 3)
             except Exception:
                 return 0
+
     # none found
     return -1
 
