@@ -26,6 +26,7 @@ Re-sampled to two different frequencies and split into 6-hour intervals.
     - 3D ACF is calculated for 20 lags = 2s at 10Hz
     - `num_seconds_for_lambda_t_fit = 2` is specified inside the function `compute_taylor_time_scale()`
 
+5. `electrons_6hr.py`: Make low-res (6hr) electron density dataframe pickle (Rāpoi job)
 5. Run EDA, produce plots, train ML pipelines (other Jupyter notebooks which Kevin ran in Google Colab)
 
 # Results for scales and correlations
