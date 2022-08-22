@@ -11,6 +11,16 @@ def get_cdf_paths(subfolder):
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(project_path + 'data\\raw\\wi_plsp_3dp\\')]
 
+# View raw CDF info
+
+# cdf = read_cdf(next(file_paths[0]))
+# pprint(cdf.cdf_info())
+
+# #cdf.varattsget(variable='MOM.P.DENSITY', expand=True)
+# cdf.varget("MOM.P.DENSITY")
+
+# YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
+
 df = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'MOM.P.DENSITY', 'MOM.P.AVGTEMP', 'MOM.P.VELOCITY'],
                     cadence='6H') for cdf_file_name in sub]) for sub in file_paths]).sort_index()
 

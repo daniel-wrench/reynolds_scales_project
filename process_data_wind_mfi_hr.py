@@ -1,3 +1,8 @@
+# Reads in Wind MFI CDF files
+# Extracts desired variables
+# Re-samples to desired cadence
+# Saves to .pkl file
+
 from utils import *
 import glob
 
@@ -20,7 +25,7 @@ df = pd.concat([
             pipeline(
                 cdf_file_name, 
                 varlist=['Epoch', 'BF1', 'BGSE'], 
-                cadence='0.1S'
+                cadence='0.091S'
             ) 
             for cdf_file_name in sub
         ]) 
