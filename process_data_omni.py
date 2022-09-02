@@ -15,6 +15,16 @@ def get_cdf_paths(subfolder):
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
     project_path + 'data\\raw\\omni_hro2_1min\\')]
 
+# View raw CDF info
+
+# cdf = read_cdf(next(file_paths[0]))
+# pprint(cdf.cdf_info())
+
+# cdf.varattsget(variable='flow_speed', expand=True)
+# cdf.varget("flow_speed")
+
+# YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
+
 df = pd.concat([
         pd.concat([
             pipeline(

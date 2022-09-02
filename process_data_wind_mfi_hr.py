@@ -20,6 +20,16 @@ def get_cdf_paths(subfolder):
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
     project_path + 'data\\raw\\wi_h2_mfi\\')]
 
+# View raw CDF info
+
+# cdf = read_cdf(next(file_paths[0]))
+# pprint(cdf.cdf_info())
+
+# cdf.varattsget(variable='BF1', expand=True)
+# cdf.varget("BF1")
+
+# YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
+
 df = pd.concat([
         pd.concat([
             pipeline(
