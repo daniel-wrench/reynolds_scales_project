@@ -241,7 +241,8 @@ def para_fit(x, a):
 #     print(f'transverse taylor (time) scale: {round(lambda_t, 3)} [sec]')
 #   return ind_1, round(lambda_c, 5), round(lambda_t, 5), sample_interval
 
-def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray, show = False):
+# previous version called estimate_correlation_scale()
+def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray, show = False):
     """
     computes the correlation scale through the "1/e" estimation method.
     autocorrelation_x assumed already in time scale
@@ -261,14 +262,45 @@ def estimate_correlation_scale(autocorrelation_x: np.ndarray, autocorrelation_y:
             # print('e:', np.exp(-1))
             # print(x_opt)
 
-            if show == True:
-                plt.plot(autocorrelation_x, autocorrelation_y)
-                plt.axhline(np.exp(-1), color = 'black')
-                plt.axvline(x_opt[0], color = 'black')
-                plt.show()
-
             try:
+
+                # Optional plotting
+                if show == True:
+
+                    dt = autocorrelation_x[1]-autocorrelation_x[0]
+
+                    fig, ax = plt.subplots(constrained_layout=True)
+                    ax.plot(autocorrelation_x, autocorrelation_y)
+                    ax.set_xlabel('$\\tau$ (sec)')
+                    ax.set_ylabel('Autocorrelation')
+
+                    # For plotting secondary axes
+                    def sec2lag(x):
+                        return x / dt
+
+                    def lag2sec(x):
+                        return x * dt
+
+                    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+                    secax_x.set_xlabel('$\\tau$ (lag)')
+
+                    def sec2km(x):
+                        return x * 400
+
+                    def km2sec(x):
+                        return x / 400
+
+                    # use of a float for the position:
+                    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+                    secax_x2.set_xlabel('$r$ (km)')
+
+                    plt.axhline(np.exp(-1), color = 'black')
+                    plt.axvline(x_opt[0], color = 'black')
+                    plt.show()
+
                 return round(x_opt[0], 3)
+
+
             except Exception:
                 return 0
 
