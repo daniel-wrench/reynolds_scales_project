@@ -3,13 +3,17 @@ import glob
 
 project_path = ''
 
+
 def get_subfolders(path):
     return glob.glob(path + '/*')
+
 
 def get_cdf_paths(subfolder):
     return glob.iglob(subfolder + '/*.cdf')
 
-file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(project_path + 'data\\raw\\wi_plsp_3dp\\')]
+
+file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
+    project_path + 'data\\raw\\wi_plsp_3dp\\')]
 
 # View raw CDF info
 
@@ -21,9 +25,16 @@ file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(project_p
 
 # YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
 
-df = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'MOM.P.DENSITY', 'MOM.P.AVGTEMP', 'MOM.P.VELOCITY'],
-                    cadence='6H') for cdf_file_name in sub]) for sub in file_paths]).sort_index()
+df = pd.concat([
+    pd.concat([
+        pipeline(
+            cdf_file_name,
+            varlist=['Epoch', 'MOM.P.DENSITY',
+                     'MOM.P.AVGTEMP', 'MOM.P.VELOCITY'],
+            cadence='12H')
+        for cdf_file_name in sub])
+    for sub in file_paths]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\wi_plsp_3dp_6hr.pkl')
+df.to_pickle(project_path + 'data\\processed\\wi_plsp_3dp_12hr.pkl')
 
 print("Processed proton data")

@@ -22,9 +22,16 @@ file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
 
 # YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
 
-df = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'DENSITY', 'AVGTEMP', 'VELOCITY'],
-                                    cadence='6H') for cdf_file_name in sub]) for sub in file_paths]).sort_index()
+df = pd.concat([
+    pd.concat([
+        pipeline(
+            cdf_file_name,
+            varlist=['Epoch', 'DENSITY', 'AVGTEMP', 'VELOCITY'],
+            cadence='12H'
+        )
+        for cdf_file_name in sub])
+    for sub in file_paths]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\wi_elm2_3dp_6hr.pkl')
+df.to_pickle(project_path + 'data\\processed\\wi_elm2_3dp_12hr.pkl')
 
 print("Processed electron data")

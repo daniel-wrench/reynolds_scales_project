@@ -6,12 +6,19 @@ Basic workflow is demonstrated in `Summary.ipynb` (best to run in Google Colab a
 
 Helper functions are stored in `utils.py`
 
-# Data
+## Data
 Magnetic field from Wind spacecraft, 2016-2020, using CDAWeb FTP and `cdflib`: WI_H2_MFI
-Re-sampled to two different frequencies and split into 6-hour intervals.
+Re-sampled to two different frequencies and split into 12-hour intervals.
 
+See `metadata.xlsx` for description of variables.
 
-# Workflow
+## New workflow
+
+1. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences.
+    - This same bash script can also be ran locally (on a small amount of data)
+    - If more than 40% of values in any column are missing, skip data period 
+
+## Kevin's workflow
 
 1. `mfi_lr.py`: Make low-res (0.2Hz) magnetic field dataframe pickle (Rāpoi job)
 2. `compute_corr.py` (Rāpoi job): Compute correlation scale using two methods for 6-hour intervals of low-res dataframe
@@ -28,15 +35,3 @@ Re-sampled to two different frequencies and split into 6-hour intervals.
 
 5. `electrons_6hr.py`: Make low-res (6hr) electron density dataframe pickle (Rāpoi job)
 5. Run EDA, produce plots, train ML pipelines (other Jupyter notebooks which Kevin ran in Google Colab)
-
-# Results for scales and correlations
-
-- In terms of the two methods for calculating the correlation scale, 1/e tends to produce larger values than the fit method, and this discrepancy becomes more pronounced (scatterplot shows greater scatter) at higher values of each. Overall only **0.88** correlation between the two values.
-
-- Correlation between Taylor scale and exponential fit correlation scale = **0.77**. A time series plot of these quantities over time also shows a strong correlation.
-- Correlation between Taylor scale and 1/e correlation scale = **0.62**. A time series plot of these quantities over time also shows a correlation, though weaker than that above.
-
-# V2, implementing Chuychai
-
-- Calculate *cross*-correlation, in addition to Pearson correlation coefficient? Probably more appropriate for time series data
-- Use more data?

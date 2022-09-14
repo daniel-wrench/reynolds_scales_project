@@ -45,13 +45,13 @@ df = pd.concat([
                     'Pressure': [0, 200],
                     'E': [0, 50]
                 },
-                cadence='6H'
+                cadence='12H'
             ) 
             for cdf_file_name in sub
         ]) 
         for sub in file_paths
     ]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\omni_6hr.pkl')
+df.to_pickle(project_path + 'data\\processed\\omni_12hr.pkl')
 
 print("Processed OMNI data")
