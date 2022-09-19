@@ -26,7 +26,7 @@ df = pd.concat([
     pd.concat([
         pipeline(
             cdf_file_name,
-            varlist=['Epoch', 'DENSITY', 'AVGTEMP', 'VELOCITY'],
+            varlist=['Epoch', 'DENSITY', 'AVGTEMP'],
             cadence='12H'
         )
         for cdf_file_name in sub])

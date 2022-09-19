@@ -30,7 +30,7 @@ df = pd.concat([
         pipeline(
             cdf_file_name,
             varlist=['Epoch', 'MOM.P.DENSITY',
-                     'MOM.P.AVGTEMP', 'MOM.P.VELOCITY'],
+                     'MOM.P.AVGTEMP'],
             cadence='12H')
         for cdf_file_name in sub])
     for sub in file_paths]).sort_index()

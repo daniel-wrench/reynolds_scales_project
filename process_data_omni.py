@@ -20,8 +20,8 @@ file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
 # cdf = read_cdf(next(file_paths[0]))
 # pprint(cdf.cdf_info())
 
-# cdf.varattsget(variable='flow_speed', expand=True)
-# cdf.varget("flow_speed")
+# cdf.varattsget(variable='F', expand=True)
+# cdf.varget("F")
 
 # YOU MUST RE-RUN file_paths DEFINITION BEFORE THE FOLLOWING IF USING ABOVE LINES
 
@@ -31,19 +31,14 @@ df = pd.concat([
                 cdf_file_name,
                 varlist = [
                     'Epoch',
-                    'proton_density',
-                    'T',
                     'flow_speed',
-                    'Beta',
                     'Pressure',
-                    'E'
+                    'F'
                 ], 
                 thresholds={
-                    'proton_density': [0, 100],
                     'flow_speed': [0, 1000],
-                    'Beta': [0, 100],
                     'Pressure': [0, 200],
-                    'E': [0, 50]
+                    'F': [0,50]
                 },
                 cadence='12H'
             ) 
