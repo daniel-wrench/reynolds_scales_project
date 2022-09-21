@@ -13,7 +13,7 @@ def get_cdf_paths(subfolder):
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\omni_hro2_1min\\')]
+    project_path + 'data\\raw\\omni\\omni_cdaweb\\hro2_1min\\')]
 
 # View raw CDF info
 

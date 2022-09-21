@@ -13,7 +13,7 @@ def get_cdf_paths(subfolder):
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\wi_elm2_3dp\\')]
+    project_path + 'data\\raw\\wind\\3dp\\3dp_elm2\\')]
 
 # View raw CDF info
 

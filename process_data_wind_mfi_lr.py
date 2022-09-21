@@ -13,7 +13,7 @@ def get_cdf_paths(subfolder):
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\wi_h2_mfi')]
+    project_path + 'data\\raw\\wind\\mfi\\mfi_h2\\')]
 
 df = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'BF1', 'BGSE'],
                                     cadence='5S') for cdf_file_name in sub]) for sub in file_paths]).sort_index()

@@ -15,7 +15,7 @@ source venv/Scripts/activate
 python process_data_wind_electrons.py
 python process_data_wind_protons.py
 python process_data_omni.py
-python process_data_wind_mfi_hr.py
-python process_data_wind_mfi_lr.py
+# python process_data_wind_mfi_hr.py
+# python process_data_wind_mfi_lr.py
 
 echo "FINISHED"
