@@ -10,12 +10,15 @@
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
 
-#source venv/Scripts/activate
-source venv/bin/activate
+## For running locally
+source venv/Scripts/activate
 
-python process_data_wind_electrons.py
+## For running in Raapoi
+#source venv/bin/activate
+
+#python process_data_wind_electrons.py
 #python process_data_wind_protons.py
-#python process_data_omni.py
+python process_data_omni.py
 # python process_data_wind_mfi_hr.py
 # python process_data_wind_mfi_lr.py
 

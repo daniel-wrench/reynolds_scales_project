@@ -18,7 +18,7 @@ def get_cdf_paths(subfolder):
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\wind\\mfi\\mfi_h2\\')]
+    project_path + 'data/raw/wind/mfi/mfi_h2/')]
 
 # View raw CDF info
 
@@ -42,6 +42,6 @@ df = pd.concat([
         for sub in file_paths
     ]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\wi_h2_mfi_hr.pkl')
+df.to_pickle(project_path + 'data/processed/wi_h2_mfi_hr.pkl')
 
 print("Processed Wind MFI high-res data")

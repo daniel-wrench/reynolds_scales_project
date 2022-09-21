@@ -11,11 +11,17 @@ def get_subfolders(path):
 def get_cdf_paths(subfolder):
     return glob.iglob(subfolder + '/*.cdf')
 
-
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\omni\\omni_cdaweb\\hro2_1min\\')]
+    project_path + 'data/raw/omni/omni_cdaweb/hro2_1min/')] 
+# Previously had double backslashes in filepath, but did not work in Raapoi
 
-# View raw CDF info
+## For debugging
+
+# for sub in file_paths:
+#     for cdf_file_name in sub:
+#         print(cdf_file_name)
+
+## View raw CDF info
 
 # cdf = read_cdf(next(file_paths[0]))
 # pprint(cdf.cdf_info())

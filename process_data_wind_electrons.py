@@ -13,7 +13,7 @@ def get_cdf_paths(subfolder):
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    project_path + 'data\\raw\\wind\\3dp\\3dp_elm2\\')]
+    project_path + 'data/raw/wind/3dp/3dp_elm2/')]
 
 # View raw CDF info
 
@@ -32,6 +32,6 @@ df = pd.concat([
         for cdf_file_name in sub])
     for sub in file_paths]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\wi_elm2_3dp_12hr.pkl')
+df.to_pickle(project_path + 'data/processed/wi_elm2_3dp_12hr.pkl')
 
 print("Processed electron data")
