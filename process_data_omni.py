@@ -55,4 +55,7 @@ df = pd.concat([
 
 df.to_pickle(project_path + 'data/processed/omni_12hr.pkl')
 
-print("Processed OMNI data")
+print("\n\nProcessed OMNI data:\n")
+print(df.head())
+print(datetime.now())
+

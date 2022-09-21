@@ -34,4 +34,6 @@ df = pd.concat([
 
 df.to_pickle(project_path + 'data/processed/wi_elm2_3dp_12hr.pkl')
 
-print("Processed electron data")
+print("\n\nProcessed electron data:\n")
+print(df.head())
+print(datetime.now())

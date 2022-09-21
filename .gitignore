@@ -2,3 +2,5 @@
 /__pycache__
 /data/
 /spare_data/
+*.out
+*.err

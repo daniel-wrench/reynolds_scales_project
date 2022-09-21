@@ -44,4 +44,6 @@ df = pd.concat([
 
 df.to_pickle(project_path + 'data/processed/wi_h2_mfi_hr.pkl')
 
-print("Processed Wind MFI high-res data")
+print("\n\nProcessed Wind MFI high-res data:\n")
+print(df.head())
+print(datetime.now())

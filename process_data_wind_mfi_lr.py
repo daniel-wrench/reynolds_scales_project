@@ -20,4 +20,6 @@ df = pd.concat([pd.concat([pipeline(cdf_file_name, varlist=['Epoch', 'BF1', 'BGS
 
 df.to_pickle(project_path + 'data/processed/wi_h2_mfi_lr.pkl')
 
-print("Processed Wind MFI low-res data")
+print("\n\nProcessed Wind MFI low-res data:\n")
+print(df.head())
+print(datetime.now())
