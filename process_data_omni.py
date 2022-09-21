@@ -53,6 +53,6 @@ df = pd.concat([
         for sub in file_paths
     ]).sort_index()
 
-df.to_pickle(project_path + 'data\\processed\\omni_12hr.pkl')
+df.to_pickle(project_path + 'data/processed/omni_12hr.pkl')
 
 print("Processed OMNI data")
