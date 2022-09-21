@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cdflib
 from pprint import pprint
+#venv on Raapoi struggles to install this
 
 import statsmodels.api as sm
 
