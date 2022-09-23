@@ -46,4 +46,4 @@ df.to_pickle(project_path + 'data/processed/wi_h2_mfi_hr.pkl')
 
 print("\n\nProcessed Wind MFI high-res data:\n")
 print(df.head())
-print(datetime.now())
+print(datetime.datetime.now())

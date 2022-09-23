@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cdflib
 from pprint import pprint
-from datetime import datetime
+import datetime
 
 import statsmodels.api as sm
 
