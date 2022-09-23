@@ -1,4 +1,4 @@
-from utils import *
+from src.utils import *
 import glob
 
 project_path = ''
