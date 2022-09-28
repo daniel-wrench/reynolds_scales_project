@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-#SBATCH --job-name          1_process_raw_data
+#SBATCH --job-name          2_construct_database
 #SBATCH --partition         quicktest
 ##SBATCH --nodelist          spj01
 #SBATCH --mem-per-cpu       1G
@@ -17,10 +17,6 @@ source venv/Scripts/activate
 ## For running in Raapoi
 #source venv/bin/activate
 
-python process_data_omni.py
-python process_data_wind_electrons.py
-python process_data_wind_protons.py
-python process_data_wind_mfi_hr.py
-python process_data_wind_mfi_lr.py
+python construct_database.py
 
 echo "FINISHED"

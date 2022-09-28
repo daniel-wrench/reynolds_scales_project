@@ -39,5 +39,5 @@ df.to_pickle(project_path + 'data/processed/wi_plsp_3dp_12hr.pkl')
 
 print("\n\nProcessed proton data:\n")
 print(df.head())
-print(datetime.now())
+print(datetime.datetime.now())
 

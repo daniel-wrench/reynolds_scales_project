@@ -37,7 +37,7 @@ df_omni = df_omni.rename(
 
 
 # ### Wind electron data
-# 6-hour averages, first processed and saved to `.pkl` file in `process_data_wind_electrons.py`
+# 6-hour averages, first processed and saved to .pkl file in process_data_wind_electrons.py
 
 
 df_electrons = pd.read_pickle('data/processed/wi_elm2_3dp_12hr.pkl')
@@ -50,8 +50,7 @@ df_electrons = df_electrons.rename(
 
 
 # ### Wind proton data
-# 
-# 6-hour averages, first processed and saved to `.pkl` file in `process_data_wind_protons.py`
+# 12-hour averages, first processed and saved to .pkl file in process_data_wind_protons.py
 
 df_protons = pd.read_pickle("data/processed/wi_plsp_3dp_12hr.pkl")
 df_protons.columns = df_protons.columns.str.lower()
@@ -65,7 +64,7 @@ df = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
 df = utils.join_dataframes_on_timestamp(df, df_protons)
 
 # ### Wind magnetic field data
-
+# 11Hz data (resampled slightly to dt = 0.091s)
 large_wind_df_hr = pd.read_pickle("data/processed/wi_h2_mfi_hr.pkl")
 large_wind_df_hr = large_wind_df_hr.rename(
     columns={
@@ -99,13 +98,13 @@ df = utils.join_dataframes_on_timestamp(df, b0_hr)
 # ## Calculating analytically-derived variables
 
 
-df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*(df["Bwind"]**-1)  # Electron gyroradius
-df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*(df["Bwind"]**-1) # Ion gyroradius
+df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
+df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
 df["de"] = (5.31)*(df["ne"]**(-1/2)) # Electron inertial length
 df["di"] = (2.28e2)*(df["ni"]**(-1/2)) # Ion inertial length
-df["betae"] = (4.03e-16)*df["ne"]*df["Te"]*(df["Bwind"]**-2) # Electron plasma beta
-df["betai"] = (4.03e-16)*df["ni"]*df["Ti"]*(df["Bwind"]**-2) # Ion plasma beta
-df["va"] = (2.18e6)*(df["ni"]**(-1/2))*df["Bwind"] # Alfven speed
+df["betae"] = (4.03e-16)*df["ne"]*df["Te"]*((df["Bwind"]*1e-5)**-2) # Electron plasma beta
+df["betai"] = (4.03e-16)*df["ni"]*df["Ti"]*((df["Bwind"]*1e-5)**-2) # Ion plasma beta
+df["va"] = (2.18e6)*(df["ni"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
 df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
 
 
@@ -154,6 +153,8 @@ dt_lr = 5
 
 acf_lr_list = []
 
+print("\nCOMPUTING LOW-RES ACFS")
+
 for i in np.arange(len(wind_df_lr_list)):
 
     time_lags_lr, acf = utils.compute_nd_acf(
@@ -177,7 +178,9 @@ inertial_slope_list = []
 kinetic_slope_list = []
 spectral_break_list = []
 
-for i in np.arange(3):
+print("\nCOMPUTING HIGH-RES ACFS, SPECTRA")
+
+for i in np.arange(len(wind_df_hr_list)):
 
     time_lags_hr, acf = utils.compute_nd_acf(
         np.array([
@@ -214,6 +217,8 @@ corr_scale_exp_fit_list = []
 corr_scale_exp_trick_list = []
 corr_scale_int_list = []
 
+print("\nCOMPUTING CORRELATION SCALES")
+
 for acf in acf_lr_list:
 
     corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf)
@@ -235,6 +240,8 @@ taylor_scale_u_std_list = []
 
 taylor_scale_c_list = []
 taylor_scale_c_std_list = []
+
+print("\nCOMPUTING TAYLOR SCALES")
 
 for i in range(len(acf_hr_list)):
 
@@ -268,17 +275,17 @@ for i in range(len(acf_hr_list)):
 # Joining lists of scales and spectral_stats together into a dataframe
 
 df_1 = pd.DataFrame({
-    'tcf': corr_scale_exp_fit_list[:3],
-    'tce': corr_scale_exp_trick_list[:3],
-    'tci': corr_scale_int_list[:3],
-    'ttu': taylor_scale_u_list[:3],
-    'ttu_std': taylor_scale_u_std_list[:3],
-    'ttc': taylor_scale_c_list[:3],
-    'ttc_std': taylor_scale_c_std_list[:3],                                      
-    'ttk': taylor_scale_kevin_list[:3],
-    'qi': inertial_slope_list[:3],
-    'qk': kinetic_slope_list[:3],
-    'tb': spectral_break_list[:3]
+    'tcf': corr_scale_exp_fit_list,
+    'tce': corr_scale_exp_trick_list,
+    'tci': corr_scale_int_list,
+    'ttu': taylor_scale_u_list,
+    'ttu_std': taylor_scale_u_std_list,
+    'ttc': taylor_scale_c_list,
+    'ttc_std': taylor_scale_c_std_list,                                      
+    'ttk': taylor_scale_kevin_list,
+    'qi': inertial_slope_list,
+    'qk': kinetic_slope_list,
+    'tb': spectral_break_list
 })
 
 # Joining all data together into a dataframe
@@ -291,7 +298,7 @@ print(df_complete.info())
 
 # Saving final dataframe and summary stats
 df_complete.to_csv("data/processed/db_wind.csv", index=False)
-stats.to_csv("data/processed/db_wind_summary_stats.csv", index = False)
+stats.to_csv("data/processed/db_wind_summary_stats.csv")
 
 print("\nFINISHED")
 print("##################################")
