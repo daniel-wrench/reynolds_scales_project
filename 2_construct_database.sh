@@ -12,10 +12,11 @@
 #SBATCH --mail-user	    daniel.wrench@vuw.ac.nz
 
 ## For running locally
-source venv/Scripts/activate
+#source venv/Scripts/activate
 
 ## For running in Raapoi
-#source venv/bin/activate
+module load python/3.8.1
+source venv/bin/activate
 
 python construct_database.py
 
