@@ -3,7 +3,7 @@
 # Re-samples to desired cadence
 # Saves to .pkl file
 
-from src.utils import *
+from utils import *
 import glob
 
 project_path = ''
