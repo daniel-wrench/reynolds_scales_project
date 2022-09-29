@@ -1,14 +1,11 @@
 # README
 
-## Codes for calculating and analysing the Taylor scale, correlation scale, and other solar wind parameters
-
-Basic workflow is demonstrated in `Summary.ipynb` (best to run in Google Colab as quite slow on local machine)
-Helper functions are stored in `utils.py`
+## Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft
 
 ## To-do
 
 1. Streamline the notebook, that does draw on the final database by reading in the spectral indices
-2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data except most of mfi**
+2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
 2. Check results and Bash scripting with Tulasi, check for efficiency.
 2. Run pipeline on as much data as possible.
 2. Spearman correlation?
@@ -21,10 +18,10 @@ Previously, **Kevin de Lange** created a smaller version of this dataset and inv
 We are now more rigorously estimating the Taylor scale to confirm or deny this correlation. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
 
 ## Data
-Magnetic field from Wind spacecraft, 2016-2020, using CDAWeb FTP and `cdflib`: WI_H2_MFI
+Magnetic field from Wind spacecraft, 2016-2020
 Re-sampled to two different frequencies and split into 12-hour intervals.
 
-See `metadata.xlsx` for description of variables.
+See `wind_database_metadata.xlsx` for description of variables.
 
 ## Pipeline
 *NB*: The .sh files are designed so that they can be tested locally (on a much reduced set of data): simply switch to the appropriate venv command in the file and then change the command to run the file from `sbatch` to `bash`.
@@ -40,7 +37,7 @@ See `metadata.xlsx` for description of variables.
 2. (`Ctrl-b, d`)
 2. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences.
     - If more than 40% of values in any column are missing, skip data period.
-2. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook `scale_funcs_demo.ipynb` for more on these). The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+2. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **scale_funcs_demo.ipynb** for more on these). The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
 ---
 
