@@ -39,4 +39,4 @@ for sub in file_paths:
 
 print("\n\nProcessed Wind MFI low-res data:\n")
 print(df.head())
-print(datetime.now())
+print(datetime.datetime.now())
