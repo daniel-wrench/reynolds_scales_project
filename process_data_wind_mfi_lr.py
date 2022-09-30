@@ -22,4 +22,4 @@ df.to_pickle(project_path + 'data/processed/wi_h2_mfi_lr.pkl')
 
 print("\n\nProcessed Wind MFI low-res data:\n")
 print(df.head())
-print(datetime.now())
+print(datetime.datetime.now())

@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-from src import utils
+import utils
 
 # ### Omni data
 # 6-hour averages, first processed and saved to `.pkl` file by `process_data_omni.py`
