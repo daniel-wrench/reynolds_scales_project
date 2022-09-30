@@ -42,6 +42,22 @@ df = pd.concat([
         for sub in file_paths
     ]).sort_index()
 
+
+for sub in file_paths:
+    for cdf_file_name in sub:
+        try:
+            temp_df = pipeline(
+                cdf_file_name, 
+                varlist=['Epoch', 'BF1', 'BGSE'], 
+                cadence='0.091S'
+            )
+            df.concat(temp_df)
+        except:
+            nan_df = pd.DataFrame # empty dataframe
+            df.concat(nan_df)
+
+# df.sort_index ...
+
 df.to_pickle(project_path + 'data/processed/wi_h2_mfi_hr.pkl')
 
 print("\n\nProcessed Wind MFI high-res data:\n")

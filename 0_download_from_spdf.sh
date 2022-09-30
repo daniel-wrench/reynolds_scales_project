@@ -1,19 +1,8 @@
 #!/bin/bash -e
 
-## NEED TO INCREASE TIME FOR WIND MFI DATA ##
-
-#SBATCH --job-name          0_download_from_spdf
-#SBATCH --partition         quicktest
-##SBATCH --nodelist          spj01
-#SBATCH --mem-per-cpu       1G
-#SBATCH --cpus-per-task     1
-#SBATCH --time              00:15:00
-#SBATCH --output            %x_%j.out
-#SBATCH --error             %x_%j.err
-#SBATCH --mail-type	    BEGIN, END, FAIL
-#SBATCH --mail-user	    daniel.wrench@vuw.ac.nz
-
 ######## FOR BULK DOWNLOADING FROM NASA'S SPACE PHYSICS DATA FACILITY (CDAWEB) ########
+
+# Currently run in an interactive Rāpoi session
 
 # Use the following to download a sequence of files from a single directory
 ## (Currently downloading 1 week worth of data)
