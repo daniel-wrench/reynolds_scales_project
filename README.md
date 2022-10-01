@@ -4,7 +4,7 @@
 
 ## To-do
 
-1. Streamline the notebook, that does draw on the final database by reading in the spectral indices
+1. Streamline the notebook, that does draw on the final database by reading in the spectral indices and params
 2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
 2. Check results and Bash scripting with Tulasi, check for efficiency.
 2. Run pipeline on as much data as possible.

@@ -11,16 +11,16 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 import utils
+import params
 
-# ### Omni data
-# 6-hour averages, first processed and saved to `.pkl` file by `process_data_omni.py`
+# Omni data
 
-df_omni = pd.read_pickle("data/processed/omni_12hr.pkl")
+df_omni = pd.read_pickle("data/processed/" + params.omni_path + params.int_size + ".pkl")
 df_omni = df_omni.rename(
     columns={
-        'flow_speed':'vsw',
-        'Pressure':'p',
-        'F':'Bomni'})
+        params.vsw:'vsw',
+        params.p:'p',
+        params.Bomni:'Bomni'})
 
 # Demonstrating use of Units features from `astropy` package (not currently used)
 
@@ -36,67 +36,62 @@ df_omni = df_omni.rename(
 # omni_table
 
 
-# ### Wind electron data
+# Electron data
 # 6-hour averages, first processed and saved to .pkl file in process_data_wind_electrons.py
 
-
-df_electrons = pd.read_pickle('data/processed/wi_elm2_3dp_12hr.pkl')
-df_electrons.columns = df_electrons.columns.str.lower()
+df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + ".pkl")
 df_electrons = df_electrons.rename(
     columns={
-        'density':'ne',
-        'avgtemp':'Te'
+        params.ne:'ne',
+        params.Te:'Te'
 })
 
 
-# ### Wind proton data
-# 12-hour averages, first processed and saved to .pkl file in process_data_wind_protons.py
+# Proton data
 
-df_protons = pd.read_pickle("data/processed/wi_plsp_3dp_12hr.pkl")
-df_protons.columns = df_protons.columns.str.lower()
+df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + ".pkl")
 df_protons = df_protons.rename(
     columns={
-        'mom.p.density':'ni',
-        'mom.p.avgtemp':'Ti'})
+        params.ni:'ni',
+        params.Ti:'Ti'})
 
 
 df = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
 df = utils.join_dataframes_on_timestamp(df, df_protons)
 
 # ### Wind magnetic field data
-# 11Hz data (resampled slightly to dt = 0.091s)
-large_wind_df_hr = pd.read_pickle("data/processed/wi_h2_mfi_hr.pkl")
-large_wind_df_hr = large_wind_df_hr.rename(
+# High-res data
+df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + ".pkl")
+df_wind_hr = df_wind_hr.rename(
     columns={
-        'BF1':'Bwind',
-        'BGSE_0':'Bx',
-        'BGSE_1':'By',
-        'BGSE_2':'Bz'})
+        params.Bwind:'Bwind',
+        params.Bx:'Bx',
+        params.By:'By',
+        params.Bz:'Bz'})
 
 print("\nHigh-res Wind dataframe:\n")
-print(large_wind_df_hr.info())
-print(large_wind_df_hr.describe().round(2))
+print(df_wind_hr.info())
+print(df_wind_hr.describe().round(2))
 
-# Adding magnetic field fluctuations (just going as far as calculating $db$ for now)
+# Adding magnetic field fluctuations (just going as far as calculating db for now)
 
-dbx = large_wind_df_hr["Bx"] - large_wind_df_hr["Bx"].mean()
-dby = large_wind_df_hr["By"] - large_wind_df_hr["By"].mean()
-dbz = large_wind_df_hr["Bz"] - large_wind_df_hr["Bz"].mean()
+dbx = df_wind_hr["Bx"] - df_wind_hr["Bx"].mean()
+dby = df_wind_hr["By"] - df_wind_hr["By"].mean()
+dbz = df_wind_hr["Bz"] - df_wind_hr["Bz"].mean()
 db = np.sqrt(dbx**2+dby**2+dbz**2).rename("db")
 
-#B0 = np.sqrt(large_wind_df_hr["BGSE_0"].mean()**2 + large_wind_df_hr["BGSE_1"].mean()**2 + large_wind_df_hr["BGSE_2"].mean()**2)
+#B0 = np.sqrt(df_wind_hr["BGSE_0"].mean()**2 + df_wind_hr["BGSE_1"].mean()**2 + df_wind_hr["BGSE_2"].mean()**2)
 #dboB0 = db/B0
 
-# Taking the mean for each 12-hour interval to add as a column to the final dataframe, then dropping these columns from the original df
+# Taking the mean for interval to add as a column to the final dataframe, then dropping these columns from the original df
 
-turb_fluc_hr = db.resample("12H").mean()
-b0_hr = large_wind_df_hr["Bwind"].resample("12H").mean()
+turb_fluc_hr = db.resample(params.int_size).mean()
+b0_hr = df_wind_hr["Bwind"].resample(params.int_size).mean()
 
 df = utils.join_dataframes_on_timestamp(df, turb_fluc_hr)
 df = utils.join_dataframes_on_timestamp(df, b0_hr)
 
-# ## Calculating analytically-derived variables
-
+# Calculating analytically-derived variables
 
 df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
 df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
@@ -107,36 +102,35 @@ df["betai"] = (4.03e-11)*df["ni"]*df["Ti"]*((df["Bwind"]*1e-5)**-2) # Ion plasma
 df["va"] = (2.18e6)*(df["ni"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
 df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
 
+# Low-res data
 
-# ### 0.2Hz data
-
-large_wind_df_lr = pd.read_pickle("data/processed/wi_h2_mfi_lr.pkl")
-large_wind_df_lr = large_wind_df_lr.rename(
+df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + ".pkl")
+df_wind_lr = df_wind_lr.rename(
     columns={
-        'BF1':'Bwind',
-        'BGSE_0':'Bx',
-        'BGSE_1':'By',
-        'BGSE_2':'Bz'})
+        params.Bwind:'Bwind',
+        params.Bx:'Bx',
+        params.By:'By',
+        params.Bz:'Bz'})
 
 print("\nLow-res Wind dataframe:\n")
-print(large_wind_df_lr.info())
-print(large_wind_df_lr.describe().round(2))
+print(df_wind_lr.info())
+print(df_wind_lr.describe().round(2))
 
-# ## Constructing the final dataframe
+## Constructing the final dataframe
 
-# Splitting entire dataframe into a list of 12-hour intervals
+# Splitting entire dataframe into a list of intervals
 
 wind_df_hr_list = []
 wind_df_lr_list = []
 
-start = pd.to_datetime("2016-01-01 00:00")
-fin = pd.to_datetime("2016-01-01 11:59:59.99") 
+starttime = df_wind_lr.index[0] # E.g. 2016-01-01 00:00
+endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S") # E.g. 2016-01-01 11:59:59.99
 
-n_int = np.round((large_wind_df_lr.index[-1]-large_wind_df_lr.index[0])/pd.to_timedelta("12H")).astype(int)
+n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0])/pd.to_timedelta(params.int_size)).astype(int)
 
 for i in np.arange(n_int).tolist():
-    wind_df_lr_list.append(large_wind_df_lr[(start + datetime.timedelta(hours=i*12)):(fin + datetime.timedelta(hours=i*12))])
-    wind_df_hr_list.append(large_wind_df_hr[(start + datetime.timedelta(hours=i*12)):(fin + datetime.timedelta(hours=i*12))])
+    wind_df_lr_list.append(df_wind_lr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
+    wind_df_hr_list.append(df_wind_hr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
 
 print("\n\nNumber of high-res Wind intervals = {}".format(len(wind_df_hr_list)))
 print("First high-res Wind interval:\n")
@@ -149,7 +143,6 @@ print(wind_df_lr_list[0].info())
 print(wind_df_lr_list[0].head())
 
 # Computing ACFs for each low-res interval
-dt_lr = 5
 
 acf_lr_list = []
 
@@ -160,7 +153,7 @@ for i in np.arange(len(wind_df_lr_list)):
     time_lags_lr, acf = utils.compute_nd_acf(
         np.array([wind_df_lr_list[i].Bx, wind_df_lr_list[i].By, wind_df_lr_list[i].Bz]), 
         nlags = 2000, 
-        dt=dt_lr)
+        dt=float(params.dt_lr[:-1])) # Removing "S" from end
 
     acf_lr_list.append(acf)
 
@@ -170,8 +163,6 @@ plt.show()
 
 # Computing ACFs and spectral statistics for each high-res interval
 # ~1min per interval due to spectrum smoothing algorithm
-
-dt_hr = 0.091
 
 acf_hr_list = []
 inertial_slope_list = []
@@ -189,7 +180,7 @@ for i in np.arange(len(wind_df_hr_list)):
             wind_df_hr_list[i].Bz
         ]),
         nlags=100,
-        dt=dt_hr)
+        dt=float(params.dt_hr[:-1]))
 
     acf_hr_list.append(acf)
 
@@ -199,9 +190,9 @@ for i in np.arange(len(wind_df_hr_list)):
             wind_df_hr_list[i].By, 
             wind_df_hr_list[i].Bz
         ]),
-        dt=dt_hr,
-        f_min_inertial=0.01, f_max_inertial=0.2,
-        f_min_kinetic=0.5, f_max_kinetic=2,
+        dt=float(params.dt_hr[:-1]),
+        f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+        f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic,
         show=False)
 
     inertial_slope_list.append(slope_i)
@@ -255,8 +246,8 @@ for i in range(len(acf_hr_list)):
     taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
         time_lags=time_lags_hr,
         acf=acf_hr_list[i],
-        tau_min=10,
-        tau_max=50)
+        tau_min=params.tau_min,
+        tau_max=params.tau_max)
 
     taylor_scale_u_list.append(taylor_scale_u)
     taylor_scale_u_std_list.append(taylor_scale_u_std)
@@ -264,8 +255,8 @@ for i in range(len(acf_hr_list)):
     taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
         time_lags=time_lags_hr,
         acf=acf_hr_list[i],
-        tau_min=10,
-        tau_max=50,
+        tau_min=params.tau_min,
+        tau_max=params.tau_max,
         q=kinetic_slope_list[i])
 
     taylor_scale_c_list.append(taylor_scale_c)

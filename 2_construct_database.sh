@@ -8,8 +8,6 @@
 #SBATCH --time              04:00:00
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
-#SBATCH --mail-type	    BEGIN, END, FAIL
-#SBATCH --mail-user	    daniel.wrench@vuw.ac.nz
 
 ## For running locally
 #source venv/Scripts/activate

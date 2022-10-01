@@ -16,16 +16,16 @@
 module load python/3.8.1
 source venv/bin/activate
 
-#python process_data_omni.py
-#python process_data_wind_electrons.py
-#python process_data_wind_protons.py
+python process_raw_data.py omni_path omni_vars omni_thresh int_size
+python process_raw_data.py electron_path electron_vars electron_thresh int_size
+python process_raw_data.py proton_path proton_vars proton_thresh int_size
 
 # 3min per day to run on 5 cores
 # 200MB per day in final output file
-python process_data_wind_mfi_hr.py
+python process_raw_data.py mag_path mag_vars mag_thresh dt_hr
 
 # 3min per day to run on 5 cores, 300MB memory utilised
 # 0.4MB per day in final output file
-python process_data_wind_mfi_lr.py
+python process_raw_data.py mag_path mag_vars mag_thresh dt_lr
 
 echo "FINISHED"
