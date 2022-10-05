@@ -76,10 +76,12 @@ for sub in file_paths:
             nan_df = pd.DataFrame({})  # empty dataframe
             df = pd.concat([df, nan_df])
 
+df = df.sort_index().asfreq(sys_arg_dict[sys.argv[4]])
 df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
 
 print("\nProcessed {} data at {} cadence:\n".format(
     sys_arg_dict[sys.argv[1]], sys_arg_dict[sys.argv[4]]))
+print(df.info())
 print(df.head())
 print("\n")
 print(datetime.datetime.now())
