@@ -1,11 +1,11 @@
 #!/bin/bash -e
 
 #SBATCH --job-name          2_construct_database
-#SBATCH --partition         parallel
+#SBATCH --partition         quicktest
 ##SBATCH --nodelist          spj01
 #SBATCH --mem-per-cpu       2G
 #SBATCH --cpus-per-task     2
-#SBATCH --time              04:00:00
+#SBATCH --time              02:00:00
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
 
