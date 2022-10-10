@@ -304,7 +304,6 @@ utils.compute_outer_scale_exp_fit(
         seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==df_complete["tcf"].min(), "tce"]),
         save=True,
         figname="tcf_smallest")
-plt.close()
 
 # ~ Median tcf
 median_ish = df_complete.sort_values("tcf").reset_index()["tcf"][round(len(acf_hr_list)/2)] # Fix index
@@ -315,7 +314,6 @@ utils.compute_outer_scale_exp_fit(
         seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==median_ish, "tce"]),
         save=True,
         figname="tcf_median")
-plt.close()
 
 # Largest tcf
 utils.compute_outer_scale_exp_fit(
@@ -324,14 +322,11 @@ utils.compute_outer_scale_exp_fit(
         seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==df_complete["tcf"].max(), "tce"]),
         save=True,
         figname="tcf_largest")
-plt.close()
-
 
 # Smallest ttc acf
 plt.plot(time_lags_hr,acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].min()][0]])
 plt.title("ttc_smallest_acf")
 plt.savefig("data/processed/ttc_smallest_acf.png", bbox_inches='tight')
-plt.clf()
 plt.close()
 
 # Smallest ttc fitting
@@ -343,8 +338,6 @@ utils.compute_taylor_chuychai(
         q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].min()][0]],
         save=True,
         figname="ttc_smallest")
-plt.clf()
-plt.close()
 
 # ~ Median ttc acf
 median_ish = df_complete.sort_values("ttc").reset_index()["ttc"][round(len(acf_hr_list)/2)]
@@ -352,7 +345,6 @@ median_ish = df_complete.sort_values("ttc").reset_index()["ttc"][round(len(acf_h
 plt.plot(time_lags_hr, acf_hr_list[df_complete.index[df_complete["ttc"]==median_ish][0]])
 plt.title("median_ttc_acf")
 plt.savefig("data/processed/ttc_median_acf.png", bbox_inches='tight')
-plt.clf()
 plt.close()
 
 # ~ Median ttc fitting
@@ -364,14 +356,11 @@ utils.compute_taylor_chuychai(
         q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==median_ish][0]],
         save=True,
         figname="ttc_median")
-plt.clf()
-plt.close()
 
 # Largest ttc acf
 plt.plot(time_lags_hr, acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].max()][0]])
 plt.title("largest_ttc_acf")
 plt.savefig("data/processed/ttc_largest_acf.png", bbox_inches='tight')
-plt.clf()
 plt.close()
 
 # Largest ttc fitting
@@ -383,8 +372,6 @@ utils.compute_taylor_chuychai(
         q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].max()][0]],
         save=True,
         figname="ttc_largest")
-plt.clf()
-plt.close()
 
 print("\nFINISHED")
 print("##################################")

@@ -21,4 +21,4 @@ date
 
 python construct_database.py
 
-echo "FINISHED"
+date

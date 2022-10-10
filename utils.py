@@ -428,7 +428,7 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False, save
         plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
     if show == True:
         plt.show()
-    
+    plt.close()
     return lambda_c
 
 def compute_outer_scale_integral(time_lags, acf, show=False):
@@ -640,7 +640,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False
         plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
     if show == True:
         plt.show()
-
+    plt.close()
     return ts_est, ts_est_std
 
 
