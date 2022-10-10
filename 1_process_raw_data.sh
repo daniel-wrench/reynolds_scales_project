@@ -19,14 +19,11 @@ source venv/bin/activate
 echo "JOB STARTED"
 date
 
-#python process_raw_data.py omni_path omni_vars omni_thresh int_size
-#python process_raw_data.py electron_path electron_vars electron_thresh int_size
-#python process_raw_data.py proton_path proton_vars proton_thresh int_size
+python process_raw_data.py omni_path omni_vars omni_thresh int_size None
+python process_raw_data.py electron_path electron_vars electron_thresh int_size None
+python process_raw_data.py proton_path proton_vars proton_thresh int_size None
 
 # 4min and 100MB per day/file
-python process_raw_data.py mag_path mag_vars mag_thresh dt_hr
-
-# 4min and 2MB per day/file (but 50MB when reading in raw data)
-python process_raw_data.py mag_path mag_vars mag_thresh dt_lr
+python process_raw_data.py mag_path mag_vars mag_thresh dt_hr dt_lr
 
 echo "FINISHED"

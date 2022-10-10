@@ -25,9 +25,11 @@ sys_arg_dict = {
     "electron_thresh": params.electron_thresh,
 
     # arg4
-    "dt_lr": params.dt_lr,
     "dt_hr": params.dt_hr,
-    "int_size": params.int_size
+    "int_size": params.int_size,
+
+    # arg5
+    "dt_lr": params.dt_lr
 }
 
 input_dir = 'data/raw/' + sys_arg_dict[sys.argv[1]]
@@ -40,23 +42,22 @@ if not os.path.exists(output_dir):
 
 
 def get_subfolders(path):
-    return glob.glob(path + '/*')
+    return sorted(glob.glob(path + '/*'))
 
 
 def get_cdf_paths(subfolder):
-    return glob.iglob(subfolder + '/*.cdf')
-
+    return sorted(glob.iglob(subfolder + '/*.cdf'))
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
     input_dir)]
 
 # View raw CDF info
 
-# cdf = read_cdf(next(file_paths[0]))
+# cdf = read_cdf(file_paths[0][0])
 # pprint(cdf.cdf_info())
 
-# cdf.varattsget(variable='F', expand=True)
-# cdf.varget("F")
+# pprint(cdf.varattsget(variable='BGSE', expand=True))
+# cdf.varget("Epoch")
 
 df = pd.DataFrame({})
 
@@ -79,12 +80,31 @@ for sub in file_paths:
             nan_df = pd.DataFrame({})  # empty dataframe
             df = pd.concat([df, nan_df])
 
-df = df.sort_index().asfreq(sys_arg_dict[sys.argv[4]])
+# Ensuring observations are in chronological order
+df = df.sort_index() 
+# NB: Using .asfreq() creates NA values
+
 df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
 
 print("\nProcessed {} data at {} cadence:\n".format(
     sys_arg_dict[sys.argv[1]], sys_arg_dict[sys.argv[4]]))
 print(df.info())
 print(df.head())
-print("\n")
+print("\nChecking for missing data:")
+print(df.isna().sum()/len(df))
+print("##################################\n")
 print(datetime.datetime.now())
+
+# Also outputting pickle at second resolution, if specified
+if sys.argv[5] !="None":
+    df =df.resample(sys_arg_dict[sys.argv[5]]).mean()
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+
+    print("\nProcessed {} data at {} cadence:\n".format(
+    sys_arg_dict[sys.argv[1]], sys_arg_dict[sys.argv[5]]))
+    print(df.info())
+    print(df.head())
+    print("\nChecking for missing data:")
+    print(df.isna().sum()/len(df))
+    print("##################################\n")
+    print(datetime.datetime.now())

@@ -33,7 +33,7 @@ mag_thresh=     None
 
 dt_lr=          "5S"
 nlags_lr=       2000
-dt_hr=          "0.091S"
+dt_hr=          "0.092S"
 nlags_hr=       100
 f_min_inertial= 0.01
 f_max_inertial= 0.2
