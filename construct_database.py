@@ -152,14 +152,15 @@ for i in np.arange(len(wind_df_lr_list)):
 
     time_lags_lr, acf = utils.compute_nd_acf(
         np.array([wind_df_lr_list[i].Bx, wind_df_lr_list[i].By, wind_df_lr_list[i].Bz]), 
-        nlags = 2000, 
+        nlags = params.nlags_lr, 
         dt=float(params.dt_lr[:-1])) # Removing "S" from end
 
     acf_lr_list.append(acf)
 
 for acf in acf_lr_list:
     plt.plot(acf)
-plt.show()
+plt.savefig("data/processed/all_acfs_lr.png")
+plt.close()
 
 # Computing ACFs and spectral statistics for each high-res interval
 # ~1min per interval due to spectrum smoothing algorithm
@@ -179,7 +180,7 @@ for i in np.arange(len(wind_df_hr_list)):
             wind_df_hr_list[i].By,
             wind_df_hr_list[i].Bz
         ]),
-        nlags=100,
+        nlags=params.nlags_hr,
         dt=float(params.dt_hr[:-1]))
 
     acf_hr_list.append(acf)
@@ -201,7 +202,9 @@ for i in np.arange(len(wind_df_hr_list)):
 
 for acf in acf_hr_list:
    plt.plot(acf)
-plt.show()
+plt.savefig("data/processed/all_acfs_hr.png")
+plt.close()
+
 # Computing scales for each interval
 
 corr_scale_exp_fit_list = []
@@ -291,10 +294,97 @@ print(df_complete.info())
 df_complete.to_csv("data/processed/db_wind.csv", index=False)
 stats.to_csv("data/processed/db_wind_summary_stats.csv")
 
+## Outputting some plots of the ACF and fitting for extreme and middle values of each scale
+## Can use to valuate the current settings of these numerical methods
+
+# Smallest tcf
+utils.compute_outer_scale_exp_fit(
+        time_lags=time_lags_lr,
+        acf=acf_lr_list[df_complete.index[df_complete["tcf"]==df_complete["tcf"].min()][0]],
+        seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==df_complete["tcf"].min(), "tce"]),
+        save=True,
+        figname="tcf_smallest")
+plt.close()
+
+# ~ Median tcf
+median_ish = df_complete.sort_values("tcf").reset_index()["tcf"][round(len(acf_hr_list)/2)] # Fix index
+
+utils.compute_outer_scale_exp_fit(
+        time_lags=time_lags_lr,
+        acf=acf_lr_list[df_complete.index[df_complete["tcf"]==median_ish][0]],
+        seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==median_ish, "tce"]),
+        save=True,
+        figname="tcf_median")
+plt.close()
+
+# Largest tcf
+utils.compute_outer_scale_exp_fit(
+        time_lags=time_lags_lr,
+        acf=acf_lr_list[df_complete.index[df_complete["tcf"]==df_complete["tcf"].max()][0]],
+        seconds_to_fit=np.round(2*df_complete.loc[df_complete["tcf"]==df_complete["tcf"].max(), "tce"]),
+        save=True,
+        figname="tcf_largest")
+plt.close()
+
+
+# Smallest ttc acf
+plt.plot(time_lags_hr,acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].min()][0]])
+plt.title("ttc_smallest_acf")
+plt.savefig("data/processed/ttc_smallest_acf.png", bbox_inches='tight')
+plt.clf()
+plt.close()
+
+# Smallest ttc fitting
+utils.compute_taylor_chuychai(
+        time_lags=time_lags_hr,
+        acf=acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].min()][0]],
+        tau_min=10,
+        tau_max=50,
+        q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].min()][0]],
+        save=True,
+        figname="ttc_smallest")
+plt.clf()
+plt.close()
+
+# ~ Median ttc acf
+median_ish = df_complete.sort_values("ttc").reset_index()["ttc"][round(len(acf_hr_list)/2)]
+
+plt.plot(time_lags_hr, acf_hr_list[df_complete.index[df_complete["ttc"]==median_ish][0]])
+plt.title("median_ttc_acf")
+plt.savefig("data/processed/ttc_median_acf.png", bbox_inches='tight')
+plt.clf()
+plt.close()
+
+# ~ Median ttc fitting
+utils.compute_taylor_chuychai(
+        time_lags=time_lags_hr,
+        acf=acf_hr_list[df_complete.index[df_complete["ttc"]==median_ish][0]],
+        tau_min=10,
+        tau_max=50,
+        q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==median_ish][0]],
+        save=True,
+        figname="ttc_median")
+plt.clf()
+plt.close()
+
+# Largest ttc acf
+plt.plot(time_lags_hr, acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].max()][0]])
+plt.title("largest_ttc_acf")
+plt.savefig("data/processed/ttc_largest_acf.png", bbox_inches='tight')
+plt.clf()
+plt.close()
+
+# Largest ttc fitting
+utils.compute_taylor_chuychai(
+        time_lags=time_lags_hr,
+        acf=acf_hr_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].max()][0]],
+        tau_min=10,
+        tau_max=50,
+        q=kinetic_slope_list[df_complete.index[df_complete["ttc"]==df_complete["ttc"].max()][0]],
+        save=True,
+        figname="ttc_largest")
+plt.clf()
+plt.close()
+
 print("\nFINISHED")
 print("##################################")
-
-
-# Let's use the min, median and max values of the **correlation scale (exp fit method)** to evaluate the current settings of the exponential fit function
-
-# (see notebook)

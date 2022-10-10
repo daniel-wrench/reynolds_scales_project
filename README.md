@@ -2,10 +2,14 @@
 
 ## Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft
 
+## In progress
+
+- Adding to construct_database.py to return plots of certain acfs for parameter evaluation.
+- Testing speed of MFI data processing in parallel partition (spacejam) with 10 CPUs. Processing the MFI data takes 3 times as long in Rāpoi (at least in quicktest partition with 2-5 CPUs) as it does locally. Currently testing in parallel with 10 CPUs.
+
 ## To-do
 
-1. Streamline the notebook, that does draw on the final database by reading in the spectral indices and params (simply compare with construct_database.py)
-2. Run latest 1_process_data_raw.sh *locally*, with [:3] specification (check enough OMNI). Check length of time for local, especially comparing mfi_h2 durations.
+1. Streamline the notebook, that does draw on the final database by reading in the spectral indices and params (simply compare with construct_database.py). **Just need to remove the final review chunks**
 2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
 2. Check results and Bash scripting with Tulasi, check for efficiency.
 2. Run pipeline on as much data as possible.

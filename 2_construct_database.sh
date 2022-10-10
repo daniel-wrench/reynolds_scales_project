@@ -10,11 +10,14 @@
 #SBATCH --error             %x_%j.err
 
 ## For running locally
-#source venv/Scripts/activate
+source venv/Scripts/activate
 
 ## For running in Raapoi
-module load python/3.8.1
-source venv/bin/activate
+#module load python/3.8.1
+#source venv/bin/activate
+
+echo "JOB STARTED"
+date
 
 python construct_database.py
 

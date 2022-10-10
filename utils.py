@@ -378,7 +378,7 @@ def para_fit(x, a):
     return a*x**2 + 1
 
 
-def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False):
+def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False, save=False, figname=""):
 
     dt = time_lags[1]-time_lags[0]
     num_lags_for_lambda_c_fit = int(seconds_to_fit/dt)
@@ -388,42 +388,45 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False):
 
 
     # Optional plotting
-    if show == True:
 
-        fig, ax = plt.subplots()
-        ax.plot(time_lags, acf, label = "Autocorrelation")
-        ax.plot(
+    fig, ax = plt.subplots()
+    ax.plot(time_lags, acf, label = "Autocorrelation")
+    ax.plot(
+        np.array(range(int(seconds_to_fit))),
+        exp_fit(
             np.array(range(int(seconds_to_fit))),
-            exp_fit(
-                np.array(range(int(seconds_to_fit))),
-                *c_opt
-            ),
-            'r-', 
-            label = "Exponential fit")
-        
-        ax.set_xlabel('$\\tau$ (sec)')
-        ax.set_ylabel('Autocorrelation')
+            *c_opt
+        ),
+        label = "Exponential fit")
+    ax.set_xlabel('$\\tau$ (sec)')
+    ax.set_ylabel('Autocorrelation')
 
-        # For plotting secondary axes
-        def sec2lag(x):
-            return x / dt
+    # For plotting secondary axes
+    def sec2lag(x):
+        return x / dt
 
-        def lag2sec(x):
-            return x * dt
+    def lag2sec(x):
+        return x * dt
 
-        secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
-        secax_x.set_xlabel('$\\tau$ (lag)')
+    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+    secax_x.set_xlabel('$\\tau$ (lag)')
 
-        def sec2km(x):
-            return x * 400
+    def sec2km(x):
+        return x * 400
 
-        def km2sec(x):
-            return x / 400
+    def km2sec(x):
+        return x / 400
 
-        # use of a float for the position:
-        secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r$ (km)')
-        ax.legend()
+    # use of a float for the position:
+    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+    secax_x2.set_xlabel('$r$ (km)')
+
+    ax.legend()
+    ax.set_title("{}: {:.2f}".format(figname, lambda_c))
+
+    if save == True:
+        plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
+    if show == True:
         plt.show()
     
     return lambda_c
@@ -545,7 +548,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = F
 
     return lambda_t
 
-def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False):
+def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False, save=False, figname=""):
     """Compute a refined estimate of the Taylor microscale using a linear extrapolation method from Chuychai et al. (2014).
 
     Args:
@@ -597,40 +600,48 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False
     ts_est_std = r*ts_est_extra_std
 
     # Optional plotting
+    fig, ax = plt.subplots()
+    ax.plot(tau_fit*dt, tau_ts, color="blue",
+                label="Range over which $\\tau_{TS}$ was calculated")
+    ax.plot(other_x*dt, other_y, color="black",
+                label="Linear extrapolation to $\\tau_{fit}$=0", ls='--')
+    if q is not None:
+        ax.plot(0, ts_est, "go", label = "Final estimate with correction ratio applied (q={0:.2f})".format(q))
+        #ax.plot(0, ts_est_final_lower, "r+", markersize=1)
+        #ax.plot(0, ts_est_final_upper, "r+", markersize=1)
+    ax.set_xlabel("$\\tau_{fit}$ (sec)")
+    ax.set_ylabel("$\\tau_{fit}^{est}$ (sec)")
+
+    # For plotting secondary axes
+    def sec2lag(x):
+        return x / dt
+
+    def lag2sec(x):
+        return x * dt
+
+    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+    secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
+
+    def sec2km(x):
+        return x * 400
+
+    def km2sec(x):
+        return x / 400
+
+    # use of a float for the position:
+    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+    secax_x2.set_xlabel('$r_{fit}$ (km)')
+    
+    plt.legend()
+    
+    ax.set_title("{}: {:.2f}".format(figname, ts_est))
+
+    if save == True:
+        plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
     if show == True:
-        fig, ax = plt.subplots()
-        ax.plot(tau_fit*dt, tau_ts, color="blue",
-                 label="Range over which $\\tau_{TS}$ was calculated")
-        ax.plot(other_x*dt, other_y, color="black",
-                 label="Linear extrapolation to $\\tau_{fit}$=0", ls='--')
-        if q is not None:
-            ax.plot(0, ts_est, "go", label = "Final estimate with correction ratio applied (q={0:.2f})".format(q))
-            #ax.plot(0, ts_est_final_lower, "r+", markersize=1)
-            #ax.plot(0, ts_est_final_upper, "r+", markersize=1)
-        ax.set_xlabel("$\\tau_{fit}$ (sec)")
-        ax.set_ylabel("$\\tau_{fit}^{est}$ (sec)")
-
-        # For plotting secondary axes
-        def sec2lag(x):
-            return x / dt
-
-        def lag2sec(x):
-            return x * dt
-
-        secax_x = ax.secondary_xaxis('top', functions=(sec2lag, sec2lag))
-        secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
-
-        def sec2km(x):
-            return x * 400
-
-        def km2sec(x):
-            return x / 400
-
-        # use of a float for the position:
-        secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r_{fit}$ (km)')
-        
-        plt.legend()
         plt.show()
 
     return ts_est, ts_est_std
+
+
+
