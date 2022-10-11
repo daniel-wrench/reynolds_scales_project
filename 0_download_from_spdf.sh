@@ -14,7 +14,6 @@
 
 # Use the following to download all CDF files and sub-directories from a directory, removing the first two directories from the saved filepath
 ## In Raapoi terminal: 10.7MB/s
-## In parallel partition: 13.7MB/s
 
 wget --directory-prefix=data/raw/ --recursive -np -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/2016/
 wget --directory-prefix=data/raw/ --recursive -np -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/2016/
