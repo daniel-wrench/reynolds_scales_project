@@ -2,7 +2,7 @@
 
 ######## FOR BULK DOWNLOADING FROM NASA'S SPACE PHYSICS DATA FACILITY (CDAWEB) ########
 
-# Currently run in an interactive Rāpoi session
+# Currently run in an interactive Rāpoi session using tmux
 
 # Use the following to download a sequence of files from a single directory
 ## (Currently downloading 1 week worth of data)

@@ -4,12 +4,15 @@ library(corrplot)
 library(tidyverse)
 library(lares)
 
-data_raw <- read.csv("~/Research/reynolds_scales_project/data/processed/df_complete.csv")
-data_clean <- data_raw[1:52,2:ncol(data_raw)]
-data_clean <- relocate(data_clean, c(taylor_scale, taylor_scale_kevin, corr_scale_int, corr_scale_exp_fit, corr_scale_exp_trick))
-corrmatrix <- data_clean %>% cor(use="complete.obs")
+# Session -> Set Working Directory -> To Source File Location
+data_raw <- read.csv("data/processed/db_wind.csv")
 
-# Bad example
+#
+data <- data_raw |> select(-c(Timestamp, ttu_std, ttc_std))
+data <- data |> relocate(c(ttc, ttu, ttk, tce, tcf, tci))
+corrmatrix <- data |>  cor(use="complete.obs")
+
+# Ordered according to variable order
 corrplot(corrmatrix, 
          method = "color", 
          addCoef.col="black", 
@@ -23,7 +26,7 @@ corrplot(corrmatrix,
          mar=c(0,0,1,0)
          )
 
-# Good example
+# Ordered according to correlation
 corrplot(corrmatrix, 
          method = "color", 
          addCoef.col="black", 
@@ -37,9 +40,9 @@ corrplot(corrmatrix,
          mar=c(0,0,1,0)
 )
 
-corr_cross(data_clean,
-           #max_pvalue = 0.05, # display only significant correlations (at 5% level)
+corr_cross(data,
+           max_pvalue = 0.05, # display only significant correlations (at 5% level)
            top = 10
 )
 
-corr_var(data_clean, taylor_scale)
+corr_var(data, ttc)
