@@ -3,8 +3,8 @@
 #SBATCH --job-name          1_process_raw_data
 #SBATCH --partition         quicktest
 ##SBATCH --nodelist          spj01
-#SBATCH --mem-per-cpu       4G
-#SBATCH --cpus-per-task     2
+#SBATCH --mem		    2G
+#SBATCH --cpus-per-task     6
 #SBATCH --time              00:30:00
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
