@@ -1,4 +1,4 @@
-# Parameters for processing data
+# Filepaths, variable names, variable thresholds
 
 timestamp=      "Epoch"
 int_size=       "12H"
@@ -30,6 +30,8 @@ Bx=             "BGSE_0"
 By=             "BGSE_1"
 Bz=             "BGSE_2"
 mag_thresh=     None
+
+# Parameters for estimating numerical variables
 
 dt_lr=          "5S"
 nlags_lr=       2000

@@ -62,10 +62,10 @@ file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
 df = pd.DataFrame({})
 
 for sub in file_paths:
-    # If you want to test on only n files in the directory, change the below to 
-    for cdf_file_name in list(sub)[:3]:
-    # (otherwise I think this generator object is faster)
-    #for cdf_file_name in sub:
+    # If you want to test on only (e.g.) 3 files in the directory, change the below to 
+    #for cdf_file_name in list(sub)[:3]:
+    # Otherwise I think this generator object is faster
+    for cdf_file_name in sub:
         print("Reading " + cdf_file_name)
         try:
             temp_df = pipeline(

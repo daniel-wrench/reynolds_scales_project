@@ -1,19 +1,22 @@
 # README
-
-## Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft
-
-## In progress
-
-- Adding to construct_database.py to return plots of certain acfs for parameter evaluation.
-- Testing speed of MFI data processing in parallel partition (spacejam) with 10 CPUs. Processing the MFI data takes 3 times as long in Rāpoi (at least in quicktest partition with 2-5 CPUs) as it does locally. Currently testing in parallel with 10 CPUs.
+Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft
 
 ## To-do
 
-1. Streamline the notebook, that does draw on the final database by reading in the spectral indices and params (simply compare with construct_database.py). **Just need to remove the final review chunks**
+1. Implement MPI for process_data.py
+- Move Taylor codes back to main directory
+- Commit changes
+- Pull here and do the following work:
+- Change nested for loops to single for loop upon list of all files
+- Ncores is argument to bash command: see `example_run.sh`
+- (You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`)  
+2. Talk to Andre about these speed differences??
 2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
-2. Check results and Bash scripting with Tulasi, check for efficiency.
+2. Check output plots against summary stats
+2. Prepare the correlation codes and plots
 2. Run pipeline on as much data as possible.
 2. Spearman correlation?
+2. Add energies?
 2. Once database and correlations are produced, reflect on next steps: do I work more with this data, or switch back to looking at the missing data problem?
 
 ## Background
@@ -23,7 +26,11 @@ Previously, **Kevin de Lange** created a smaller version of this dataset and inv
 We are now more rigorously estimating the Taylor scale to confirm or deny this correlation. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
 
 ## Data
-Magnetic field from Wind spacecraft, 2016-2020
+Time series of physical parameters of the solar wind.
+For more details see the variable lists in `params.py`
+- Wind spacecraft:
+-- Magnetic field strength: MFI H2
+-- Proton density and temperature: 3DP  
 Re-sampled to two different frequencies and split into 12-hour intervals.
 
 See `wind_database_metadata.xlsx` for description of variables.
@@ -36,13 +43,12 @@ See `wind_database_metadata.xlsx` for description of variables.
 2. (`pip install --upgrade pip`)
 2. `pip install -r requirements.txt`
 2. (`tmux new`)
-2. `srun --pty --cpus-per-task=2 --mem=1G --time=00:01:00 --partition=quicktest bash`
+2. `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
     
-    `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands. *If slow, check with Andre that quicktest is correct*
+    `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands.
 2. (`Ctrl-b, d`)
-2. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences.
-    - If more than 40% of values in any column are missing, skip data period.
-2. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **scale_funcs_demo.ipynb** for more on these). The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+2. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. **Takes ~10min/week running locally.** If more than 40% of values in any column are missing, skips that data file.
+2. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
 ---
 
