@@ -51,6 +51,11 @@ def get_cdf_paths(subfolder):
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
     input_dir)]
 
+file_list = []
+for sub in file_paths:
+    for cdf_file_name in sub:
+        file_list.append(cdf_file_name)
+
 # View raw CDF info
 
 # cdf = read_cdf(file_paths[0][0])
@@ -61,15 +66,12 @@ file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
 
 df = pd.DataFrame({})
 
-for sub in file_paths:
-    # If you want to test on only (e.g.) 3 files in the directory, change the below to 
-    #for cdf_file_name in list(sub)[:3]:
-    # Otherwise I think this generator object is faster
-    for cdf_file_name in sub:
-        print("Reading " + cdf_file_name)
+# A generator object might be faster here
+for file in file_list:
+    print("Reading " + file)
         try:
             temp_df = pipeline(
-                cdf_file_name,
+            file,
                 varlist=sys_arg_dict[sys.argv[2]],
                 thresholds=sys_arg_dict[sys.argv[3]],
                 cadence=sys_arg_dict[sys.argv[4]]
