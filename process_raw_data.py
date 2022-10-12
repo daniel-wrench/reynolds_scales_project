@@ -69,8 +69,6 @@ for sub in file_paths:
 # pprint(cdf.varattsget(variable='BGSE', expand=True))
 # cdf.varget("Epoch")
 
-n = comm.size
-
 # Getting list of lists of files for each core
 
 def getSublists(lst,n):
@@ -78,17 +76,16 @@ def getSublists(lst,n):
     for i in range(0, len(lst), subListLength):
         yield lst[i:i+subListLength]
 
-list_of_lists = list(getSublists(file_list,n))
+list_of_lists = list(getSublists(file_list,comm.size))
 
-if len(list_of_lists) != n:
-    print("Number of lists does not equal n!")
+if len(list_of_lists) != comm.size:
+    print("Number of lists does not equal number of cores!")
 
+# DOING THE PARALLEL STUFF
 my_list=list_of_lists[rank]
-# Iterating over each list, turning each CDF to a dataframe
 
 df = pd.DataFrame({})
 
-# A generator object might be faster here
 for file in my_list:
     print("Reading " + file)
     try:
@@ -129,33 +126,10 @@ for file in my_list:
         #     print("##################################\n")
         #     print(datetime.datetime.now())
 
-## Alt method
+#comm.Barrier()
 
-# subListLength = math.ceil(len(file_list)/n)
-# for i in range(0, len(file_list), subListLength):
-#     file_list_subset = file_list[i:i+subListLength]
-
-#     df = pd.DataFrame({})
-
-#     # A generator object might be faster here
-#     for file in file_list_subset:
-#         print("Reading " + file)
-#         try:
-#             temp_df = pipeline(
-#                 file,
-#                 varlist=[params.timestamp, params.vsw, params.p, params.Bomni],
-#                 thresholds=params.omni_thresh,
-#                 cadence=params.int_size
-#             )
-#             df = pd.concat([df, temp_df])
-#         except:
-#             print("Error reading CDF file; moving to next file")
-#             nan_df = pd.DataFrame({})  # empty dataframe
-#             df = pd.concat([df, nan_df])
-#         df.to_pickle(output_dir + params.int_size + "_" + str(i) + '.pkl')
-
-print(sys.argv[1])
-print("\nProcessed {} data at {} cadence\n".format(
-    params.omni_path, params.int_size))
-print("##################################\n")
-print(datetime.datetime.now())
+if rank == 0:
+    print("\nProcessed {} data at {} cadence using {} cores\n".format(
+        params.omni_path, params.int_size, comm.size))
+    print("##################################\n")
+    print(datetime.datetime.now())
