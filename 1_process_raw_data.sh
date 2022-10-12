@@ -13,7 +13,7 @@
 #source venv/Scripts/activate
 
 ## For running in Raapoi
-source ActivationPython.sh
+source ActivatePython.sh
 
 echo "JOB STARTED"
 date
