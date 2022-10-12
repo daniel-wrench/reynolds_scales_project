@@ -64,10 +64,25 @@ for sub in file_paths:
 # pprint(cdf.varattsget(variable='BGSE', expand=True))
 # cdf.varget("Epoch")
 
+n = 3
+
+#Getting list of lists of files for each core
+
+def getSublists(lst,n):
+    subListLength = math.ceil(len(lst)/n)
+    for i in range(0, len(lst), subListLength):
+        yield lst[i:i+subListLength]
+
+list_of_lists = list(getSublists(file_list,n))
+
+if len(list_of_lists) != n:
+    print("Number of lists does not equal n!")
+
+for i in range(n):
 df = pd.DataFrame({})
 
 # A generator object might be faster here
-for file in file_list:
+    for file in list_of_lists[i]:
     print("Reading " + file)
         try:
             temp_df = pipeline(
@@ -98,15 +113,33 @@ print("##################################\n")
 print(datetime.datetime.now())
 
 # Also outputting pickle at second resolution, if specified
-if sys.argv[5] !="None":
-    df =df.resample(sys_arg_dict[sys.argv[5]]).mean()
-    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+## Alt method
 
-    print("\nProcessed {} data at {} cadence:\n".format(
-    sys_arg_dict[sys.argv[1]], sys_arg_dict[sys.argv[5]]))
-    print(df.info())
-    print(df.head())
-    print("\nChecking for missing data:")
-    print(df.isna().sum()/len(df))
+# subListLength = math.ceil(len(file_list)/n)
+# for i in range(0, len(file_list), subListLength):
+#     file_list_subset = file_list[i:i+subListLength]
+
+#     df = pd.DataFrame({})
+
+#     # A generator object might be faster here
+#     for file in file_list_subset:
+#         print("Reading " + file)
+#         try:
+#             temp_df = pipeline(
+#                 file,
+#                 varlist=[params.timestamp, params.vsw, params.p, params.Bomni],
+#                 thresholds=params.omni_thresh,
+#                 cadence=params.int_size
+#             )
+#             df = pd.concat([df, temp_df])
+#         except:
+#             print("Error reading CDF file; moving to next file")
+#             nan_df = pd.DataFrame({})  # empty dataframe
+#             df = pd.concat([df, nan_df])
+#         df.to_pickle(output_dir + params.int_size + "_" + str(i) + '.pkl')
+
+
+print("\nProcessed {} data at {} cadence\n".format(
+    params.omni_path, params.int_size))
     print("##################################\n")
     print(datetime.datetime.now())
