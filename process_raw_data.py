@@ -129,7 +129,8 @@ for file in my_list:
         second_cadence = " and " + sys_arg_dict[sys.argv[5]]
     else:
         second_cadence = ""
-#comm.Barrier()
+
+comm.Barrier()
 
 if rank == 0:
     print("\nProcessed {} data at {} cadence using {} cores\n".format(
