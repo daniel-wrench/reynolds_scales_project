@@ -39,8 +39,8 @@ sys_arg_dict = {
     "dt_lr": params.dt_lr
 }
 
-input_dir = 'data/raw/' + params.omni_path
-output_dir = 'data/processed/' + params.omni_path
+input_dir = 'data/raw/' + sys_arg_dict[sys.argv[1]]
+output_dir = 'data/processed/' + sys_arg_dict[sys.argv[1]]
 
 # input directory will already have been created by download data script
 # output directory may still need to be created
@@ -60,6 +60,10 @@ file_list = []
 for sub in file_paths:
     for cdf_file_name in sub:
         file_list.append(cdf_file_name)
+
+####### REDUCING NUMBER OF FILES FOR TESTING #######
+file_list = file_list[:10]
+###################################################
 
 # View raw CDF info
 
@@ -91,9 +95,9 @@ for file in my_list:
     try:
         temp_df = pipeline(
             file,
-            varlist=[params.timestamp, params.vsw, params.p, params.Bomni],
-            thresholds=params.omni_thresh,
-            cadence=params.int_size
+            varlist=sys_arg_dict[sys.argv[2]],
+            thresholds=sys_arg_dict[sys.argv[3]],
+            cadence=sys_arg_dict[sys.argv[4]]
         )
         df = pd.concat([df, temp_df])
     except:
@@ -110,26 +114,27 @@ for file in my_list:
         print("MISSING DATA ALERT!")
         print(df.isna().sum()/len(df))
     
-    df.to_pickle(output_dir + params.int_size + "_{:03d}.pkl".format(rank))
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
 
-        # Also outputting pickle at second resolution, if specified
-        # if sys.argv[5] !="None":
-        #     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-        #     df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+        #Also outputting pickle at second resolution, if specified
+    if sys.argv[5] !="None":
+        df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
+        df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
 
-        #     print("\nProcessed {} data at {} cadence:\n".format(
-        #     params.omni_path, sys_arg_dict[sys.argv[5]]))
-        #     print(df.info())
-        #     print(df.head())
-        #     print("\nChecking for missing data:")
-        #     print(df.isna().sum()/len(df))
-        #     print("##################################\n")
-        #     print(datetime.datetime.now())
+        # Checking for missing data
+        if df.isna().any().sum() != 0:
+            print("MISSING DATA ALERT!")
+            print(df.isna().sum()/len(df))
 
+        second_cadence = " and " + sys_arg_dict[sys.argv[5]]
+    else:
+        second_cadence = ""
 #comm.Barrier()
 
 if rank == 0:
     print("\nProcessed {} data at {} cadence using {} cores\n".format(
-        params.omni_path, params.int_size, comm.size))
+        sys_arg_dict[sys.argv[1]], 
+        sys_arg_dict[sys.argv[4]] + second_cadence, 
+        comm.size))
     print("##################################\n")
     print(datetime.datetime.now())
