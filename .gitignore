@@ -4,3 +4,5 @@
 /spare_data/
 *.out
 *.err
+ActivatePython.sh
+/pytaylor

@@ -3,6 +3,7 @@ import datetime
 import glob
 import math
 import params
+import sys
 import os
 from mpi4py import MPI 
 
@@ -153,7 +154,7 @@ for file in my_list:
 #             df = pd.concat([df, nan_df])
 #         df.to_pickle(output_dir + params.int_size + "_" + str(i) + '.pkl')
 
-
+print(sys.argv[1])
 print("\nProcessed {} data at {} cadence\n".format(
     params.omni_path, params.int_size))
 print("##################################\n")
