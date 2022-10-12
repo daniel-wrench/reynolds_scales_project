@@ -1,5 +1,4 @@
 from utils import *
-import sys
 import datetime
 import glob
 import math
@@ -71,7 +70,7 @@ for sub in file_paths:
 
 n = comm.size
 
-#Getting list of lists of files for each core
+# Getting list of lists of files for each core
 
 def getSublists(lst,n):
     subListLength = math.ceil(len(lst)/n)
@@ -83,35 +82,37 @@ list_of_lists = list(getSublists(file_list,n))
 if len(list_of_lists) != n:
     print("Number of lists does not equal n!")
 
-for i in range(n):
-    df = pd.DataFrame({})
+my_list=list_of_lists[rank]
+# Iterating over each list, turning each CDF to a dataframe
 
-    # A generator object might be faster here
-    for file in list_of_lists[i]:
-        print("Reading " + file)
-        try:
-            temp_df = pipeline(
-                file,
-                varlist=[params.timestamp, params.vsw, params.p, params.Bomni],
-                thresholds=params.omni_thresh,
-                cadence=params.int_size
-            )
-            df = pd.concat([df, temp_df])
-        except:
-            print("Error reading CDF file; moving to next file")
-            nan_df = pd.DataFrame({})  # empty dataframe
-            df = pd.concat([df, nan_df])
-        
-        # Ensuring observations are in chronological order
-        df = df.sort_index() 
-        # NB: Using .asfreq() creates NA values
+df = pd.DataFrame({})
 
-        # Checking for missing data
-        if df.isna().any().sum() != 0:
-            print("MISSING DATA ALERT!")
-            print(df.isna().sum()/len(df))
-        
-        df.to_pickle(output_dir + params.int_size + "_" + str(i) + '.pkl')
+# A generator object might be faster here
+for file in my_list:
+    print("Reading " + file)
+    try:
+        temp_df = pipeline(
+            file,
+            varlist=[params.timestamp, params.vsw, params.p, params.Bomni],
+            thresholds=params.omni_thresh,
+            cadence=params.int_size
+        )
+        df = pd.concat([df, temp_df])
+    except:
+        print("Error reading CDF file; moving to next file")
+        nan_df = pd.DataFrame({})  # empty dataframe
+        df = pd.concat([df, nan_df])
+    
+    # Ensuring observations are in chronological order
+    df = df.sort_index() 
+    # NB: Using .asfreq() creates NA values
+
+    # Checking for missing data
+    if df.isna().any().sum() != 0:
+        print("MISSING DATA ALERT!")
+        print(df.isna().sum()/len(df))
+    
+    df.to_pickle(output_dir + params.int_size + "_{:03d}.pkl".format(rank))
 
         # Also outputting pickle at second resolution, if specified
         # if sys.argv[5] !="None":
