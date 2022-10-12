@@ -119,7 +119,7 @@ for file in my_list:
         #Also outputting pickle at second resolution, if specified
     if sys.argv[5] !="None":
         df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-        df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+        df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
 
         # Checking for missing data
         if df.isna().any().sum() != 0:
@@ -133,7 +133,8 @@ for file in my_list:
 comm.Barrier()
 
 if rank == 0:
-    print("\nProcessed {} data at {} cadence using {} cores\n".format(
+    print("\nProcessed {} files of {} data at {} cadence using {} cores\n".format(
+        len(file_list),
         sys_arg_dict[sys.argv[1]], 
         sys_arg_dict[sys.argv[4]] + second_cadence, 
         comm.size))
