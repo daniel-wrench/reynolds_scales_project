@@ -78,16 +78,9 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # Reducing the number of files for testing
-file_list = file_list[:10]
+file_list = file_list[:20]
 
-
-def getSublists(lst, n):
-    subListLength = math.ceil(len(lst)/n)
-    for i in range(0, len(lst), subListLength):
-        yield lst[i:i+subListLength]
-
-
-list_of_lists = list(getSublists(file_list, comm.size))
+list_of_lists = np.array_split(file_list, comm.size)
 
 if len(list_of_lists) != comm.size:
     print("Number of lists does not equal number of cores!")
