@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-#SBATCH --job-name          1a_process_raw_data
+#SBATCH --job-name          1_process_raw_data
 #SBATCH --partition         quicktest
 ##SBATCH --partition         parallel
 ##SBATCH --reservation       spacejam
