@@ -13,14 +13,15 @@ rank = comm.Get_rank()
 status = MPI.Status()
 ##############################
 
-print("#######################################")
-print("PROCESSING DATA FOR SOLAR WIND DATABASE")
-print("#######################################")
+if rank == 0:
+    print("#######################################")
+    print("PROCESSING DATA FOR SOLAR WIND DATABASE")
+    print("#######################################")
 
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
 
-print("\nREADING PICKLE FILES")
+print("\nCORE {}: READING PICKLE FILES".format(rank))
 
 # Omni data
 
@@ -65,10 +66,6 @@ df_wind_hr = df_wind_hr.rename(
         params.By: 'By',
         params.Bz: 'Bz'})
 
-print("\nHigh-res Wind dataframe:\n")
-print(df_wind_hr.info())
-print(df_wind_hr.describe().round(2))
-
 # Adding magnetic field fluctuations (just going as far as calculating db for now)
 
 dbx = df_wind_hr["Bx"] - df_wind_hr["Bx"].mean()
@@ -109,10 +106,6 @@ df_wind_lr = df_wind_lr.rename(
         params.By: 'By',
         params.Bz: 'Bz'})
 
-print("\nLow-res Wind dataframe:\n")
-print(df_wind_lr.info())
-print(df_wind_lr.describe().round(2))
-
 # Splitting entire dataframe into a list of intervals
 
 wind_df_hr_list = []
@@ -128,19 +121,11 @@ for i in np.arange(n_int).tolist():
     wind_df_lr_list.append(df_wind_lr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
     wind_df_hr_list.append(df_wind_hr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
 
-print("\n\nNumber of high-res Wind intervals = {}".format(len(wind_df_hr_list)))
-print("First high-res Wind interval:\n")
-print(wind_df_hr_list[0].info())
-
-print("\n\nNumber of low-res Wind intervals = {}".format(len(wind_df_lr_list)))
-print("First low-res Wind interval:\n")
-print(wind_df_lr_list[0].info())
-
 # Computing ACFs for each low-res interval
 
 acf_lr_list = []
 
-print("\nCOMPUTING LOW-RES ACFS")
+print("\nCORE {}: COMPUTING LOW-RES ACFS".format(rank))
 
 for i in np.arange(len(wind_df_lr_list)):
 
@@ -160,7 +145,7 @@ inertial_slope_list = []
 kinetic_slope_list = []
 spectral_break_list = []
 
-print("\nCOMPUTING HIGH-RES ACFS, SPECTRA")
+print("\nCORE {}: COMPUTING HIGH-RES ACFS, SPECTRA".format(rank))
 
 for i in np.arange(len(wind_df_hr_list)):
 
@@ -196,7 +181,7 @@ corr_scale_exp_fit_list = []
 corr_scale_exp_trick_list = []
 corr_scale_int_list = []
 
-print("\nCOMPUTING CORRELATION SCALES")
+print("\nCORE {}: COMPUTING CORRELATION SCALES".format(rank))
 
 for acf in acf_lr_list:
 
@@ -222,7 +207,7 @@ taylor_scale_u_std_list = []
 taylor_scale_c_list = []
 taylor_scale_c_std_list = []
 
-print("\nCOMPUTING TAYLOR SCALES")
+print("\nCORE {}: COMPUTING TAYLOR SCALES".format(rank))
 
 for i in range(len(acf_hr_list)):
 
@@ -269,11 +254,13 @@ df_1 = pd.DataFrame({
     'tb': spectral_break_list
 })
 
-# Joining all data together into a dataframe
+print("\nCORE {}: JOINING COLUMNS INTO SINGLE DATAFRAME".format(rank))
 df_5 = df.reset_index()
 df_complete = df_5.join(df_1)
 
 df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
 
-print("\nFINISHED")
-print("##################################")
+print("\nCORE {}: FINISHED".format(rank))
+
+if rank == 0:
+    print("##################################")
