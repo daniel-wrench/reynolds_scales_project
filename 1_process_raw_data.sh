@@ -27,7 +27,4 @@ mpirun --oversubscribe -n 4 python process_raw_data.py proton_path      proton_v
 # Attempting fix in process_data.py
 mpirun --oversubscribe -n 4 python process_raw_data.py mag_path         mag_vars        mag_thresh      dt_hr       dt_lr
 
-## For once code has been made parallel
-#mpirun -n 6 python process_raw_data.py
-
 echo "FINISHED"
