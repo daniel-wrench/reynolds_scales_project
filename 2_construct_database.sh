@@ -5,14 +5,11 @@
 ##SBATCH --partition         parallel
 ##SBATCH --reservation       spacejam
 ##SBATCH --node              spj01
-#SBATCH --mem		        2G
-#SBATCH --cpus-per-task     2
-#SBATCH --time              00:15:00
+#SBATCH --mem		        4G
+#SBATCH --cpus-per-task     8
+#SBATCH --time              00:30:00
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
-
-## For running locally
-#source venv/Scripts/activate
 
 ## For running in Raapoi
 source ActivatePython.sh
@@ -20,6 +17,6 @@ source ActivatePython.sh
 echo "JOB STARTED"
 date
 
-python construct_database.py
+mpirun --oversubscribe -n 8 python construct_database.py
 
 date
