@@ -24,8 +24,7 @@ file_paths = sorted(glob.iglob(dir_path + '_*.pkl'))
 df_merged = pd.DataFrame({})
 for file in file_paths:
     df_merged = pd.concat([df_merged, pd.read_pickle(file)])
-    # Un-comment this line when happy that this script works in Rāpoi
-    #os.remove(file)
+    os.remove(file)
 df_merged = df_merged.sort_index()
 
 print("MERGED DATAFRAMES FROM "+ dir_path)

@@ -78,7 +78,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # Reducing the number of files for testing
-file_list = file_list[:10]
+file_list = file_list[:20]
 
 
 def getSublists(lst, n):
