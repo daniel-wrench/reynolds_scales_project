@@ -17,8 +17,7 @@ source ActivatePython.sh
 
 echo "JOB STARTED"
 date
-
-echo "NB: Input files will appear out of order due to parallel processing. Output files will be in chronological order."
+echo -e "NB: Input files will appear out of order due to parallel processing. Output files will be in chronological order.\n"
 
 mpirun --oversubscribe -n 4 python process_raw_data.py omni_path        omni_vars       omni_thresh     int_size    None
 mpirun --oversubscribe -n 4 python process_raw_data.py electron_path    electron_vars   electron_thresh int_size    None

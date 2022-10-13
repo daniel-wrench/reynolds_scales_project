@@ -3,17 +3,11 @@ Codes for constructing a database of solar wind parameters and scales as measure
 
 ## To-do
 
-1. Implement MPI for process_data.py
-- Move Taylor codes back to main directory
-- Commit changes
-- Pull here and do the following work:
-- Change nested for loops to single for loop upon list of all files
-- Ncores is argument to bash command: see `example_run.sh`
-- (You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`)  
-2. Talk to Andre about these speed differences??
 2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
+- Test 2_... in interactive python session (though may only need to do in non-job session? Currently )
+- Optimise cores/mem with 10-20 files for each command 1,2,3 (vuw-job-report)
+- (You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`)  
 2. Check output plots against summary stats
-2. Prepare the correlation codes and plots
 2. Run pipeline on as much data as possible.
 2. Spearman correlation?
 2. Add energies?
@@ -35,16 +29,18 @@ Re-sampled to two different frequencies and split into 12-hour intervals.
 
 See `wind_database_metadata.xlsx` for description of variables.
 
+Built using Python 3.9.5
+
 ## Pipeline
 *NB*: The .sh files are designed so that they can be tested locally (on a much reduced set of data): simply switch to the appropriate venv command in the file and then change the command to run the file from `sbatch` to `bash`.
 
-1. `module load python/3.8.1`
+1. `module load python/3.9.5`
 2. `python3 -m venv venv`
 2. (`pip install --upgrade pip`)
 2. `pip install -r requirements.txt`
 2. (`tmux new`)
 2. `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
-    
+    May want to run in another partition to get faster speeds
     `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands.
 2. (`Ctrl-b, d`)
 2. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. **Takes ~10min/week running locally.** If more than 40% of values in any column are missing, skips that data file.
