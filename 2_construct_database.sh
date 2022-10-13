@@ -2,8 +2,10 @@
 
 #SBATCH --job-name          2_construct_database
 #SBATCH --partition         quicktest
-##SBATCH --nodelist          spj01
-#SBATCH --mem		    2G
+##SBATCH --partition         parallel
+##SBATCH --reservation       spacejam
+##SBATCH --node              spj01
+#SBATCH --mem		        2G
 #SBATCH --cpus-per-task     2
 #SBATCH --time              00:15:00
 #SBATCH --output            %x_%j.out

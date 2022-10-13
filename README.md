@@ -3,8 +3,10 @@ Codes for constructing a database of solar wind parameters and scales as measure
 
 ## To-do
 
-2. Test pipeline in Raapoi on 1 year of data. Use scratch storage. **Currently have downloaded all raw data**
-- Test 2_... in interactive python session (though may only need to do in non-job session? Currently )
+1. Check 1... and 2... locally
+2. Commit changes
+2. Test pipeline in Raapoi on 1 year of data (2016). Use scratch storage. **Currently have downloaded all raw data**
+- Check updates to pipeline with 10 files
 - Optimise cores/mem with 10-20 files for each command 1,2,3 (vuw-job-report)
 - (You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`)  
 2. Check output plots against summary stats
@@ -34,17 +36,27 @@ Built using Python 3.9.5
 ## Pipeline
 *NB*: The .sh files are designed so that they can be tested locally (on a much reduced set of data): simply switch to the appropriate venv command in the file and then change the command to run the file from `sbatch` to `bash`.
 
+### Setting up environment and downloading raw data
 1. `module load python/3.9.5`
 2. `python3 -m venv venv`
 2. (`pip install --upgrade pip`)
 2. `pip install -r requirements.txt`
 2. (`tmux new`)
 2. `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
+    
     May want to run in another partition to get faster speeds
+    
     `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands.
 2. (`Ctrl-b, d`)
-2. `sbatch 1_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. **Takes ~10min/week running locally.** If more than 40% of values in any column are missing, skips that data file.
-2. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+
+### Running scripts
+1. `sbatch 1a_process_raw_data.sh`: Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. **Takes ~10min/week running locally.** If more than 40% of values in any column are missing, skips that data file.
+2. `srun --pty --cpus-per-task=2 --mem=2G --time=01:00:00 --partition=quicktest bash`
+    
+    May need to adjust mem as datasize increases
+    
+    `bash 1b_merge_dataframes.sh > 1b_merge_dataframes.out`: Download the raw CDF files using a set of recursive wget commands.
+3. `sbatch 2_construct_database.sh`: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
 ---
 

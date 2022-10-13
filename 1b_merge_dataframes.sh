@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+# Run this in an interactive session
+
 source ActivatePython.sh
 
 echo "JOB STARTED"

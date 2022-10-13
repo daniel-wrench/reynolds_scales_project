@@ -1,19 +1,9 @@
 from utils import *
+import sys
 import datetime
 import glob
-import math
 import params
-import sys
 import os
-
-####### PARALLEL STUFF #######
-from mpi4py import MPI
-
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-status = MPI.Status()
-##############################
 
 sys_arg_dict = {
     # arg1
@@ -75,30 +65,10 @@ for sub in file_paths:
 # pprint(cdf.varattsget(variable='BGSE', expand=True))
 # cdf.varget("Epoch")
 
-####### PARALLEL STUFF #######
-
-# Reducing the number of files for testing
-file_list = file_list[:10]
-
-
-def getSublists(lst, n):
-    subListLength = math.ceil(len(lst)/n)
-    for i in range(0, len(lst), subListLength):
-        yield lst[i:i+subListLength]
-
-
-list_of_lists = list(getSublists(file_list, comm.size))
-
-if len(list_of_lists) != comm.size:
-    print("Number of lists does not equal number of cores!")
-
-my_list = list_of_lists[rank]
-
-##############################
-
 df = pd.DataFrame({})
 
-for file in my_list:
+# A generator object might be faster here
+for file in file_list:
     print("Reading " + file)
     try:
         temp_df = pipeline(
@@ -122,14 +92,12 @@ for file in my_list:
 df = df.sort_index()
 # NB: Using .asfreq() creates NA values
 
-df.to_pickle(
-    output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
+df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
 
 # Also outputting pickle at second resolution, if specified
 if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-    df.to_pickle(
-        output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
 
     # Checking for missing data
     if df.isna().any().sum() != 0:
@@ -140,15 +108,9 @@ if sys.argv[5] != "None":
 else:
     second_cadence = ""
 
-####### PARALLEL STUFF #######
-comm.Barrier()
-##############################
-
-if rank == 0:
-    print("\nProcessed {} files of {} data at {} cadence using {} cores\n".format(
-        len(file_list),
-        sys_arg_dict[sys.argv[1]],
-        sys_arg_dict[sys.argv[4]] + second_cadence,
-        comm.size))
-    print("##################################\n")
-    print(datetime.datetime.now())
+print("\nProcessed {} files of {} data at {} cadence\n".format(
+    len(file_list),
+    sys_arg_dict[sys.argv[1]],
+    sys_arg_dict[sys.argv[4]] + second_cadence))
+print("##################################\n")
+print(datetime.datetime.now())
