@@ -105,30 +105,30 @@ for file in my_list:
         nan_df = pd.DataFrame({})  # empty dataframe
         df = pd.concat([df, nan_df])
     
-    # Ensuring observations are in chronological order
-    df = df.sort_index() 
-    # NB: Using .asfreq() creates NA values
+    # Checking for missing data
+    if df.isna().any().sum() != 0:
+        print("MISSING DATA ALERT!")
+        print(df.isna().sum()/len(df))
+
+# Ensuring observations are in chronological order
+df = df.sort_index() 
+# NB: Using .asfreq() creates NA values
+
+df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
+
+#Also outputting pickle at second resolution, if specified
+if sys.argv[5] !="None":
+    df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
 
     # Checking for missing data
     if df.isna().any().sum() != 0:
         print("MISSING DATA ALERT!")
         print(df.isna().sum()/len(df))
-    
-    df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
 
-        #Also outputting pickle at second resolution, if specified
-    if sys.argv[5] !="None":
-        df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-        df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
-
-        # Checking for missing data
-        if df.isna().any().sum() != 0:
-            print("MISSING DATA ALERT!")
-            print(df.isna().sum()/len(df))
-
-        second_cadence = " and " + sys_arg_dict[sys.argv[5]]
-    else:
-        second_cadence = ""
+    second_cadence = " and " + sys_arg_dict[sys.argv[5]]
+else:
+    second_cadence = ""
 
 comm.Barrier()
 
