@@ -1,17 +1,9 @@
 
 import params
 import utils
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-####### PARALLEL STUFF #######
-from mpi4py import MPI
-
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
-status = MPI.Status()
-##############################
 
 print("#######################################")
 print("PROCESSING DATA FOR SOLAR WIND DATABASE")
@@ -24,7 +16,7 @@ print("\nREADING PICKLE FILES")
 
 # Omni data
 
-df_omni = pd.read_pickle("data/processed/" + params.omni_path + params.int_size + "_{:03d}.pkl".format(rank))
+df_omni = pd.read_pickle("data/processed/" + params.omni_path + params.int_size + ".pkl")
 df_omni = df_omni.rename(
     columns={
         params.vsw: 'vsw',
@@ -33,7 +25,7 @@ df_omni = df_omni.rename(
 
 # Electron data
 
-df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + "_{:03d}.pkl".format(rank))
+df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + ".pkl")
 df_electrons = df_electrons.rename(
     columns={
         params.ne: 'ne',
@@ -43,7 +35,7 @@ df_electrons = df_electrons.rename(
 
 # Proton data
 
-df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + "_{:03d}.pkl".format(rank))
+df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + ".pkl")
 df_protons = df_protons.rename(
     columns={
         params.ni: 'ni',
@@ -57,7 +49,7 @@ df = utils.join_dataframes_on_timestamp(df, df_protons)
 
 # High-res data
 
-df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + "_{:03d}.pkl".format(rank))
+df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + ".pkl")
 df_wind_hr = df_wind_hr.rename(
     columns={
         params.Bwind: 'Bwind',
@@ -100,7 +92,7 @@ df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
 
 # Low-res data
 
-df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + "_{:03d}.pkl".format(rank))
+df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + ".pkl")
 
 df_wind_lr = df_wind_lr.rename(
     columns={
@@ -152,6 +144,11 @@ for i in np.arange(len(wind_df_lr_list)):
 
     acf_lr_list.append(acf)
 
+for acf in acf_lr_list:
+    plt.plot(acf)
+plt.savefig("data/processed/all_acfs_lr.png")
+plt.close()
+
 # Computing ACFs and spectral statistics for each high-res interval
 # ~1min per interval due to spectrum smoothing algorithm
 
@@ -189,6 +186,11 @@ for i in np.arange(len(wind_df_hr_list)):
     inertial_slope_list.append(slope_i)
     kinetic_slope_list.append(slope_k)
     spectral_break_list.append(break_s)
+
+for acf in acf_hr_list:
+    plt.plot(acf)
+plt.savefig("data/processed/all_acfs_hr.png")
+plt.close()
 
 # Computing scales for each interval
 
@@ -272,8 +274,110 @@ df_1 = pd.DataFrame({
 # Joining all data together into a dataframe
 df_5 = df.reset_index()
 df_complete = df_5.join(df_1)
+stats = df_complete.describe()
 
-df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
+print("\nSAVING FINAL DATASET AND SUMMARY STATS TABLE\n")
+print(df_complete.info())
+
+# Saving final dataframe and summary stats
+df_complete.to_csv("data/processed/db_wind.csv", index=False)
+stats.to_csv("data/processed/db_wind_summary_stats.csv")
+
+# Outputting some plots of the ACF and fitting for extreme and middle values of each scale
+# Can use to valuate the current settings of these numerical methods
+
+print("SAVING SETTING-EVALUATION PLOTS")
+
+# Smallest tcf
+utils.compute_outer_scale_exp_fit(
+    time_lags=time_lags_lr,
+    acf=acf_lr_list[df_complete.index[df_complete["tcf"]
+                                      == df_complete["tcf"].min()][0]],
+    seconds_to_fit=np.round(
+        2*df_complete.loc[df_complete["tcf"] == df_complete["tcf"].min(), "tce"]),
+    save=True,
+    figname="tcf_smallest")
+
+# ~ Median tcf
+median_ish = df_complete.sort_values("tcf").reset_index()[
+    "tcf"][round(len(acf_hr_list)/2)]  # Fix index
+
+utils.compute_outer_scale_exp_fit(
+    time_lags=time_lags_lr,
+    acf=acf_lr_list[df_complete.index[df_complete["tcf"] == median_ish][0]],
+    seconds_to_fit=np.round(
+        2*df_complete.loc[df_complete["tcf"] == median_ish, "tce"]),
+    save=True,
+    figname="tcf_median")
+
+# Largest tcf
+utils.compute_outer_scale_exp_fit(
+    time_lags=time_lags_lr,
+    acf=acf_lr_list[df_complete.index[df_complete["tcf"]
+                                      == df_complete["tcf"].max()][0]],
+    seconds_to_fit=np.round(
+        2*df_complete.loc[df_complete["tcf"] == df_complete["tcf"].max(), "tce"]),
+    save=True,
+    figname="tcf_largest")
+
+# Smallest ttc acf
+plt.plot(time_lags_hr,
+         acf_hr_list[df_complete.index[df_complete["ttc"] == df_complete["ttc"].min()][0]])
+plt.title("ttc_smallest_acf")
+plt.savefig("data/processed/ttc_smallest_acf.png", bbox_inches='tight')
+plt.close()
+
+# Smallest ttc fitting
+utils.compute_taylor_chuychai(
+    time_lags=time_lags_hr,
+    acf=acf_hr_list[df_complete.index[df_complete["ttc"]
+                                      == df_complete["ttc"].min()][0]],
+    tau_min=10,
+    tau_max=50,
+    q=kinetic_slope_list[df_complete.index[df_complete["ttc"]
+                                           == df_complete["ttc"].min()][0]],
+    save=True,
+    figname="ttc_smallest")
+
+# ~ Median ttc acf
+median_ish = df_complete.sort_values("ttc").reset_index()[
+    "ttc"][round(len(acf_hr_list)/2)]
+
+plt.plot(time_lags_hr,
+         acf_hr_list[df_complete.index[df_complete["ttc"] == median_ish][0]])
+plt.title("median_ttc_acf")
+plt.savefig("data/processed/ttc_median_acf.png", bbox_inches='tight')
+plt.close()
+
+# ~ Median ttc fitting
+utils.compute_taylor_chuychai(
+    time_lags=time_lags_hr,
+    acf=acf_hr_list[df_complete.index[df_complete["ttc"] == median_ish][0]],
+    tau_min=10,
+    tau_max=50,
+    q=kinetic_slope_list[df_complete.index[df_complete["ttc"]
+                                           == median_ish][0]],
+    save=True,
+    figname="ttc_median")
+
+# Largest ttc acf
+plt.plot(time_lags_hr,
+         acf_hr_list[df_complete.index[df_complete["ttc"] == df_complete["ttc"].max()][0]])
+plt.title("largest_ttc_acf")
+plt.savefig("data/processed/ttc_largest_acf.png", bbox_inches='tight')
+plt.close()
+
+# Largest ttc fitting
+utils.compute_taylor_chuychai(
+    time_lags=time_lags_hr,
+    acf=acf_hr_list[df_complete.index[df_complete["ttc"]
+                                      == df_complete["ttc"].max()][0]],
+    tau_min=10,
+    tau_max=50,
+    q=kinetic_slope_list[df_complete.index[df_complete["ttc"]
+                                           == df_complete["ttc"].max()][0]],
+    save=True,
+    figname="ttc_largest")
 
 print("\nFINISHED")
 print("##################################")
