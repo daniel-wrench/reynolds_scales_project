@@ -257,6 +257,7 @@ df_1 = pd.DataFrame({
 print("\nCORE {}: JOINING COLUMNS INTO SINGLE DATAFRAME".format(rank))
 df_5 = df.reset_index()
 df_complete = df_5.join(df_1)
+df_5 = df.set_index("Timestamp")
 
 df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
 

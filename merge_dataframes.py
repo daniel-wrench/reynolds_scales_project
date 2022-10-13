@@ -17,6 +17,7 @@ stats = df_merged.describe()
 print("\nSAVING MERGED DATASET AND SUMMARY STATS TABLE\n")
 print(df_merged.info())
 
+df_merged = df_merged.reset_index() # So that Timestamp is a normal column in the CSV
 df_merged.to_csv("data/processed/db_wind.csv", index=False)
 stats.to_csv("data/processed/db_wind_summary_stats.csv")
 
