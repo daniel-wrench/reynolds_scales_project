@@ -18,6 +18,7 @@ if rank == 0:
     print("PROCESSING DATA FOR SOLAR WIND DATABASE")
     print("#######################################")
 
+comm.Barrier()
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
 
@@ -257,11 +258,13 @@ df_1 = pd.DataFrame({
 print("\nCORE {}: JOINING COLUMNS INTO SINGLE DATAFRAME".format(rank))
 df_5 = df.reset_index()
 df_complete = df_5.join(df_1)
-df_5 = df.set_index("Timestamp")
+df_final = df_complete.set_index("Timestamp")
 
-df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
+df_final.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
 
 print("\nCORE {}: FINISHED".format(rank))
+
+comm.Barrier()
 
 if rank == 0:
     print("##################################")

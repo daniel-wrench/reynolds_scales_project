@@ -5,8 +5,8 @@
 ##SBATCH --partition         parallel
 ##SBATCH --reservation       spacejam
 ##SBATCH --node              spj01
-#SBATCH --mem		        4G
-#SBATCH --cpus-per-task     8
+#SBATCH --mem		        6G
+#SBATCH --cpus-per-task     10
 #SBATCH --time              00:30:00
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
@@ -17,6 +17,6 @@ source ActivatePython.sh
 echo "JOB STARTED"
 date
 
-mpirun --oversubscribe -n 8 python construct_database.py
+mpirun --oversubscribe -n 10 python construct_database.py
 
 date
