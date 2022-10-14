@@ -24,15 +24,6 @@ comm.Barrier()
 
 print("\nCORE {}: READING PICKLE FILES".format(rank))
 
-# Omni data
-
-df_omni = pd.read_pickle("data/processed/" + params.omni_path + params.int_size + "_{:03d}.pkl".format(rank))
-df_omni = df_omni.rename(
-    columns={
-        params.vsw: 'vsw',
-        params.p: 'p',
-        params.Bomni: 'Bomni'})
-
 # Electron data
 
 df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + "_{:03d}.pkl".format(rank))
@@ -41,7 +32,6 @@ df_electrons = df_electrons.rename(
         params.ne: 'ne',
         params.Te: 'Te'
     })
-
 
 # Proton data
 
@@ -52,8 +42,7 @@ df_protons = df_protons.rename(
         params.Ti: 'Ti'})
 
 
-df = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
-df = utils.join_dataframes_on_timestamp(df, df_protons)
+df = utils.join_dataframes_on_timestamp(df_electrons, df_protons)
 
 ## Wind magnetic field data
 
