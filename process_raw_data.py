@@ -78,7 +78,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # Reducing the number of files for testing
-file_list = file_list[:30]
+file_list = file_list[30:60]
 
 list_of_lists = np.array_split(file_list, comm.size)
 
@@ -92,7 +92,7 @@ my_list = list_of_lists[rank]
 df = pd.DataFrame({})
 
 for file in my_list:
-    print("Reading " + file)
+    print("Reading {} (core {})".format(file, rank))
     try:
         temp_df = pipeline(
             file,
@@ -108,7 +108,7 @@ for file in my_list:
 
     # Checking for missing data
     if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT!")
+        print("MISSING DATA ALERT! {} (core {})".format(file, rank))
         print(df.isna().sum()/len(df))
 
 # Ensuring observations are in chronological order
@@ -126,7 +126,7 @@ if sys.argv[5] != "None":
 
     # Checking for missing data
     if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT!")
+        print("MISSING DATA ALERT! {} (core {})".format(file, rank))
         print(df.isna().sum()/len(df))
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
