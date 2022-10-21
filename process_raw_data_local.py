@@ -1,8 +1,8 @@
 from utils import *
-import sys
 import datetime
 import glob
 import params
+import sys
 import os
 
 sys_arg_dict = {
@@ -77,16 +77,15 @@ for file in file_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
+        if temp_df.isna().any().sum() != 0:
+            print("MISSING DATA ALERT!")
+            print(df.isna().sum()/len(df))
+
         df = pd.concat([df, temp_df])
+
     except:
         print("Error reading CDF file; moving to next file")
-        nan_df = pd.DataFrame({})  # empty dataframe
-        df = pd.concat([df, nan_df])
-
-    # Checking for missing data
-    if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT!")
-        print(df.isna().sum()/len(df))
+        # Print actual error here too?
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
@@ -98,11 +97,6 @@ df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
 if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
     df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
-
-    # Checking for missing data
-    if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT!")
-        print(df.isna().sum()/len(df))
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
 else:

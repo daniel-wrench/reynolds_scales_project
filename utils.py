@@ -74,7 +74,7 @@ def format_epochs(dataframe: pd.DataFrame) -> pd.DataFrame:
     return result_dataframe
 
 
-def resample_time_series(dataframe: pd.DataFrame, cadence: str = '5T', agg_types: dict = None) -> pd.DataFrame:
+def resample_time_series(dataframe: pd.DataFrame, cadence: str, agg_types: dict = None) -> pd.DataFrame:
     """
     Resample time series data to a regular cadence in order to merge data from different sources.
     args:
@@ -106,26 +106,22 @@ def join_dataframes_on_timestamp(dataframe_1: pd.DataFrame, dataframe_2: pd.Data
     return joined_df
 
 
-def mask_and_interpolate_outliers(dataframe: pd.DataFrame, threshold_dict: dict) -> pd.DataFrame:
+def mask_outliers(dataframe: pd.DataFrame, threshold_dict: dict) -> pd.DataFrame:
     """
     Mask values outside of the specified thresholds with numpy NaNs. Interpolate NaNs
     inputs:
       threshold_dict: dict. Pairs of column names and thresholds to identify outliers.
     """
-    # if more than 40% of values in any column are missing, skip data period
-    if (dataframe.isna().sum()/dataframe.shape[0] >= 0.4).any():
-        return None
     if not threshold_dict:
-        dataframe.iloc[:,1:] = dataframe.iloc[:,1:].interpolate()
         return dataframe
         # Selected only non-time columns due to issues with pd.DataFrame.interpolate not handling certain time columns
     result_dataframe = dataframe.copy()
     for column_name, thresholds in threshold_dict.items():
         result_dataframe[column_name] = result_dataframe[column_name].mask((result_dataframe[column_name] <= thresholds[0]) | (
-            result_dataframe[column_name] >= thresholds[-1])).interpolate()
+            result_dataframe[column_name] >= thresholds[-1]))
     return result_dataframe
 
-def pipeline(file_path, varlist, cadence='5T', thresholds={}):
+def pipeline(file_path, varlist, cadence=None, thresholds={}):
     """
     pipeline of all functions to streamline run file
     """
@@ -133,13 +129,9 @@ def pipeline(file_path, varlist, cadence='5T', thresholds={}):
         df = convert_cdf_to_dataframe(read_cdf(file_path), varlist=varlist)
         df = replace_fill_values(df)
         df = format_epochs(df)
-        df = mask_and_interpolate_outliers(df, thresholds)
-        if df is None or df.shape[0] == 0:
-            print('dataframe had too many missing values')
-            return None
+        df = mask_outliers(df, thresholds)
         if cadence not in [0, '0S', None]:
-            df = resample_time_series(
-                df, cadence=cadence).interpolate().ffill().bfill()
+            df = resample_time_series(df, cadence=cadence)
         # df.set_index('Timestamp', inplace=True)
         return df.sort_index()
     except Exception:
