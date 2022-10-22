@@ -109,6 +109,7 @@ print(df_wind_lr.describe().round(2))
 
 wind_df_hr_list = []
 wind_df_lr_list = []
+wind_df_hr_list_missing = [] # This will be added as a column to the final dataframe
 
 starttime = df_wind_lr.index[0] # E.g. 2016-01-01 00:00
 endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S") # E.g. 2016-01-01 11:59:59.99
@@ -116,9 +117,25 @@ endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S"
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
                  pd.to_timedelta(params.int_size)).astype(int)
 
+# If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as 
+# missing dataframes. We can identify these with df.empty = True (or missing)
+
 for i in np.arange(n_int).tolist():
-    wind_df_lr_list.append(df_wind_lr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
-    wind_df_hr_list.append(df_wind_hr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))])
+    int_lr = df_wind_lr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))]
+    int_hr = df_wind_hr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))]
+    
+    wind_df_lr_list.append(int_lr)
+    wind_df_hr_list.append(int_hr)
+
+    if int_hr.empty:
+        missing = 1
+    else:
+        missing =  int_hr.iloc[:,0].isna().sum()/len(int_hr)
+
+    wind_df_hr_list_missing.append(missing)
+
+filtered_list = [wind_df_hr_list[i] for i in range(len(wind_df_hr_list)) if wind_df_hr_list_missing[i] < 0.4]
+filtered_list
 
 print("\n\nNumber of high-res Wind intervals = {}".format(len(wind_df_hr_list)))
 print("First high-res Wind interval:\n")
@@ -130,38 +147,48 @@ print(wind_df_lr_list[0].info())
 
 # Computing ACFs for each low-res interval
 
-acf_lr_list = []
+#acf_lr_list = []
+#acf_hr_list = []
+inertial_slope_list = []
+kinetic_slope_list = []
+spectral_break_list = []
+corr_scale_exp_fit_list = []
+corr_scale_exp_trick_list = []
+corr_scale_int_list = []
+
+# Re-calculating Kevin's values for checking against his results.
+# Also returning both corrected and un-corrected Chuychai versions
+taylor_scale_kevin_list = []
+
+taylor_scale_u_list = []
+taylor_scale_u_std_list = []
+
+taylor_scale_c_list = []
+taylor_scale_c_std_list = []
 
 print("\nCOMPUTING LOW-RES ACFS")
 
 for i in np.arange(len(wind_df_lr_list)):
 
-    time_lags_lr, acf = utils.compute_nd_acf(
+    time_lags_lr, acf_lr = utils.compute_nd_acf(
         np.array([wind_df_lr_list[i].Bx, wind_df_lr_list[i].By,
                  wind_df_lr_list[i].Bz]),
         nlags=params.nlags_lr,
         dt=float(params.dt_lr[:-1]))  # Removing "S" from end
 
-    acf_lr_list.append(acf)
+    corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
+        time_lags_lr, acf_lr)
+    corr_scale_exp_trick_list.append(corr_scale_exp_trick)
 
-for acf in acf_lr_list:
-    plt.plot(acf)
-plt.savefig("data/processed/all_acfs_lr.png")
-plt.close()
+    # Use estimate from 1/e method to select fit amount
+    corr_scale_exp_fit = utils.compute_outer_scale_exp_fit(
+        time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick), show=False)
+    corr_scale_exp_fit_list.append(corr_scale_exp_fit)
 
-# Computing ACFs and spectral statistics for each high-res interval
-# ~1min per interval due to spectrum smoothing algorithm
+    corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
+    corr_scale_int_list.append(corr_scale_int)
 
-acf_hr_list = []
-inertial_slope_list = []
-kinetic_slope_list = []
-spectral_break_list = []
-
-print("\nCOMPUTING HIGH-RES ACFS, SPECTRA")
-
-for i in np.arange(len(wind_df_hr_list)):
-
-    time_lags_hr, acf = utils.compute_nd_acf(
+    time_lags_hr, acf_hr = utils.compute_nd_acf(
         np.array([
             wind_df_hr_list[i].Bx,
             wind_df_hr_list[i].By,
@@ -170,8 +197,35 @@ for i in np.arange(len(wind_df_hr_list)):
         nlags=params.nlags_hr,
         dt=float(params.dt_hr[:-1]))
 
-    acf_hr_list.append(acf)
+    #acf_hr_list.append(acf_hr)
 
+    taylor_scale_kevin = utils.compute_taylor_scale(
+    time_lags_hr,
+    acf_hr,
+    tau_fit=20)
+
+    taylor_scale_kevin_list.append(taylor_scale_kevin)
+
+    taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
+        time_lags=time_lags_hr,
+        acf=acf_hr,
+        tau_min=params.tau_min,
+        tau_max=params.tau_max)
+
+    taylor_scale_u_list.append(taylor_scale_u)
+    taylor_scale_u_std_list.append(taylor_scale_u_std)
+
+    taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
+        time_lags=time_lags_hr,
+        acf=acf_hr,
+        tau_min=params.tau_min,
+        tau_max=params.tau_max,
+        q=kinetic_slope_list[i])
+
+    taylor_scale_c_list.append(taylor_scale_c)
+    taylor_scale_c_std_list.append(taylor_scale_c_std)
+
+# ~1min per interval due to spectrum smoothing algorithm
     slope_i, slope_k, break_s = utils.compute_spectral_stats(
         np.array([
             wind_df_hr_list[i].Bx,
@@ -187,73 +241,17 @@ for i in np.arange(len(wind_df_hr_list)):
     kinetic_slope_list.append(slope_k)
     spectral_break_list.append(break_s)
 
-for acf in acf_hr_list:
-    plt.plot(acf)
-plt.savefig("data/processed/all_acfs_hr.png")
-plt.close()
+# for acf in acf_lr_list:
+#     plt.plot(acf)
+# plt.savefig("data/processed/all_acfs_lr.png")
+# plt.close()    
+
+# for acf in acf_hr_list:
+#     plt.plot(acf)
+# plt.savefig("data/processed/all_acfs_hr.png")
+# plt.close()
 
 # Computing scales for each interval
-
-corr_scale_exp_fit_list = []
-corr_scale_exp_trick_list = []
-corr_scale_int_list = []
-
-print("\nCOMPUTING CORRELATION SCALES")
-
-for acf in acf_lr_list:
-
-    corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
-        time_lags_lr, acf)
-    corr_scale_exp_trick_list.append(corr_scale_exp_trick)
-
-    # Use estimate from 1/e method to select fit amount
-    corr_scale_exp_fit = utils.compute_outer_scale_exp_fit(
-        time_lags_lr, acf, np.round(2*corr_scale_exp_trick), show=False)
-    corr_scale_exp_fit_list.append(corr_scale_exp_fit)
-
-    corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf)
-    corr_scale_int_list.append(corr_scale_int)
-
-# Re-calculating Kevin's values for checking against his results.
-# Also returning both corrected and un-corrected Chuychai versions
-taylor_scale_kevin_list = []
-
-taylor_scale_u_list = []
-taylor_scale_u_std_list = []
-
-taylor_scale_c_list = []
-taylor_scale_c_std_list = []
-
-print("\nCOMPUTING TAYLOR SCALES")
-
-for i in range(len(acf_hr_list)):
-
-    taylor_scale_kevin = utils.compute_taylor_scale(
-        time_lags_hr,
-        acf_hr_list[i],
-        tau_fit=20)
-
-    taylor_scale_kevin_list.append(taylor_scale_kevin)
-
-    taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
-        time_lags=time_lags_hr,
-        acf=acf_hr_list[i],
-        tau_min=params.tau_min,
-        tau_max=params.tau_max)
-
-    taylor_scale_u_list.append(taylor_scale_u)
-    taylor_scale_u_std_list.append(taylor_scale_u_std)
-
-    taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
-        time_lags=time_lags_hr,
-        acf=acf_hr_list[i],
-        tau_min=params.tau_min,
-        tau_max=params.tau_max,
-        q=kinetic_slope_list[i])
-
-    taylor_scale_c_list.append(taylor_scale_c)
-    taylor_scale_c_std_list.append(taylor_scale_c_std)
-
 
 # Joining lists of scales and spectral_stats together into a dataframe
 
