@@ -1,7 +1,6 @@
 from utils import *
 import datetime
 import glob
-import math
 import params
 import sys
 import os
@@ -92,7 +91,6 @@ my_list = list_of_lists[rank]
 df = pd.DataFrame({})
 
 for file in my_list:
-    print("Reading {} (core {})".format(file, rank))
     try:
         temp_df = pipeline(
             file,
@@ -100,16 +98,10 @@ for file in my_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
+        print("Core {0} reading {1}: {2:.2f}% missing".format(rank, file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
     except:
         print("Error reading CDF file; moving to next file")
-        nan_df = pd.DataFrame({})  # empty dataframe
-        df = pd.concat([df, nan_df])
-
-    # Checking for missing data
-    if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT! {} (core {})".format(file, rank))
-        print(df.isna().sum()/len(df))
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
@@ -123,11 +115,6 @@ if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
     df.to_pickle(
         output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
-
-    # Checking for missing data
-    if df.isna().any().sum() != 0:
-        print("MISSING DATA ALERT! {} (core {})".format(file, rank))
-        print(df.isna().sum()/len(df))
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
 else:
