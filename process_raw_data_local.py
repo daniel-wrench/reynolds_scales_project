@@ -69,7 +69,6 @@ df = pd.DataFrame({})
 
 # A generator object might be faster here
 for file in file_list:
-    print("Reading " + file)
     try:
         temp_df = pipeline(
             file,
@@ -77,10 +76,7 @@ for file in file_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
-        if temp_df.isna().any().sum() != 0:
-            print("MISSING DATA ALERT!")
-            print(df.isna().sum()/len(df))
-
+        print("Reading {0}: {1:.2f}% missing".format(file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
 
     except:
