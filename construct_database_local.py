@@ -151,7 +151,7 @@ for i in np.arange(n_int).tolist():
 
     wind_df_hr_list_missing.append(missing)
 
-    if missing > 0.4:
+    if missing > 0.1:
         inertial_slope_list.append(np.nan)
         kinetic_slope_list.append(np.nan)
         spectral_break_list.append(np.nan)
