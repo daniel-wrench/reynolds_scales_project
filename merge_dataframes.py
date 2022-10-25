@@ -11,7 +11,7 @@ df_merged = pd.DataFrame({})
 for file in file_paths:
     print("Reading " + file)
     df_merged = pd.concat([df_merged, pd.read_pickle(file)])
-    os.remove(file)
+    #os.remove(file)
 df_merged = df_merged.sort_index()
 
 # Bringing in omni data. This needs to be brought in separately as its files are monthly in size, rather than daily
@@ -25,7 +25,7 @@ df_omni = pd.DataFrame({})
 for omni_file in omni_file_paths:
     print("Reading " + omni_file)
     df_omni = pd.concat([df_omni, pd.read_pickle(omni_file)])
-    os.remove(omni_file)
+    #os.remove(omni_file)
 
 df_omni = df_omni.rename(
     columns={

@@ -22,8 +22,6 @@ comm.Barrier()
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
 
-print("\nCORE {}: READING PICKLE FILES".format(rank))
-
 # Electron data
 
 df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + "_{:03d}.pkl".format(rank))
