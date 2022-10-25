@@ -37,9 +37,12 @@ dt_lr=          "5S"
 nlags_lr=       2000
 dt_hr=          "0.092S"
 nlags_hr=       100
-f_min_inertial= 0.01
+
+# Frequency bounds are taken from Wang et al. (2017, JGR)
+f_min_inertial= 0.005
 f_max_inertial= 0.2
 f_min_kinetic=  0.5
-f_max_kinetic=  2
+f_max_kinetic=  1.4
+
 tau_min=        10
 tau_max=        50

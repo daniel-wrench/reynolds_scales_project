@@ -163,7 +163,7 @@ def fitpowerlaw(ax,ay,xi,xf):
    pwrl=np.exp(p(np.log(xx)))
    return z,xx,pwrl
 
-def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, di = None, velocity = None,show=False):
+def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, di = None, velocity = None, show=False):
     """ Compute the autocorrelation function for a scalar or vector time series.
     
     ### Args:
@@ -199,16 +199,24 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
     zk, xk, pk = fitpowerlaw(f_periodogram, p_smooth, f_min_kinetic, f_max_kinetic) # Kinetic range
     zi, xi, pi = fitpowerlaw(f_periodogram, p_smooth, f_min_inertial, f_max_inertial) # Inertial range
 
-    powerlaw_intersection = np.roots(zk-zi)
-    spectral_break = np.exp(powerlaw_intersection)
+    try:
+        powerlaw_intersection = np.roots(zk-zi)
+        spectral_break = np.exp(powerlaw_intersection)
+    except:
+        print("could not compute power-law intersection")
+        spectral_break = [np.nan]
 
+    if round(spectral_break[0], 4) == 0 or spectral_break[0] > 1:
+       spectral_break = [np.nan]
+        
     if show == True:
         plt.semilogy(f_periodogram, power_periodogram, label = "Raw periodogram")
         plt.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "cyan")
         plt.semilogy(xi, pi, c = "red", label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
         plt.semilogy(xk, pk, c = "yellow", label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
         plt.semilogx()
-        plt.axvline(np.exp(np.roots(zk-zi)), color = "black", label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
+        if spectral_break[0] is not np.nan:
+            plt.axvline(np.exp(np.roots(zk-zi)), color = "black", label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
 
         # Adding in proton inertial frequency
         if di is not None and velocity is not None:
