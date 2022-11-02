@@ -16,12 +16,18 @@ omni_thresh = {
 electron_path=  "wind/3dp/3dp_elm2/"
 ne=             "DENSITY"
 Te=             "AVGTEMP"
-electron_thresh=None
+electron_thresh={
+                "DENSITY": [0, 200],
+                'AVGTEMP': [0, 1000]
+            }
 
 proton_path=    "wind/3dp/3dp_plsp/"
 ni=             "MOM.P.DENSITY"
 Ti=             "MOM.P.AVGTEMP"
-proton_thresh=  None
+proton_thresh=  {
+                "MOM.P.DENSITY": [0, 200],
+                'MOM.P.AVGTEMP': [0, 1000]
+            }
 
 mag_path=       "wind/mfi/mfi_h2/"
 Bwind=          "BF1"
