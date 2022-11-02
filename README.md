@@ -5,17 +5,11 @@ Codes for constructing a database of solar wind parameters and scales as measure
 
 ## To-do
 
-1. Test pipeline in Raapoi on 1 year of data (2016). (You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`) **Have downloaded all raw data.**
-- Check the spectra of the following timestamps in the demo notebook:
-- 2016-02-29 00:00
-- 2016-01-30 12:00
-- 2016-01-25 12:00 (also check OMNI pressure data: probably should be NA but not being replaced for some reason)
-- 2016-01-17 12:00
-
-2. Check output plots against summary stats
-2. Run pipeline on as much data as possible.
-2. Spearman correlation?
-2. Add energies?
+(You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`) **Have downloaded all raw data.**
+1. Run pipeline on as much data as possible (1994 - 2022)
+2. Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
+3. Reflect
+2. Add energies, decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 2. Once database and correlations are produced, reflect on next steps: do I work more with this data, or switch back to looking at the missing data problem?
 
 ## Background
@@ -47,15 +41,16 @@ Built using Python 3.9.5
 2. (`tmux new`)
 2. `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
     
-    May want to run in another partition to get faster speeds
-    
-    `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands.
-2. (`Ctrl-b, d`)
+    `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands. ~ 13MB/s, 5s per mfi file
+2. (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
 ### Running scripts
-1. `sbatch 1_process_raw_data.sh` **(12min/month using 10 cores, 1.5min/file running locally. 5.24GB: 1 month. 5.96: 2 months)**: Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file.
+1. `sbatch 1_process_raw_data.sh` **(12min/month using 10 cores, 1.5min/file running locally. 5.24GB: 1 month. 5.96GB: 2 months. 7.11GB: 4 months. 12.1GB?: 12 months)**: 
+2.5 hours was not enough time for one year of data using 10 cores on parallel partition. 64 cores on quicktest gave an error.
 
-2. `sbatch 2_construct_database.sh` **(12min/month using 10 cores. 5.44GB: 1 month. 6.65GB: 2 months)**: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to. ****
+Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
+
+2. `sbatch 2_construct_database.sh` **(12min/month using 10 cores. 5.44GB: 1 month. 6.61-6.65GB: 2 months. 8.87GB: 4 months)**: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to. ****
 
 3. `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
     
