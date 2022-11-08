@@ -42,8 +42,8 @@ df_protons = df_protons.rename(
         params.Ti: 'Ti'})
 
 
-df = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
-df = utils.join_dataframes_on_timestamp(df, df_protons)
+df_vars = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
+df_vars = utils.join_dataframes_on_timestamp(df_vars, df_protons)
 
 ## Wind magnetic field data
 
@@ -73,22 +73,22 @@ db = np.sqrt(dbx**2+dby**2+dbz**2).rename("db")
 
 # Taking the mean for interval to add as a column to the final dataframe, then dropping these columns from the original df
 
-turb_fluc_hr = db.resample(params.int_size).mean()
-b0_hr = df_wind_hr["Bwind"].resample(params.int_size).mean()
+# turb_fluc_hr = db.resample(params.int_size).mean()
+# b0_hr = df_wind_hr["Bwind"].resample(params.int_size).mean()
 
-df = utils.join_dataframes_on_timestamp(df, turb_fluc_hr)
-df = utils.join_dataframes_on_timestamp(df, b0_hr)
+# df_vars = utils.join_dataframes_on_timestamp(df_vars, turb_fluc_hr)
+# df_vars = utils.join_dataframes_on_timestamp(df_vars, b0_hr)
 
-# Calculating analytically-derived variables
+# # Calculating analytically-derived variables
 
-df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
-df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
-df["de"] = (5.31)*(df["ne"]**(-1/2)) # Electron inertial length
-df["di"] = (2.28e2)*(df["ni"]**(-1/2)) # Ion inertial length
-df["betae"] = (4.03e-11)*df["ne"]*df["Te"]*((df["Bwind"]*1e-5)**-2) # Electron plasma beta
-df["betai"] = (4.03e-11)*df["ni"]*df["Ti"]*((df["Bwind"]*1e-5)**-2) # Ion plasma beta
-df["va"] = (2.18e6)*(df["ni"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
-df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
+# df_vars["rhoe"] = (2.38e-5)*(df_vars["Te"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1)  # Electron gyroradius
+# df_vars["rhoi"] = (1.02e-3)*(df_vars["Ti"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1) # Ion gyroradius
+# df_vars["de"] = (5.31)*(df_vars["ne"]**(-1/2)) # Electron inertial length
+# df_vars["di"] = (2.28e2)*(df_vars["ni"]**(-1/2)) # Ion inertial length
+# df_vars["betae"] = (4.03e-11)*df_vars["ne"]*df_vars["Te"]*((df_vars["Bwind"]*1e-5)**-2) # Electron plasma beta
+# df_vars["betai"] = (4.03e-11)*df_vars["ni"]*df_vars["Ti"]*((df_vars["Bwind"]*1e-5)**-2) # Ion plasma beta
+# df_vars["va"] = (2.18e6)*(df_vars["ni"]**(-1/2))*(df_vars["Bwind"]*1e-5) # Alfven speed
+# df_vars["ld"] = (7.43e-3)*(df_vars["Te"]**(1/2))*(df_vars["ne"]**(-1/2)) # Debye length
 
 # Low-res data
 
@@ -104,6 +104,8 @@ df_wind_lr = df_wind_lr.rename(
 print("\nLow-res Wind dataframe:\n")
 print(df_wind_lr.info())
 print(df_wind_lr.describe().round(2))
+
+timestamps = []
 
 inertial_slope_list = []
 kinetic_slope_list = []
@@ -138,8 +140,14 @@ n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
 # missing dataframes. We can identify these with df.empty = True (or missing)
 
 for i in np.arange(n_int).tolist():
-    int_lr = df_wind_lr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))]
-    int_hr = df_wind_hr[(starttime + i*pd.to_timedelta(params.int_size)):(endtime + i*pd.to_timedelta(params.int_size))]
+    
+    int_start = starttime + i*pd.to_timedelta(params.int_size)
+    int_end = (endtime + i*pd.to_timedelta(params.int_size))
+
+    timestamps.append(int_start)
+
+    int_lr = df_wind_lr[int_start:int_end]
+    int_hr = df_wind_hr[int_start:int_end]
     
     #wind_df_lr_list.append(int_lr)
     #wind_df_hr_list.append(int_hr)
@@ -261,7 +269,8 @@ for i in np.arange(n_int).tolist():
 
 # Joining lists of scales and spectral_stats together into a dataframe
 
-df_1 = pd.DataFrame({
+df_lengths = pd.DataFrame({
+    'Timestamp': timestamps,
     'missing_mfi': wind_df_hr_list_missing,
     'tcf': corr_scale_exp_fit_list,
     'tce': corr_scale_exp_trick_list,
@@ -276,9 +285,11 @@ df_1 = pd.DataFrame({
     'tb': spectral_break_list
 })
 
+df_lengths = df_lengths.set_index('Timestamp')
+
 # Joining all data together into a dataframe
-df_5 = df.reset_index()
-df_complete = df_5.join(df_1)
+df_complete = utils.join_dataframes_on_timestamp(df_vars, df_lengths)
+df_complete = df_complete.sort_index()
 stats = df_complete.describe()
 
 print("\nSAVING FINAL DATASET AND SUMMARY STATS TABLE\n")

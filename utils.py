@@ -102,7 +102,7 @@ def join_dataframes_on_timestamp(dataframe_1: pd.DataFrame, dataframe_2: pd.Data
         dataframe_1.index) == pd.core.indexes.datetimes.DatetimeIndex, 'dataframe_1 does not have a Datetime index'
     assert type(
         dataframe_2.index) == pd.core.indexes.datetimes.DatetimeIndex, 'dataframe_2 does not have a Datetime index'
-    joined_df = pd.merge(dataframe_1, dataframe_2, how='left', on='Timestamp')
+    joined_df = pd.merge(dataframe_1, dataframe_2, how='outer', on='Timestamp')
     return joined_df
 
 
