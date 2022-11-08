@@ -54,6 +54,8 @@ df_wind_hr = df_wind_hr.rename(
         params.By: 'By',
         params.Bz: 'Bz'})
 
+print("\nCORE {}: FINISHED READING DATA".format(rank))
+
 # Adding magnetic field fluctuations (just going as far as calculating db for now)
 
 dbx = df_wind_hr["Bx"] - df_wind_hr["Bx"].mean()
@@ -125,6 +127,8 @@ n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
 
 # If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as 
 # missing dataframes. We can identify these with df.empty = True (or missing)
+
+print("\nCORE {}: LOOPING OVER EACH INTERVAL".format(rank))
 
 for i in np.arange(n_int).tolist():
     
