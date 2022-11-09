@@ -256,9 +256,13 @@ df_lengths = pd.DataFrame({
     'tb': spectral_break_list
 })
 
+df_lengths = df_lengths.set_index('Timestamp')
+
 print("\nCORE {}: JOINING COLUMNS INTO SINGLE DATAFRAME".format(rank))
 df_complete = utils.join_dataframes_on_timestamp(df_vars, df_lengths)
 df_complete = df_complete.sort_index()
+# print("\n")
+# print(df_complete.iloc[0])
 
 df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
 
