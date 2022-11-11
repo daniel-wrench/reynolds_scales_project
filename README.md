@@ -1,16 +1,23 @@
 # README
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
-**The pipeline works for January 2016, and in decent time too. Congrats! Now to fix an issue with missing data in February before running on lots of data.**
-
 ## To-do
+1. Deal with issue with some timestamps in 95-02 database being ahead of the actual data, e.g.:
+- 1998-07-01 in database is actually data from 1998-06-30 (1 day ahead)
+- 2001-10-19 in database is actually data from 2001-10-17 (2 days ahead)
+) 
 
-(You can keep codes in home but data in scratch, using $HOME call: see `example_run.sh`) **Have downloaded all raw data.**
-1. Run pipeline on as much data as possible (1994 - 2022)
-2. Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
-3. Reflect
-2. Add energies, decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
-2. Once database and correlations are produced, reflect on next steps: do I work more with this data, or switch back to looking at the missing data problem?
+    *Have made some changes to construct_database which should deal with this. Now running on 4 years of data 1995-1998 to check fix*
+
+2. Deal with outliers in 95-02 dataset
+- Most of the strange `ttc` values come from strange values of `qk`, where it is greater than `qi`. This occurs for 4% of timestamps in 95-02 dataset: see examples in `plots/`)
+- However, there are also some very small `ttu` values, and a strange `tci`
+3. See **Analysis** section below
+
+### Optional next steps
+
+- Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
+- Add energies, decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 
 ## Background
 
@@ -30,8 +37,24 @@ See `wind_database_metadata.xlsx` for description of variables.
 
 Built using Python 3.9.5
 
+## Analysis
+$Re=\frac{UL}{\nu}=(\frac{L}{\lambda_t})^2=(\frac{L}{\eta})^{4/3}$
+
+- $U$ is the flow speed
+- $L$ is the characteristic length, a.k.a. correlation scale, at which energy is input into the system
+- $\nu$ is the kinematic viscosity, **which cannot be determined for a collisionless plasma**.
+- $\lambda_t$ is the Taylor microscale
+- $\eta$ is the Kolmogorov length scale: $(\frac{\nu^3}{\epsilon})^{1/4}$. Given we cannot determine this, we can approximate it using the ion inertial length $d_i$ and the spectral break $db$
+- $\epsilon$ is the rate of energy dissipation
+
+Therefore, using this dataset, we can calculate the Reynolds number using the following three ways:
+
+$Re=(\frac{L}{\lambda_t})^2=(\frac{L}{d_i})^{4/3}=(\frac{L}{db})^{4/3}$
+
+Calculate correlations and plot relationships in `4_analyse_results.py`
+
 ## Pipeline
-*NB*: The .sh files are designed so that they can be tested locally (on a much reduced set of data): simply switch to the appropriate venv command in the file and then change the command to run the file from `sbatch` to `bash`.
+*NB*: The x_local.sh files are designed so test the cluster scripts locally: these can be run in your local terminal with the command `bash`.
 
 ### Setting up environment and downloading raw data
 1. `module load python/3.9.5`
@@ -57,9 +80,8 @@ Process the raw CDF files, getting the desired variables at the desired cadences
     May need to adjust mem as datasize increases
     
 4.  `bash 3_merge_dataframes.sh > 3_merge_dataframes.out`: Merge the final files into the database
----
 
-## Kevin's old pipeline
+### Kevin's old pipeline
 
 1. `mfi_lr.py`: Make low-res (0.2Hz) magnetic field dataframe pickle (Rāpoi job)
 2. `compute_corr.py` (Rāpoi job): Compute correlation scale using two methods for 6-hour intervals of low-res dataframe
