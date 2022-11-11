@@ -119,7 +119,9 @@ taylor_scale_c_std_list = []
 wind_df_hr_list_missing = [] # This will be added as a column to the final dataframe
 
 
-starttime = df_wind_lr.index[0] # E.g. 2016-01-01 00:00
+starttime = df_wind_lr.index[0].round(params.int_size) # E.g. 2016-01-01 00:00. 
+# Will account for when the dataset does not start at a nice round 12H timestamp
+
 endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S") # E.g. 2016-01-01 11:59:59.99
 
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
