@@ -1,5 +1,6 @@
 import pandas as pd
 import glob
+import numpy as np
 import os
 import params
 import utils
@@ -13,6 +14,12 @@ for file in file_paths:
     df_merged = pd.concat([df_merged, pd.read_pickle(file)])
     #os.remove(file)
 df_merged = df_merged.sort_index()
+
+# Dealing with some occasional duplication of timestamps due to a timestamp at the end of a file
+# also appearing at the start of the next file 
+df_merged = df_merged.groupby(df_merged.index).agg(sum)
+# Dealing with any resultant 0s from summing to NAs together
+df_merged = df_merged.replace(0, np.nan)
 
 # Bringing in omni data. This needs to be brought in separately as its files are monthly in size, rather than daily
 # Also, we do not calculate any secondary variables from the OMNI variables, so we do not need to do this in construct_database.py
