@@ -44,6 +44,7 @@ df_omni = df_omni.rename(
 print("\nSAVING FULL MERGED DATASET AND SUMMARY STATS TABLE\n")
 
 df_final = utils.join_dataframes_on_timestamp(df_merged, df_omni)
+df_final = df_final.sort_index()
 
 if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")

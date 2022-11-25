@@ -77,7 +77,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # Reducing the number of files for testing
-file_list = file_list[30:60]
+file_list = file_list[4380:]
 
 list_of_lists = np.array_split(file_list, comm.size)
 
@@ -98,7 +98,7 @@ for file in my_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
-        print("Core {0} reading {1}: {2:.2f}% missing".format(rank, file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
+        print("Core {0:03d} reading {1}: {2:.2f}% missing".format(rank, file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
     except:
         print("Error reading CDF file; moving to next file")
