@@ -2,17 +2,15 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
 ## To-do
-1. Deal with issue with some timestamps in 95-02 database being ahead of the actual data, e.g.:
-- 1998-07-01 in database is actually data from 1998-06-30 (1 day ahead)
-- 2001-10-19 in database is actually data from 2001-10-17 (2 days ahead)
-) 
-
-    *Have made some changes to construct_database which should deal with this. Now running on 4 years of data 1995-1998 to check fix*
-
-2. Deal with outliers in 95-02 dataset
-- Most of the strange `ttc` values come from strange values of `qk`, where it is greater than `qi`. This occurs for 4% of timestamps in 95-02 dataset: see examples in `plots/`)
-- However, there are also some very small `ttu` values, and a strange `tci`
-3. See **Analysis** section below
+1. Tell a story in a Word doc of the method and results
+2. Send doc to Tulasi
+5. Upon getting Tulasi's feedback, put together slides for AGU (don't spend more than half a day)
+6. Send Tulasi a recording of my draft presentation by Tuesday.
+4. Merge dataset with 99-2007 (keeping in mind that they do not start and end flat) and update plots
+5. Merge with remaining data
+6. Turn Word doc. into Latex paper template
+7. Fill in details of paper
+8. Start on proposal
 
 ### Optional next steps
 
@@ -27,15 +25,19 @@ We are now more rigorously estimating the Taylor scale to confirm or deny this c
 
 ## Data
 Time series of physical parameters of the solar wind.
-For more details see the variable lists in `params.py`
-- Wind spacecraft:
--- Magnetic field strength: MFI H2
--- Proton density and temperature: 3DP  
-Re-sampled to two different frequencies and split into 12-hour intervals.
 
-See `wind_database_metadata.xlsx` for description of variables.
+### Raw variables
+From Wind spacecraft, where original cadence ~ 0.092S :
+- Magnetic field strength (MFI H2)
+- Proton density and temperature: (3DP PLSP)  
+- Electron density and temperature (3DP ELM2)
 
-Built using Python 3.9.5
+From OMNI CDAWEB dataset, where original cadence = 1min:
+- Flowspeed
+- Pressure
+- Magnetic field
+
+See `wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
 
 ## Analysis
 $Re=\frac{UL}{\nu}=(\frac{L}{\lambda_t})^2=(\frac{L}{\eta})^{4/3}$
@@ -44,17 +46,37 @@ $Re=\frac{UL}{\nu}=(\frac{L}{\lambda_t})^2=(\frac{L}{\eta})^{4/3}$
 - $L$ is the characteristic length, a.k.a. correlation scale, at which energy is input into the system
 - $\nu$ is the kinematic viscosity, **which cannot be determined for a collisionless plasma**.
 - $\lambda_t$ is the Taylor microscale
-- $\eta$ is the Kolmogorov length scale: $(\frac{\nu^3}{\epsilon})^{1/4}$. Given we cannot determine this, we can approximate it using the ion inertial length $d_i$ and the spectral break $db$
+- $\eta$ is the Kolmogorov length scale: $(\frac{\nu^3}{\epsilon})^{1/4}$. Given we cannot determine this, we can approximate it using the ion inertial length $d_i$ and the spectral break $tb$
 - $\epsilon$ is the rate of energy dissipation
+
+The Reynolds number represents the competition between inertial forces that promote turbulence against viscous forces that prevent it. It also represents the separation between the large, energy-containing length scale $L$ and the small, dissipative length scale $\eta$.
 
 Therefore, using this dataset, we can calculate the Reynolds number using the following three ways:
 
-$Re=(\frac{L}{\lambda_t})^2=(\frac{L}{d_i})^{4/3}=(\frac{L}{db})^{4/3}$
+$Re=(\frac{L}{\lambda_t})^2=(\frac{L}{d_i})^{4/3}=(\frac{L}{tb})^{4/3}$
 
-Calculate correlations and plot relationships in `4_analyse_results.py`
+Calculate Re, statistics, correlations, and plot relationships in `4_analyse_results.py` (Once Re calculations have been finalised, put into `construct_database.py`)
+
+- Summary stats, including correlations, of all variables, but mainly scales and Re
+- Multi-var histograms and time series of scales and Re
+
+## Results
+
+### Outliers
+1995-98 data: for 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange corrected values of the Taylor scale. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
+
+### Correlations
+tc vs. di: see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
+
+### AGU talk
+- Will be speaking to experts in the field
+- 8min, 6-8 slides
+- There is no one answer to the question of our title - there are multiple ways of estimating it (which we present), so the answer to this question requires much thought and theoretical work before we can answer it definitively.
+- "Three different definitions of Re show significant discrepancies. Which of these definitions is most appropriate?"
 
 ## Pipeline
 *NB*: The x_local.sh files are designed so test the cluster scripts locally: these can be run in your local terminal with the command `bash`.
+Built using Python 3.9.5
 
 ### Setting up environment and downloading raw data
 1. `module load python/3.9.5`
