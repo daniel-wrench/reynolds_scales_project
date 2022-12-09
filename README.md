@@ -2,9 +2,7 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
 ## To-do
-1. Tell a story in a Word doc of the method and results
-2. Send doc to Tulasi
-5. Upon getting Tulasi's feedback, put together slides for AGU (don't spend more than half a day)
+1. Upon getting Tulasi's feedback, put together slides for AGU (don't spend more than half a day)
 6. Send Tulasi a recording of my draft presentation by Tuesday.
 4. Merge dataset with 99-2007 (keeping in mind that they do not start and end flat) and update plots
 5. Merge with remaining data
@@ -63,7 +61,7 @@ Calculate Re, statistics, correlations, and plot relationships in `4_analyse_res
 ## Results
 
 ### Outliers
-1995-98 data: for 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange corrected values of the Taylor scale. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
+1995-98 data: for 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
 
 ### Correlations
 tc vs. di: see Cuesta2022 Fig. 2 and 3, note different variances of pdfs

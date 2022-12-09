@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import utils
-from sklearn.linear_model import LinearRegression
 
 # TEMP CODE WHEN NEEDING TO MERGE FILES (i.e., did not run on all data at once)
 
@@ -24,37 +23,38 @@ from sklearn.linear_model import LinearRegression
 # df_merged = df_merged.drop(["vsw", "p", "Bomni"], axis=1)
 # df_merged.index.has_duplicates
 
-# Can also check for duplicate timestamps during the concatentation with the following: 
-#df_merged = pd.concat([df_1, df_2], verify_integrity=True)
-#ValueError: Indexes have overlapping values
+# # Can also check for duplicate timestamps during the concatentation with the following: 
+# #df_merged = pd.concat([df_1, df_2], verify_integrity=True)
+# #ValueError: Indexes have overlapping values
 
-#df_merged = df_merged.groupby(df_merged.index).agg(sum)
-# Dealing with any resultant 0s from summing to NAs together
-#df_merged = df_merged.replace(0, np.nan)
+# df_merged = df_merged.groupby(df_merged.index).agg(sum)
+# # Dealing with any resultant 0s from summing to NAs together
+# df_merged = df_merged.replace(0, np.nan)
 
 # df_merged.index = pd.to_datetime(df_merged.index)
 # df_omni.index = pd.to_datetime(df_omni.index)
 # df = utils.join_dataframes_on_timestamp(df_merged, df_omni)
 # df.index.has_duplicates
 
-# Checking merge (border between end of first file and start of second, with a ragged transition)
-# df_merged_final["1998-12-30":"1999-01-03"]
+# # # Checking merge (border between end of first file and start of second, with a ragged transition)
+# # # df_merged_final["1998-12-30":"1999-01-03"]
 
-# TEMP CODE FOR CALCULATING REYNOLDS NUMBERS 
+# # # TEMP CODE FOR CALCULATING REYNOLDS NUMBERS 
 
 # df["Re_lt"] = (df["tcf"]/df["ttc"])**2
+# df["Re_lt_u"] = (df["tcf"]/df["ttc"])**2
 # df["Re_di"] = ((df["tcf"]*df["vsw"])/df["di"])**(4/3)
 # df["Re_tb"] = ((df["tcf"])/(1/df["tb"]))**(4/3)
 
-# df[["tcf", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe()
+# df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
 # np.mean(df.Re_lt).round(-4)
 # np.mean(df.Re_di).round(-4)
 # np.mean(df.Re_tb).round(-4)
 
-#df[["di", "vsw", "ttk", "ttu", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe().round(2)
-# CHECK MAX VALS
+# df[["di", "vsw", "ttk", "ttu", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe().round(2)
+# # CHECK MAX VALS
 
-#df.to_csv("data/processed/wind_database.csv")
+# df.to_csv("data/processed/wind_database.csv")
 
 ######################################################
 
@@ -65,11 +65,29 @@ df = pd.read_csv("data/processed/wind_database.csv")
 # Drop points where ratio > 100 and ratio < 0.01 
 # or as below, drop very large values (skewed distributions)
 
-df_cleaned = df[df["ttc"] > 1] 
-df_cleaned.Re_lt.describe()
+df_cleaned = df[df["ttc"] > 0] 
+df_cleaned = df_cleaned[df_cleaned.qi > df_cleaned.qk]
 
-# Still have outlier values in top 25% - check these
-df_cleaned[["Timestamp", "ttu", "qi", "qk", "ttc", "Re_lt", "Re_di"]][df.Re_lt>1e7]
+df_cleaned[["ttk", "ttu", "qi", "qk", "ttc", "Re_lt", "Re_di", "Re_tb"]].describe().round(2)
+
+## CONVERTING SCALES FROM TIME TO DISTANCE
+
+df_cleaned['ttk_km'] = df_cleaned["ttk"]*df_cleaned["vsw"]
+df_cleaned['ttu_km'] = df_cleaned["ttu"]*df_cleaned["vsw"]
+df_cleaned['ttc_km'] = df_cleaned["ttc"]*df_cleaned["vsw"]
+
+df_cleaned[["ttk_km", "ttu_km", "qi", "qk", "ttc_km", "Re_lt", "Re_di", "Re_tb"]].describe().round(2)
+
+df_cleaned['tce_km'] = df_cleaned["tce"]*df_cleaned["vsw"]
+df_cleaned['tcf_km'] = df_cleaned["tcf"]*df_cleaned["vsw"]
+df_cleaned['tci_km'] = df_cleaned["tci"]*df_cleaned["vsw"]
+
+df_cleaned[["tcf_km", "tci_km", "tce_km", "ttk_km", "ttu_km", "ttc_km"]].describe().round(2)
+
+## GETTING TIME PERIOD OF DATA
+
+df_no_na = df.dropna()
+print(df_no_na.Timestamp.min(), df_no_na.Timestamp.max())
 
 # Save these extreme cases as case studies (as with strange slopes), but exclude from main statistical analysis
 
@@ -79,8 +97,8 @@ g = sns.JointGrid(
     data=df_cleaned, 
     x="Re_di", 
     y="Re_lt", 
-    xlim = (1e4, 3e6), 
-    ylim=(1e3,1e7)
+    xlim = (1e3, 1e7), 
+    ylim=(1e3, 1e7)
     )
 
 g.ax_joint.set(xscale = "log", yscale="log")
@@ -107,11 +125,14 @@ y0, y1 = g.ax_joint.get_ylim()
 lims = [max(x0, y0), min(x1, y1)]
 g.ax_joint.plot(lims, lims, '-r')
 
-plt.show()
+# Plot the means
+# g.ax_joint.axhline(np.mean(df_cleaned.Re_lt))
+# g.ax_joint.axvline(np.mean(df_cleaned.Re_di))
 
 # Draw a regression line
-# (for some reason the following looks weird)
 #g.plot_joint(sns.regplot, scatter=False, ci=False)
+
+# Also add correlation + log fit regression line
 
 #fit = np.polyfit(np.array(df_cleaned_clean["Re_di"]), np.array(df_cleaned_clean["Re_lt"]), deg=1)
 #g.ax_joint.plot(df_cleaned_clean[["Re_di"]], df_cleaned_clean["Re_di"]*fit[0]+fit[1], '-b')
@@ -128,7 +149,8 @@ plt.show()
 #print("Mean squared error: %.2f" % mean_squared_error(df_cleaned_clean[["Re_lt"]], Re_lt_predict))
 # The coefficient of determination: 1 is perfect prediction
 #print("Coefficient of determination: %.2f" % r2_score(df_cleaned_clean[["Re_lt"]], Re_lt_predict))
-
+#plt.savefig("plots/re_bivariate.png")
+plt.show()
 
 ### PLOTS FOR ALL THREE RE APPROXIMATIONS
 
@@ -138,6 +160,7 @@ f = sns.PairGrid(df_cleaned_re, diag_sharey=False, corner=False)
 f.map_lower(sns.histplot, log_scale=True)
 #f.map_lower(sns.regplot, scatter=False)
 f.map_diag(sns.kdeplot)
+plt.savefig("plots/re_trivariate.png")
 plt.show()
 
 ### TIME SERIES OF RE
@@ -155,4 +178,6 @@ sns.lineplot(data=df_cleaned_1995, x="Timestamp", y="Re_lt_norm", label="Re_lt")
 sns.lineplot(data=df_cleaned_1995, x="Timestamp", y="Re_tb_norm", label="Re_tb")
 
 plt.semilogy()
+
+plt.savefig("plots/re_time_series.png")
 plt.show()
