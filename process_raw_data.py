@@ -48,7 +48,11 @@ output_dir = 'data/processed/' + sys_arg_dict[sys.argv[1]]
 # output directory may still need to be created
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-
+else:
+    # if it does exist, remove any existing files there: do not want confusion if 
+    # using a different number of cores
+    for file in glob.glob(output_dir + "*"):
+        os.remove(file)
 
 def get_subfolders(path):
     return sorted(glob.glob(path + '/*'))
