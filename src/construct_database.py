@@ -1,6 +1,6 @@
 
 import params
-import utils
+import src.utils as utils
 import numpy as np
 import pandas as pd
 

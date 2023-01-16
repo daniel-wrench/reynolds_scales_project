@@ -2,24 +2,31 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
 ## To-do
-1. Upon getting Tulasi's feedback, put together slides for AGU (don't spend more than half a day)
-6. Send Tulasi a recording of my draft presentation by Tuesday.
-4. Merge dataset with 99-2007 (keeping in mind that they do not start and end flat) and update plots
-5. Merge with remaining data
-6. Turn Word doc. into Latex paper template
-7. Fill in details of paper
-8. Start on proposal
+1. Tidy repo
+5. Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+5. Calculate summary stats, put in metadata, try to figure out tb issue (compare tb with Pitna, try to sort out to get decent Re numbers)
+2. Plots
+- Expand upon introduction
+- Make corr scale intro. plots a 3-panel plot, annotate with values
+- Make taylor scale intro plots a 2-panel plot
+- Add di to the power spectrum
+- Put Re table at the end, discussion of scales before then
+- Get streamlined results from Rāpoi codes
+- Investigate spectral break scale. Add di, tb (calculate their ratio) and other scales to the power spectrum in the demo notebook, ala Fig. 5 in Phillips2022. We are assuming our frequency ranges are in line with the work of Pitna.
+- Look into outlier and error analysis for both scales and the final Re estimate. Note the skewed distribution we have to deal with, and Bill’s point that the correlation scale is known to have a log-normal distribution.
+
 
 ### Optional next steps
 
 - Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
 - Add energies, decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
+- Once Re calculations have been finalised, put into `construct_database.py`
 
 ## Background
 
-Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale**.                                                                 
+Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale** (see Figures 5.17 and 5.18 on page 57 of his thesis, *Mining Solar Wind Data for Turbulence Microscales*).                                                                 
 
-We are now more rigorously estimating the Taylor scale to confirm or deny this correlation. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
+We are now more rigorously estimating the Taylor scale to confirm or deny this correlation, which would have significant implications of a constant Reynolds number in the solar wind. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
 
 ## Data
 Time series of physical parameters of the solar wind.
@@ -38,22 +45,18 @@ From OMNI CDAWEB dataset, where original cadence = 1min:
 See `wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
 
 ## Analysis
-$Re=\frac{UL}{\nu}=(\frac{L}{\lambda_t})^2=(\frac{L}{\eta})^{4/3}$
+$Re=\frac{UL}{\nu}\approx(\frac{L}{\eta})^{4/3}\approx(\frac{L}{d_i})^{4/3}\approx(\frac{L}{\lambda_t})^2$
 
 - $U$ is the flow speed
-- $L$ is the characteristic length, a.k.a. correlation scale, at which energy is input into the system
+- $L$ is the characteristic length a.k.a. correlation scale: the size of the largest "eddies" at the start of inertial range of turbulence where energy is input into the system.
 - $\nu$ is the kinematic viscosity, **which cannot be determined for a collisionless plasma**.
-- $\lambda_t$ is the Taylor microscale
-- $\eta$ is the Kolmogorov length scale: $(\frac{\nu^3}{\epsilon})^{1/4}$. Given we cannot determine this, we can approximate it using the ion inertial length $d_i$ and the spectral break $tb$
-- $\epsilon$ is the rate of energy dissipation
+- $\eta$ is the Kolmogorov length scale at which eddies become critically damped and the "dissipation" range begins: $(\frac{\nu^3}{\epsilon})^{1/4}$, where $\epsilon$ is the rate of energy dissipation. We cannot determine this scale since we do not have viscosity, but we can approximate it using the ion inertial length $d_i$ and the spectral break $tb$.
+- $\lambda_t$ is the Taylor microscale. This is the size of the smallest eddies in the inertial range, or the size of the largest eddies that are effected by dissipation. It is also related to mean square spatial derivatives, and can be intepreted as the "single-wavenumber equivalent dissipation scale" (Hinze 1975).
 
 The Reynolds number represents the competition between inertial forces that promote turbulence against viscous forces that prevent it. It also represents the separation between the large, energy-containing length scale $L$ and the small, dissipative length scale $\eta$.
 
-Therefore, using this dataset, we can calculate the Reynolds number using the following three ways:
-
-$Re=(\frac{L}{\lambda_t})^2=(\frac{L}{d_i})^{4/3}=(\frac{L}{tb})^{4/3}$
-
-Calculate Re, statistics, correlations, and plot relationships in `4_analyse_results.py` (Once Re calculations have been finalised, put into `construct_database.py`)
+Therefore, using this dataset, we calculate the Reynolds number using the last two approximation in the equation above.
+These calculations, along with statistics, correlations, and plots, are done in `4_analyse_results.py`.
 
 - Summary stats, including correlations, of all variables, but mainly scales and Re
 - Multi-var histograms and time series of scales and Re
@@ -67,10 +70,7 @@ Calculate Re, statistics, correlations, and plot relationships in `4_analyse_res
 tc vs. di: see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
 
 ### AGU talk
-- Will be speaking to experts in the field
-- 8min, 6-8 slides
-- There is no one answer to the question of our title - there are multiple ways of estimating it (which we present), so the answer to this question requires much thought and theoretical work before we can answer it definitively.
-- "Three different definitions of Re show significant discrepancies. Which of these definitions is most appropriate?"
+- See Comms folder
 
 ## Pipeline
 *NB*: The x_local.sh files are designed so test the cluster scripts locally: these can be run in your local terminal with the command `bash`.
@@ -92,6 +92,11 @@ Built using Python 3.9.5
 2.5 hours was not enough time for one year of data using 10 cores on parallel partition. 64 cores on quicktest gave an error.
 
 Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
+
+NB: Missing data is not reported if you do not resample to the desired frequency first. It is important that we do note the amount of missing data in each interval, even if we do interpolate over it.
+
+For the non-mfi datasets, we only get a missing value for a 12-hour average if there is no data for that period. Otherwise, we simply get an average of the available data for each period. 
+
 
 2. `sbatch 2_construct_database.sh` **(12min/month using 10 cores. 5.44GB: 1 month. 6.61-6.65GB: 2 months. 8.87GB: 4 months)**: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to. ****
 

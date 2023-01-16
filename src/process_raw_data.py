@@ -1,9 +1,18 @@
-from utils import *
+from src.utils import *
 import datetime
 import glob
 import params
 import sys
 import os
+
+####### PARALLEL STUFF #######
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+status = MPI.Status()
+##############################
 
 sys_arg_dict = {
     # arg1
@@ -39,7 +48,11 @@ output_dir = 'data/processed/' + sys_arg_dict[sys.argv[1]]
 # output directory may still need to be created
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-
+else:
+    # if it does exist, remove any existing files there: do not want confusion if 
+    # using a different number of cores
+    for file in glob.glob(output_dir + "*"):
+        os.remove(file)
 
 def get_subfolders(path):
     return sorted(glob.glob(path + '/*'))
@@ -65,10 +78,23 @@ for sub in file_paths:
 # pprint(cdf.varattsget(variable='BGSE', expand=True))
 # cdf.varget("Epoch")
 
+####### PARALLEL STUFF #######
+
+# Reducing the number of files for testing
+file_list = file_list[4380:]
+
+list_of_lists = np.array_split(file_list, comm.size)
+
+if len(list_of_lists) != comm.size:
+    print("Number of lists does not equal number of cores!")
+
+my_list = list_of_lists[rank]
+
+##############################
+
 df = pd.DataFrame({})
 
-# A generator object might be faster here
-for file in file_list:
+for file in my_list:
     try:
         temp_df = pipeline(
             file,
@@ -76,31 +102,37 @@ for file in file_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
-        print("Reading {0}: {1:.2f}% missing".format(file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
+        print("Core {0:03d} reading {1}: {2:.2f}% missing".format(rank, file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
-
     except:
         print("Error reading CDF file; moving to next file")
-        # Print actual error here too?
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
 # NB: Using .asfreq() creates NA values
 
-df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
+df.to_pickle(
+    output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
 
 # Also outputting pickle at second resolution, if specified
 if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+    df.to_pickle(
+        output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
 else:
     second_cadence = ""
 
-print("\nProcessed {} files of {} data at {} cadence\n".format(
-    len(file_list),
-    sys_arg_dict[sys.argv[1]],
-    sys_arg_dict[sys.argv[4]] + second_cadence))
-print("##################################\n")
-print(datetime.datetime.now())
+####### PARALLEL STUFF #######
+comm.Barrier()
+##############################
+
+if rank == 0:
+    print("\nProcessed {} files of {} data at {} cadence using {} cores\n".format(
+        len(file_list),
+        sys_arg_dict[sys.argv[1]],
+        sys_arg_dict[sys.argv[4]] + second_cadence,
+        comm.size))
+    print("##################################\n")
+    print(datetime.datetime.now())
