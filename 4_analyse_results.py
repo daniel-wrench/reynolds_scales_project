@@ -45,9 +45,11 @@ df.index.has_duplicates
 # # # TEMP CODE FOR CALCULATING REYNOLDS NUMBERS 
 
 df["Re_lt"] = (df["tcf"]/df["ttc"])**2
-df["Re_lt_u"] = (df["tcf"]/df["ttc"])**2
 df["Re_di"] = ((df["tcf"]*df["vsw"])/df["di"])**(4/3)
-df["Re_tb"] = ((df["tcf"])/(1/df["tb"]))**(4/3)
+
+df.rename(columns={"tb":"fb"}, inplace=True)
+df["tb"] = 1/((2*np.pi)*df["fb"])
+df["Re_tb"] = ((df["tcf"]/df["tb"]))**(4/3)
 
 # # df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
 # # np.mean(df.Re_lt).round(-4)
@@ -68,8 +70,9 @@ df = pd.read_csv("data/processed/wind_database.csv")
 # Drop points where ratio > 100 and ratio < 0.01 
 # or as below, drop very large values (skewed distributions)
 
-df_cleaned = df[df["ttc"] > 0] 
-df_cleaned = df_cleaned[df_cleaned.qi > df_cleaned.qk]
+df_cleaned = df
+#df_cleaned = df[df["ttc"] > 0] 
+#df_cleaned = df_cleaned[df_cleaned.qi > df_cleaned.qk]
 
 ## CONVERTING SCALES FROM TIME TO DISTANCE
 
@@ -81,7 +84,7 @@ df_cleaned['tcf_km'] = df_cleaned["tcf"]*df_cleaned["vsw"]
 df_cleaned['tci_km'] = df_cleaned["tci"]*df_cleaned["vsw"]
 
 stats = df_cleaned[["tcf_km", "tci_km", "tce_km", "ttk_km", "ttu_km", "qi", "qk", "ttc_km", "Re_lt", "Re_di", "Re_tb"]].describe().round(2)
-stats.to_csv("summary_stats.csv")
+stats.to_csv("wind_database_summary_stats.csv")
 ## GETTING TIME PERIOD OF DATA
 
 df_no_na = df.dropna()
@@ -159,7 +162,7 @@ df_cleaned_re = df_cleaned_re.dropna()
 f = sns.PairGrid(df_cleaned_re, diag_sharey=False, corner=False)
 f.map_lower(sns.histplot, log_scale=True)
 #f.map_lower(sns.regplot, scatter=False)
-f.map_diag(sns.kdeplot)
+f.map_diag(sns.kdeplot, log_scale=True)
 plt.savefig("plots/re_trivariate.png")
 plt.show()
 
