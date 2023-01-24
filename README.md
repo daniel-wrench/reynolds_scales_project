@@ -2,9 +2,10 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
 ## To-do
-1. Tidy repo
-5. Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+5. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
+5. Tidy repo and README, test pipeline locally
 5. Calculate summary stats, put in metadata, try to figure out tb issue (compare tb with Pitna, try to sort out to get decent Re numbers)
+-- Check mean values give reported mean Re; look at two case studies in notebook
 2. Plots
 - Expand upon introduction
 - Make corr scale intro. plots a 3-panel plot, annotate with values
