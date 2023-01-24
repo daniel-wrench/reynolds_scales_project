@@ -255,7 +255,7 @@ df_lengths = pd.DataFrame({
     'ttk': taylor_scale_kevin_list,
     'qi': inertial_slope_list,
     'qk': kinetic_slope_list,
-    'tb': spectral_break_list
+    'fb': spectral_break_list
 })
 
 df_lengths = df_lengths.set_index('Timestamp')
