@@ -83,10 +83,10 @@ df_cleaned['tce_km'] = df_cleaned["tce"]*df_cleaned["vsw"]
 df_cleaned['tcf_km'] = df_cleaned["tcf"]*df_cleaned["vsw"]
 df_cleaned['tci_km'] = df_cleaned["tci"]*df_cleaned["vsw"]
 
-stats = df_cleaned[["tcf_km", "tci_km", "tce_km", "ttk_km", "ttu_km", "qi", "qk", "ttc_km", "Re_lt", "Re_di", "Re_tb"]].describe().round(2)
+stats = df_cleaned[["tcf_km", "tci_km", "tce_km", "ttk_km", "ttu_km", "qi", "qk", "fb", "ttc_km", "Re_lt", "Re_di", "Re_tb"]].describe().round(2)
 stats.to_csv("wind_database_summary_stats.csv")
-## GETTING TIME PERIOD OF DATA
 
+## GETTING TIME PERIOD OF DATA
 df_no_na = df.dropna()
 print(df_no_na.Timestamp.min(), df_no_na.Timestamp.max())
 
@@ -157,14 +157,72 @@ plt.show()
 
 # PLOTS FOR ALL THREE RE APPROXIMATIONS
 
-df_cleaned_re = df_cleaned[["Re_di", "Re_tb", "Re_lt"]]
-df_cleaned_re = df_cleaned_re.dropna()
-f = sns.PairGrid(df_cleaned_re, diag_sharey=False, corner=False)
+reynolds = df_cleaned[["Re_di", "Re_tb", "Re_lt"]]
+
+# Following fn courtesy of bnaecker on stackoverflow
+def plot_unity(xdata, ydata, **kwargs):
+    #mn = min(xdata.min(), ydata.min())
+    #mx = max(xdata.max(), ydata.max())
+    mn = min(1e1, 1e8)
+    mx = max(1e1, 1e8)
+    points = np.linspace(mn, mx, 100)
+    plt.gca().plot(points, points, color='k', marker=None,
+            linestyle='--', linewidth=1.0)
+
+def corrfunc(x, y, ax=None, **kws):
+    """Plot the correlation coefficient in the top left hand corner of a plot."""
+    x = pd.Series(x)
+    y = pd.Series(y)
+    rp = x.corr(y, "pearson")
+    rs = x.corr(y, "spearman")
+    ax = ax or plt.gca()
+    ax.annotate(f'pearson = \n{rp:.2f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
+    ax.annotate(f'spearman = \n{rs:.2f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
+
+def meanfunc(x, ax=None, **kws):
+    #mean = np.mean(x)
+    #med = np.median(x)
+    x = pd.Series(x)
+    mean = x.mean().round(-4)
+    med = x.median().round(-4)
+    ax = ax or plt.gca()
+    ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
+    ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
+
+f = sns.PairGrid(reynolds, diag_sharey=False, corner=False)
 f.map_lower(sns.histplot, log_scale=True)
+f.map_lower(plot_unity)
+f.map_lower(corrfunc)
+
 #f.map_lower(sns.regplot, scatter=False)
 f.map_diag(sns.kdeplot, log_scale=True)
+f.map_diag(meanfunc)
+
+# f.axes[0,0].set_xlim(1e1, 1e8)
+# f.axes[0,0].text(.8, .85, "Mean: 0.5", transform=f.axes[0,0].transAxes, fontweight="bold")
+# f.axes[1,1].text(.8, .85, "Mean: 0.5", transform=f.axes[1,1].transAxes, fontweight="bold")
+# f.axes[2,2].text(.8, .85, "Mean: 0.5", transform=f.axes[2,2].transAxes, fontweight="bold")
+
+#f.axes[2,2].set_xlabel("$Re_{lt}$")
+
+f.axes[0,0].set_xlim(1e1, 1e8)
+f.axes[0,0].set_ylim(1e1, 1e8)
+
+f.axes[1,1].set_xlim(1e1, 1e8)
+f.axes[1,1].set_ylim(1e1, 1e8)
+
+f.axes[2,2].set_xlim(1e1, 1e8)
+f.axes[2,2].set_ylim(1e1, 1e8)
+
 plt.savefig("plots/re_trivariate.png")
+#plt.tight_layout()
 plt.show()
+
+
+# x0, x1 = g.ax_joint.get_xlim()
+# y0, y1 = g.ax_joint.get_ylim()
+# lims = [max(x0, y0), min(x1, y1)]
+# g.ax_joint.plot(lims, lims, '-r')
 
 # TIME SERIES OF RE
 
