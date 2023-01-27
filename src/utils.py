@@ -299,7 +299,7 @@ def compute_nd_acf(np_array, nlags, dt, show=False):
     return time_lags, acf
 
 # previous version called estimate_correlation_scale()
-def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray, show = False):
+def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation_y: np.ndarray, plot=False):
     """
     computes the correlation scale through the "1/e" estimation method.
     autocorrelation_x assumed already in time scale
@@ -322,14 +322,17 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
             try:
 
                 # Optional plotting
-                if show == True:
+                if plot == True:
 
                     dt = autocorrelation_x[1]-autocorrelation_x[0]
 
-                    fig, ax = plt.subplots(constrained_layout=True)
-                    ax.plot(autocorrelation_x, autocorrelation_y)
-                    ax.set_xlabel('$\\tau$ (sec)')
-                    ax.set_ylabel('Autocorrelation')
+                    columns = 3
+
+                    fig, ax = plt.subplots(1, columns, constrained_layout=True)
+                    
+                    ax[0].plot(autocorrelation_x, autocorrelation_y)
+                    ax[0].set_xlabel('$\\tau$ (sec)')
+                    ax[0].set_ylabel('Autocorrelation')
 
                     # For plotting secondary axes
                     def sec2lag(x):
@@ -338,7 +341,7 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                     def lag2sec(x):
                         return x * dt
 
-                    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+                    secax_x = ax[0].secondary_xaxis('top', functions=(sec2lag, lag2sec))
                     secax_x.set_xlabel('$\\tau$ (lag)')
 
                     def sec2km(x):
@@ -348,16 +351,16 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                         return x / 400
 
                     # use of a float for the position:
-                    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+                    secax_x2 = ax[0].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
                     secax_x2.set_xlabel('$r$ (km)')
 
-                    plt.axhline(np.exp(-1), color = 'black')
-                    plt.axvline(x_opt[0], color = 'black')
-                    plt.show()
+                    ax[0].axhline(np.exp(-1), color = 'black')
+                    ax[0].axvline(x_opt[0], color = 'black')
+                    #plt.show()
 
-                return round(x_opt[0], 3)
-
-
+                    return round(x_opt[0], 3), fig, ax
+                else:
+                    return round(x_opt[0], 3)
             except Exception:
                 return 0
 
@@ -378,7 +381,7 @@ def para_fit(x, a):
     return a*x**2 + 1
 
 
-def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False, save=False, figname=""):
+def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=None, plot=False):
 
     dt = time_lags[1]-time_lags[0]
     num_lags_for_lambda_c_fit = int(seconds_to_fit/dt)
@@ -386,68 +389,23 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, show=False, save
         exp_fit, time_lags[:num_lags_for_lambda_c_fit], acf[:num_lags_for_lambda_c_fit], p0=1000)
     lambda_c = c_opt[0]
 
+    if plot == True:
+        # Optional plotting 
+        if fig is not None and ax is not None:
+            fig = fig
+            ax = ax
+            column = 1
 
-    # Optional plotting
-
-    fig, ax = plt.subplots()
-    ax.plot(time_lags, acf, label = "Autocorrelation")
-    ax.plot(
-        np.array(range(int(seconds_to_fit))),
-        exp_fit(
+        ax[column].plot(time_lags, acf, label = "Autocorrelation")
+        ax[column].plot(
             np.array(range(int(seconds_to_fit))),
-            *c_opt
-        ),
-        label = "Exponential fit")
-    ax.set_xlabel('$\\tau$ (sec)')
-    ax.set_ylabel('Autocorrelation')
-
-    # For plotting secondary axes
-    def sec2lag(x):
-        return x / dt
-
-    def lag2sec(x):
-        return x * dt
-
-    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
-    secax_x.set_xlabel('$\\tau$ (lag)')
-
-    def sec2km(x):
-        return x * 400
-
-    def km2sec(x):
-        return x / 400
-
-    # use of a float for the position:
-    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-    secax_x2.set_xlabel('$r$ (km)')
-
-    ax.legend()
-    ax.set_title("{}: {:.2f}".format(figname, lambda_c))
-
-    if save == True:
-        plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
-    if show == True:
-        plt.show()
-    plt.close()
-    return lambda_c
-
-def compute_outer_scale_integral(time_lags, acf, show=False):
-
-    dt = time_lags[1]-time_lags[0]
-    idx = np.argmin(np.abs(acf)) # Getting the index where the ACF falls to 0
-    int = np.sum(acf[:idx])*dt # Computing integral up to that index
-
-    # Optional plotting
-    if show == True:
-        fig, ax = plt.subplots()
-        #ax.set_ylim(-.2, 1.2)
-        ax.plot(time_lags, acf, label="Autocorrelation")
-        ax.fill_between(time_lags, 0, acf, where=acf > 0)
-        # box_color = 'grey' if lambda_c > 50 else 'red'
-        # ax.text(time_lags[-1]*(5/10), 0.9, f'$\lambda_c$: {round(lambda_c, 1)}s', style='italic', fontsize=10,
-        #         bbox={'facecolor': box_color, 'alpha': 0.5, 'pad': 10})
-        ax.set_xlabel('$\\tau$ (sec)')
-        ax.set_ylabel('Autocorrelation')
+            exp_fit(
+                np.array(range(int(seconds_to_fit))),
+                *c_opt
+            ),
+            label = "Exponential fit")
+        ax[column].set_xlabel('$\\tau$ (sec)')
+        ax[column].set_ylabel('Autocorrelation')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -456,7 +414,7 @@ def compute_outer_scale_integral(time_lags, acf, show=False):
         def lag2sec(x):
             return x * dt
 
-        secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+        secax_x = ax[column].secondary_xaxis('top', functions=(sec2lag, lag2sec))
         secax_x.set_xlabel('$\\tau$ (lag)')
 
         def sec2km(x):
@@ -466,12 +424,61 @@ def compute_outer_scale_integral(time_lags, acf, show=False):
             return x / 400
 
         # use of a float for the position:
-        secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+        secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
 
-        plt.show()
+        ax[1].legend()
+        #ax[1].set_title("{}: {:.2f}".format(figname, lambda_c))
 
-    return int
+    #plt.show()
+    #plt.close()
+    return lambda_c, fig, ax
+
+def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
+
+    dt = time_lags[1]-time_lags[0]
+    idx = np.argmin(np.abs(acf)) # Getting the index where the ACF falls to 0
+    int = np.sum(acf[:idx])*dt # Computing integral up to that index
+
+    # Optional plotting
+    if plot == True:
+        # Optional plotting 
+        if fig is not None and ax is not None:
+            fig = fig
+            ax = ax
+            column = 2
+        #ax.set_ylim(-.2, 1.2)
+        ax[column].plot(time_lags, acf, label="Autocorrelation")
+        ax[column].fill_between(time_lags, 0, acf, where=acf > 0)
+        # box_color = 'grey' if lambda_c > 50 else 'red'
+        # ax.text(time_lags[-1]*(5/10), 0.9, f'$\lambda_c$: {round(lambda_c, 1)}s', style='italic', fontsize=10,
+        #         bbox={'facecolor': box_color, 'alpha': 0.5, 'pad': 10})
+        ax[column].set_xlabel('$\\tau$ (sec)')
+        ax[column].set_ylabel('Autocorrelation')
+
+        # For plotting secondary axes
+        def sec2lag(x):
+            return x / dt
+
+        def lag2sec(x):
+            return x * dt
+
+        secax_x = ax[column].secondary_xaxis('top', functions=(sec2lag, lag2sec))
+        secax_x.set_xlabel('$\\tau$ (lag)')
+
+        def sec2km(x):
+            return x * 400
+
+        def km2sec(x):
+            return x / 400
+
+        # use of a float for the position:
+        secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+        secax_x2.set_xlabel('$r$ (km)')
+
+        #plt.show()
+
+    return int, fig, ax
 
 def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = False):
     """Compute the Taylor microscale
