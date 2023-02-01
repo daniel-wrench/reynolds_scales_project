@@ -4,9 +4,6 @@ import params
 import sys
 import os
 
-# For some reason simply using the following line does not work:
-# from src import utils 
-sys.path.append("src")
 from utils import *
 
 ####### PARALLEL STUFF #######

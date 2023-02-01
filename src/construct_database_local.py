@@ -1,7 +1,6 @@
 
 import params
-import src.utils as utils
-import matplotlib.pyplot as plt
+import utils
 import numpy as np
 import pandas as pd
 
