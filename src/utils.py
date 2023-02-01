@@ -163,7 +163,7 @@ def fitpowerlaw(ax,ay,xi,xf):
    pwrl=np.exp(p(np.log(xx)))
    return z,xx,pwrl
 
-def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, di = None, velocity = None, show=False):
+def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, di = None, velocity = None, plot=False):
     """ Compute the autocorrelation function for a scalar or vector time series.
     
     ### Args:
@@ -209,28 +209,30 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
     if round(spectral_break[0], 4) == 0 or spectral_break[0] > 1:
        spectral_break = [np.nan]
         
-    if show == True:
-        plt.semilogy(f_periodogram, power_periodogram, label = "Raw periodogram")
-        plt.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "cyan")
-        plt.semilogy(xi, pi, c = "red", label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
-        plt.semilogy(xk, pk, c = "yellow", label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
-        plt.semilogx()
+    if plot == True:
+        fig, ax = plt.subplots(figsize = (7,4))
+        ax.semilogy(f_periodogram, power_periodogram, label = "Raw periodogram")
+        ax.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "cyan")
+        ax.semilogy(xi, pi, c = "red", label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
+        ax.semilogy(xk, pk, c = "yellow", label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
+        ax.semilogx()
         if spectral_break[0] is not np.nan:
-            plt.axvline(np.exp(np.roots(zk-zi)), color = "black", label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
+            ax.axvline(np.exp(np.roots(zk-zi)), color = "black", label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
 
         # Adding in proton inertial frequency
         if di is not None and velocity is not None:
             f_di = velocity/(2*np.pi*di)
-            plt.axvline(f_di, color = "green", label = "Proton inertial frequency: $f_{di}=$" + "{0:.2f}".format(f_di))
+            ax.axvline(f_di, color = "green", label = "Proton inertial frequency: $f_{di}=$" + "{0:.2f}".format(f_di))
 
-        plt.xlabel('frequency [Hz]')
-        plt.ylabel('PSD')
-        plt.legend()
-        plt.title("Power spectrum")
-        plt.grid()
-        plt.show()
+        ax.set_xlabel('frequency [Hz]')
+        ax.set_ylabel('PSD')
+        ax.legend()
+        #plt.grid()
+        #plt.show()
 
-    return zi[0], zk[0], spectral_break[0]
+        return zi[0], zk[0], spectral_break[0], fig, ax
+    else:
+        return zi[0], zk[0], spectral_break[0]
 
 def compute_nd_acf(np_array, nlags, dt, show=False):
     """ Compute the autocorrelation function for a scalar or vector time series.
@@ -321,14 +323,12 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
             try:
 
-                # Optional plotting
+                # Optional plotting, set up to eventually display all 3 corr scale methods
                 if plot == True:
 
                     dt = autocorrelation_x[1]-autocorrelation_x[0]
 
-                    columns = 3
-
-                    fig, ax = plt.subplots(1, columns, constrained_layout=True)
+                    fig, ax = plt.subplots(1, 3, figsize = (9, 4), constrained_layout=True)
                     
                     ax[0].plot(autocorrelation_x, autocorrelation_y)
                     ax[0].set_xlabel('$\\tau$ (sec)')
@@ -356,7 +356,6 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
                     ax[0].axhline(np.exp(-1), color = 'black')
                     ax[0].axvline(x_opt[0], color = 'black')
-                    #plt.show()
 
                     return round(x_opt[0], 3), fig, ax
                 else:
@@ -389,8 +388,9 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
         exp_fit, time_lags[:num_lags_for_lambda_c_fit], acf[:num_lags_for_lambda_c_fit], p0=1000)
     lambda_c = c_opt[0]
 
+    
+    # Optional plotting 
     if plot == True:
-        # Optional plotting 
         if fig is not None and ax is not None:
             fig = fig
             ax = ax
@@ -427,12 +427,12 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
         secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
 
-        ax[1].legend()
+        #ax[1].legend(loc='center right')
         #ax[1].set_title("{}: {:.2f}".format(figname, lambda_c))
 
-    #plt.show()
-    #plt.close()
-    return lambda_c, fig, ax
+        return lambda_c, fig, ax
+    else:
+        return lambda_c
 
 def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
 
@@ -476,11 +476,12 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
         secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
 
-        #plt.show()
+        return int, fig, ax
+    else:
+        return int
+        
 
-    return int, fig, ax
-
-def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = False):
+def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = False):
     """Compute the Taylor microscale
 
     Args:
@@ -505,30 +506,31 @@ def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = F
     extended_parabola_x = np.arange(0, 1.2*lambda_t, 0.1)
     extended_parabola_y = para_fit(extended_parabola_x, *t_opt)
 
-    # Optional plotting
-    if show == True:
+    # Optional plotting set up to eventually show Chuychai correction factor in second panel
+    if plot == True:
 
-        mpl_fig = plt.figure()
-        fig, ax = plt.subplots()
-        ax.scatter(time_lags, acf, label="Autocorrelation", s = 0.5)
-        ax.plot(
+        #mpl_fig = plt.figure()
+
+        fig, ax = plt.subplots(1,2, figsize = (9,4), constrained_layout=True)
+
+        ax[0].scatter(time_lags, acf, label="Autocorrelation", s = 0.5)
+        ax[0].plot(
             extended_parabola_x,
             extended_parabola_y,
             '-y',
             label="Parabolic fit")
         #plt.axhline(0, color = 'black')
-        ax.axvline(0, color='green')
-        ax.axvline(tau_fit*(time_lags[1]-time_lags[0]), color='green')
+        ax[0].axvline(tau_fit*(time_lags[1]-time_lags[0]), color='purple', label = "$\\tau_{fit}=20$ lags")
 
-        ax.set_xlim(-0.2, tau_fit*dt*2)
-        ax.set_ylim(0.99, 1.001)
+        ax[0].set_xlim(-0.2, tau_fit*dt*2)
+        ax[0].set_ylim(0.99, 1.001)
 
         if show_intercept == True:
-            ax.set_ylim(0, 1.05)
-            ax.set_xlim(-2, lambda_t + 5)
+            ax[0].set_ylim(0, 1.05)
+            ax[0].set_xlim(-2, lambda_t + 5)
 
-        ax.set_xlabel('$\\tau$ (sec)')
-        ax.set_ylabel('Autocorrelation')
+        ax[0].set_xlabel('$\\tau$ (sec)')
+        ax[0].set_ylabel('Autocorrelation')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -537,7 +539,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = F
         def lag2sec(x):
             return x * dt
 
-        secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
+        secax_x = ax[0].secondary_xaxis('top', functions=(sec2lag, lag2sec))
         secax_x.set_xlabel('$\\tau$ (lag)')
 
         def sec2km(x):
@@ -547,15 +549,17 @@ def compute_taylor_scale(time_lags, acf, tau_fit, show=False, show_intercept = F
             return x / 400
 
         # use of a float for the position:
-        secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+        secax_x2 = ax[0].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
         
-        ax.legend()
-        plt.show()
+        ax[0].legend(loc = "center right")
 
-    return lambda_t
+        return lambda_t, fig, ax
 
-def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False, save=False, figname=""):
+    else:
+        return lambda_t
+
+def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None, q=None, save=False, figname=""):
     """Compute a refined estimate of the Taylor microscale using a linear extrapolation method from Chuychai et al. (2014).
 
     Args:
@@ -573,7 +577,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False
     tau_ts = np.array([])
 
     for i in tau_fit:
-        lambda_t = compute_taylor_scale(time_lags, acf, tau_fit=i, show=False)
+        lambda_t = compute_taylor_scale(time_lags, acf, tau_fit=i)
         tau_ts = np.append(tau_ts, lambda_t)
 
     # Performing linear extrapolation back to tau_fit = 0
@@ -607,48 +611,46 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, q=None, show=False
     ts_est_std = r*ts_est_extra_std
 
     # Optional plotting
-    fig, ax = plt.subplots()
-    ax.plot(tau_fit*dt, tau_ts, color="blue",
-                label="Range over which $\\tau_{TS}$ was calculated")
-    ax.plot(other_x*dt, other_y, color="black",
-                label="Linear extrapolation to $\\tau_{fit}$=0", ls='--')
-    if q is not None:
-        ax.plot(0, ts_est, "go", label = "Final estimate with correction ratio applied (q={0:.2f})".format(q))
-        #ax.plot(0, ts_est_final_lower, "r+", markersize=1)
-        #ax.plot(0, ts_est_final_upper, "r+", markersize=1)
-    ax.set_xlabel("$\\tau_{fit}$ (sec)")
-    ax.set_ylabel("$\\tau_{fit}^{est}$ (sec)")
+    if fig is not None and ax is not None:
+        ax[1].plot(tau_fit*dt, tau_ts, color="blue",
+                    label="Range of $\\tau_{TS}$ calculation")
+        ax[1].plot(other_x*dt, other_y, color="black",
+                    label="Linear extrapolation", ls='--')
+        if q is not None:
+            ax[1].plot(0, ts_est, "go", label = "Final estimate $\\tau_{{TS}}$ (q={0:.2f})".format(q))
+            #ax[1].plot(0, ts_est_final_lower, "r+", markersize=1)
+            #ax[1].plot(0, ts_est_final_upper, "r+", markersize=1)
+        ax[1].set_xlabel("$\\tau_{fit}$ (sec)")
+        ax[1].set_ylabel("$\\tau_{fit}^{est}$ (sec)")
 
-    # For plotting secondary axes
-    def sec2lag(x):
-        return x / dt
+        # For plotting secondary axes
+        def sec2lag(x):
+            return x / dt
 
-    def lag2sec(x):
-        return x * dt
+        def lag2sec(x):
+            return x * dt
 
-    secax_x = ax.secondary_xaxis('top', functions=(sec2lag, lag2sec))
-    secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
+        secax_x = ax[1].secondary_xaxis('top', functions=(sec2lag, lag2sec))
+        secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
 
-    def sec2km(x):
-        return x * 400
+        def sec2km(x):
+            return x * 400
 
-    def km2sec(x):
-        return x / 400
+        def km2sec(x):
+            return x / 400
 
-    # use of a float for the position:
-    secax_x2 = ax.secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-    secax_x2.set_xlabel('$r_{fit}$ (km)')
-    
-    plt.legend()
-    
-    ax.set_title("{}: {:.2f}".format(figname, ts_est))
+        # use of a float for the position:
+        secax_x2 = ax[1].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
+        secax_x2.set_xlabel('$r_{fit}$ (km)')
+        
+        ax[1].legend()
+        #plt.close()
+        #ax.set_title("{}: {:.2f}".format(figname, ts_est))
 
-    if save == True:
-        plt.savefig("data/processed/{}.png".format(figname), bbox_inches='tight')
-    if show == True:
-        plt.show()
-    plt.close()
-    return ts_est, ts_est_std
+        return ts_est, ts_est_std, fig, ax
+
+    else:
+        return ts_est, ts_est_std
 
 
 

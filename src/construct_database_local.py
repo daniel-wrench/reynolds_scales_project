@@ -191,7 +191,7 @@ for i in np.arange(n_int).tolist():
 
             # Use estimate from 1/e method to select fit amount
             corr_scale_exp_fit = utils.compute_outer_scale_exp_fit(
-                time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick), show=False)
+                time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick))
             corr_scale_exp_fit_list.append(corr_scale_exp_fit)
 
             corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
@@ -218,8 +218,8 @@ for i in np.arange(n_int).tolist():
                 ]),
                 dt=float(params.dt_hr[:-1]),
                 f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
-                f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic,
-                show=False)
+                f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic
+                )
 
             inertial_slope_list.append(slope_i)
             kinetic_slope_list.append(slope_k)
