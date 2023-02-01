@@ -1,16 +1,20 @@
-from src.utils import *
 import datetime
 import glob
 import params
 import sys
 import os
 
+# For some reason simply using the following line does not work:
+# from src import utils 
+sys.path.append("src")
+from utils import *
+
 ####### PARALLEL STUFF #######
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
+size = comm.Get_size() # Number of cores
+rank = comm.Get_rank() # Current core
 status = MPI.Status()
 ##############################
 

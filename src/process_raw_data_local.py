@@ -1,9 +1,15 @@
-from src.utils import *
 import datetime
 import glob
 import params
 import sys
 import os
+
+# For some reason simply using the following line does not work:
+from src import utils 
+from src.utils import * 
+
+sys.path.append("src")
+from utils import *
 
 sys_arg_dict = {
     # arg1
