@@ -6,7 +6,7 @@
 # (can also run locally on a small number of files)
 
 # Use the following to download a sequence of files from a single directory
-## (Currently downloading 1 week worth of data)
+## (Currently downloading 1 week worth of data: takes about 4min locally, 20s on Google Colab
 
 wget --directory-prefix=data/raw/omni/omni_cdaweb/hro2_1min/2016/ https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/2016/omni_hro2_1min_20160101_v01.cdf
 wget --directory-prefix=data/raw/wind/3dp/3dp_elm2/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/2016/wi_elm2_3dp_201601{01..07}_v02.cdf

@@ -16,6 +16,6 @@ source ActivatePython.sh
 echo "JOB STARTED"
 date
 
-mpirun --oversubscribe -n 256 python construct_database.py
+mpirun --oversubscribe -n 256 python src/construct_database.py
 
 date
