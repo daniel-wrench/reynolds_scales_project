@@ -2,26 +2,83 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
 
 ## To-do
-5. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
-5. Tidy repo and README, test pipeline locally
-5. Calculate summary stats, put in metadata, try to figure out tb issue (compare tb with Pitna, try to sort out to get decent Re numbers)
--- Check mean values give reported mean Re; look at two case studies in notebook
-2. Plots
-- Expand upon introduction
-- Make corr scale intro. plots a 3-panel plot, annotate with values
-- Make taylor scale intro plots a 2-panel plot
-- Add di to the power spectrum
-- Put Re table at the end, discussion of scales before then
-- Get streamlined results from Rāpoi codes
-- Investigate spectral break scale. Add di, tb (calculate their ratio) and other scales to the power spectrum in the demo notebook, ala Fig. 5 in Phillips2022. We are assuming our frequency ranges are in line with the work of Pitna.
-- Look into outlier and error analysis for both scales and the final Re estimate. Note the skewed distribution we have to deal with, and Bill’s point that the correlation scale is known to have a log-normal distribution.
+Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
+1. Check ni/di issue identified by Thomas
+2. Plots:
+- Repeat Re tri plot for correlation lengths
+- Make 2d histogram for Taylor scale, corrected and uncorrected (remove reference to naive estimate)
+- Make R correlation plots
+3. Put Re calculations into `construct_database.py`
+4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
+5. Send to Tulasi (Sean, Marcus)
+6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
+7. *Thorough outlier and error analysis for both scales and the final Re estimate. Note the skewed distribution we have to deal with, and Bill’s point that the correlation scale is known to have a log-normal distribution. Check Excel and sort by these values to get problem timestamps.*
+
+## How to run this code
+
+In order to create the full, 25-year dataset, an HPC cluster will be required. However, for the purposes of testing, a version of the pipeline is available that can be run locally on your machine with minimal computing requirements: note some Local/HPC differences in the instructions below.
+
+1. **Clone the repository to your local machine:**
+
+    - Using a terminal: `git clone https://github.com/daniel-wrench/reynolds_scales_project`
+
+    - [Using VS Code](https://learn.microsoft.com/en-us/azure/developer/javascript/how-to/with-visual-studio-code/clone-github-repository?tabs=create-repo-command-palette%2Cinitialize-repo-activity-bar%2Ccreate-branch-command-palette%2Ccommit-changes-command-palette%2Cpush-command-palette#clone-repository)
+
+2. **Create and activate a virtual environment**: 
+
+    (For HPCs, start with `module load python/3.9.5`. You may also need to use `python3` instead of `python`.)
+
+    `python -m venv venv`
+
+    `venv\Scripts\activate`
+
+2. **Install the required packages:**
+
+    `pip install -r requirements.txt`
+
+3. **Download the raw CDF files using a set of recursive `wget` commands:**
+
+    Local: `bash 0_download_from_spdf.sh`
+
+    HPC: 
+    - (`tmux new`)
+    - `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
+    - `bash 0_download_from_spdf.sh`
+    - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
+
+4. **Get the raw variables by processing the CDF files:**
+
+    Local: `bash 1_process_raw_data_local.sh`
+
+    HPC: `sbatch 1_process_raw_data.sh`
+
+    Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
+
+    NB: Missing data is not reported if you do not resample to the desired frequency first. It is important that we do note the amount of missing data in each interval, even if we do interpolate over it.
+
+    For the non-mfi datasets, we only get a missing value for a 12-hour average if there is no data for that period. Otherwise, we simply get an average of the available data for each period. 
+
+5. **Get the analytical and numerical variables by running a sequence of calculations and output the final dataframe:**
+
+    Local: `bash 2_construct_database_local.sh` 
+
+    HPC: 
+    - `sbatch 2_construct_database.sh`
+    - `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
+    - `bash 3_merge_dataframes.sh`
+
+    See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+
+You will now find two output files corresponding to the final database and its summary statistics:
+
+- `data/processed/wind_database.csv`
+- `data/processed/wind_summary_stats.csv`
 
 ### Optional next steps
 
 - Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
-- Add energies, decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
-- Once Re calculations have been finalised, put into `construct_database.py`
+- Add collisional age (Kasper PRL), energies (ask Mark), decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 
 ## Background
 
@@ -72,40 +129,6 @@ tc vs. di: see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
 
 ### AGU talk
 - See Comms folder
-
-## Pipeline
-*NB*: The x_local.sh files are designed so test the cluster scripts locally: these can be run in your local terminal with the command `bash`.
-Built using Python 3.9.5
-
-### Setting up environment and downloading raw data
-1. `module load python/3.9.5`
-2. `python3 -m venv venv`
-2. (`pip install --upgrade pip`)
-2. `pip install -r requirements.txt`
-2. (`tmux new`)
-2. `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
-    
-    `bash 0_download_from_spdf.sh`: Download the raw CDF files using a set of recursive wget commands. ~ 13MB/s, 5s per mfi file
-2. (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
-
-### Running scripts
-1. `sbatch 1_process_raw_data.sh` **(12min/month using 10 cores, 1.5min/file running locally. 5.24GB: 1 month. 5.96GB: 2 months. 7.11GB: 4 months. 12.1GB?: 12 months)**: 
-2.5 hours was not enough time for one year of data using 10 cores on parallel partition. 64 cores on quicktest gave an error.
-
-Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
-
-NB: Missing data is not reported if you do not resample to the desired frequency first. It is important that we do note the amount of missing data in each interval, even if we do interpolate over it.
-
-For the non-mfi datasets, we only get a missing value for a 12-hour average if there is no data for that period. Otherwise, we simply get an average of the available data for each period. 
-
-
-2. `sbatch 2_construct_database.sh` **(12min/month using 10 cores. 5.44GB: 1 month. 6.61-6.65GB: 2 months. 8.87GB: 4 months)**: Construct the database, involving calculation of the analytically-derived and numerically-derived variables (see the notebook **demo_scale_funcs.ipynb** for more on these). Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to. ****
-
-3. `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
-    
-    May need to adjust mem as datasize increases
-    
-4.  `bash 3_merge_dataframes.sh > 3_merge_dataframes.out`: Merge the final files into the database
 
 ### Kevin's old pipeline
 

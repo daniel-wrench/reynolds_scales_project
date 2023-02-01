@@ -297,8 +297,8 @@ print("\nSAVING FINAL DATASET AND SUMMARY STATS TABLE\n")
 print(df_complete.info())
 
 # Saving final dataframe and summary stats
-df_complete.to_csv("data/processed/db_wind.csv", index=False)
-stats.to_csv("data/processed/db_wind_summary_stats.csv")
+df_complete.to_csv("data/processed/wind_database.csv", index=False)
+stats.to_csv("data/processed/wind_summary_stats.csv")
 
 # Outputting some plots of the ACF and fitting for extreme and middle values of each scale
 # Can use to valuate the current settings of these numerical methods
