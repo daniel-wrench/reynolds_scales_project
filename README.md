@@ -4,10 +4,8 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Check ni/di issue identified by Thomas
+1. Ask Tulasi about ni/di issue identified by Thomas
 2. Plots:
-- Repeat Re tri plot for correlation lengths
-- Make 2d histogram for Taylor scale, corrected and uncorrected (remove reference to naive estimate)
 - Make R correlation plots
 3. Put Re calculations into `construct_database.py`
 4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
