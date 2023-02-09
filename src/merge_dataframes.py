@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import os
 import params
-import src.utils as utils
+import utils
 
 file_paths = sorted(glob.iglob("data/processed/dataset_*.pkl"))
 
