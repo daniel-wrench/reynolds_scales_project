@@ -7,7 +7,7 @@ source ActivatePython.sh
 echo "JOB STARTED"
 date
 
-python merge_dataframes.py
+python src/merge_dataframes.py
 
 date
 echo "FINISHED"
