@@ -4,18 +4,36 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Ask Tulasi about ni/di issue identified by Thomas
+1. Re-run just the OMNI pipeline on Raapoi using new proton density (first check local commits here and copy to HPC script)
+2. Ask Thomas do to lit review on turbulence in the lunar wake
 2. Plots:
-- Make R correlation plots
+    - Remove y-axis labels from Fig. 1 & 2
+    - Replace blue line with points in Fig. 2, star for final estimate
+    - Fig. 3: 0.2 alpha (grey) 
+        - for raw periodogram, make smoothed standout in black
+        - for slopes, dashed lines, perhaps vertically offset, qk, qi = ... in annotation next to dashed slopes
+        - (no colour needed)
+    - give figures a specific font size and dimensions
+    - Fig. 4: Simplify to 1x3 panels, manually provide tighter bounds
+    - Fig 5: reduce size, tighter bounds, add mean vertical lines (remove Table 2 and Fig. 6)
+    - R correlation plots
 3. Put Re calculations into `construct_database.py`
 4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
+5. Add vector velocities to params.py script, anticipating switch to PSP data
 5. Send to Tulasi (Sean, Marcus)
+6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
+    - [I. Methodology and Data Product](https://iopscience.iop.org/article/10.3847/1538-4365/ab22bd)
+    - [II. Statistics](https://iopscience.iop.org/article/10.3847/1538-4365/ab5445) 
+    - [III. Analysis](https://iopscience.iop.org/article/10.3847/1538-4357/ab7d39/meta)
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
 7. *Thorough outlier and error analysis for both scales and the final Re estimate. Note the skewed distribution we have to deal with, and Bill’s point that the correlation scale is known to have a log-normal distribution. Check Excel and sort by these values to get problem timestamps.*
 
 ## How to run this code
 
 In order to create the full, 25-year dataset, an HPC cluster will be required. However, for the purposes of testing, a version of the pipeline is available that can be run locally on your machine with minimal computing requirements: note some Local/HPC differences in the instructions below.
+
+**Google Colab** is a highly recommended way to run the code for beginners on a Windows computer. 
+You will need to prefix the commands below with `!`, and use `%cd` to move into the project folder.
 
 1. **Clone the repository to your local machine:**
 
