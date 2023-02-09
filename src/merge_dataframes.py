@@ -38,7 +38,8 @@ df_omni = df_omni.rename(
     columns={
         params.vsw: 'vsw',
         params.p: 'p',
-        params.Bomni: 'Bomni'})
+        params.Bomni: 'Bomni',
+        params.ni: 'ni_omni'})
 
 
 print("\nSAVING FULL MERGED DATASET AND SUMMARY STATS TABLE\n")

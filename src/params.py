@@ -5,10 +5,12 @@ int_size =       "12H"
 
 omni_path =      "omni/omni_cdaweb/hro2_1min/"
 vsw =            "flow_speed"
+ni_omni =        "proton_density"
 p =              "Pressure"
 Bomni =          "F"
 omni_thresh = {
                  'flow_speed': [0, 1000],
+                 'proton_density': [0, 200],
                  'Pressure': [0, 200],
                  'F': [0, 50]
             }

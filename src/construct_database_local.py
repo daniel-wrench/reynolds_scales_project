@@ -20,7 +20,8 @@ df_omni = df_omni.rename(
     columns={
         params.vsw: 'vsw',
         params.p: 'p',
-        params.Bomni: 'Bomni'})
+        params.Bomni: 'Bomni',
+        params.ni: 'ni_omni'})
 
 # Electron data
 
@@ -79,15 +80,16 @@ db = np.sqrt(dbx**2+dby**2+dbz**2).rename("db")
 # df_vars = utils.join_dataframes_on_timestamp(df_vars, b0_hr)
 
 # # Calculating analytically-derived variables
+# Note that ni has some weird values so using ni_omni instead
 
-# df_vars["rhoe"] = (2.38e-5)*(df_vars["Te"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1)  # Electron gyroradius
-# df_vars["rhoi"] = (1.02e-3)*(df_vars["Ti"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1) # Ion gyroradius
-# df_vars["de"] = (5.31)*(df_vars["ne"]**(-1/2)) # Electron inertial length
-# df_vars["di"] = (2.28e2)*(df_vars["ni"]**(-1/2)) # Ion inertial length
-# df_vars["betae"] = (4.03e-11)*df_vars["ne"]*df_vars["Te"]*((df_vars["Bwind"]*1e-5)**-2) # Electron plasma beta
-# df_vars["betai"] = (4.03e-11)*df_vars["ni"]*df_vars["Ti"]*((df_vars["Bwind"]*1e-5)**-2) # Ion plasma beta
-# df_vars["va"] = (2.18e6)*(df_vars["ni"]**(-1/2))*(df_vars["Bwind"]*1e-5) # Alfven speed
-# df_vars["ld"] = (7.43e-3)*(df_vars["Te"]**(1/2))*(df_vars["ne"]**(-1/2)) # Debye length
+df_vars["rhoe"] = (2.38e-5)*(df_vars["Te"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1)  # Electron gyroradius
+df_vars["rhoi"] = (1.02e-3)*(df_vars["Ti"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1) # Ion gyroradius
+df_vars["de"] = (5.31)*(df_vars["ne"]**(-1/2)) # Electron inertial length
+df_vars["di"] = (2.28e2)*(df_vars["ni_omni"]**(-1/2)) # Ion inertial length
+df_vars["betae"] = (4.03e-11)*df_vars["ne"]*df_vars["Te"]*((df_vars["Bwind"]*1e-5)**-2) # Electron plasma beta
+df_vars["betai"] = (4.03e-11)*df_vars["ni_omni"]*df_vars["Ti"]*((df_vars["Bwind"]*1e-5)**-2) # Ion plasma beta
+df_vars["va"] = (2.18e6)*(df_vars["ni_omni"]**(-1/2))*(df_vars["Bwind"]*1e-5) # Alfven speed
+df_vars["ld"] = (7.43e-3)*(df_vars["Te"]**(1/2))*(df_vars["ne"]**(-1/2)) # Debye length
 
 # Low-res data
 
