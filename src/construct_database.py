@@ -74,17 +74,6 @@ b0_hr = df_wind_hr["Bwind"].resample(params.int_size).mean()
 df_vars = utils.join_dataframes_on_timestamp(df_vars, turb_fluc_hr)
 df_vars = utils.join_dataframes_on_timestamp(df_vars, b0_hr)
 
-# Calculating analytically-derived variables
-
-df_vars["rhoe"] = (2.38e-5)*(df_vars["Te"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1)  # Electron gyroradius
-df_vars["rhoi"] = (1.02e-3)*(df_vars["Ti"]**(1/2))*((df_vars["Bwind"]*1e-5)**-1) # Ion gyroradius
-df_vars["de"] = (5.31)*(df_vars["ne"]**(-1/2)) # Electron inertial length
-df_vars["di"] = (2.28e2)*(df_vars["ni"]**(-1/2)) # Ion inertial length
-df_vars["betae"] = (4.03e-11)*df_vars["ne"]*df_vars["Te"]*((df_vars["Bwind"]*1e-5)**-2) # Electron plasma beta
-df_vars["betai"] = (4.03e-11)*df_vars["ni"]*df_vars["Ti"]*((df_vars["Bwind"]*1e-5)**-2) # Ion plasma beta
-df_vars["va"] = (2.18e6)*(df_vars["ni"]**(-1/2))*(df_vars["Bwind"]*1e-5) # Alfven speed
-df_vars["ld"] = (7.43e-3)*(df_vars["Te"]**(1/2))*(df_vars["ne"]**(-1/2)) # Debye length
-
 # Low-res data
 
 df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + "_{:03d}.pkl".format(rank))
