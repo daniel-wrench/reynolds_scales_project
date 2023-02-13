@@ -24,7 +24,7 @@ sys_arg_dict = {
 
     # arg2
     "mag_vars": [params.timestamp, params.Bwind, params.Bwind_vec],
-    "omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni, params.ni_omni],
+    "omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
     "proton_vars": [params.timestamp, params.ni, params.Ti],
     "electron_vars": [params.timestamp, params.ne, params.Te],
 
@@ -82,7 +82,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # Reducing the number of files for testing
-file_list = file_list[:100]
+file_list = file_list[4380:]
 
 list_of_lists = np.array_split(file_list, comm.size)
 

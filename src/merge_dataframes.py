@@ -38,8 +38,7 @@ df_omni = df_omni.rename(
     columns={
         params.vsw: 'vsw',
         params.p: 'p',
-        params.Bomni: 'Bomni',
-        params.ni_omni: 'ni_omni'})
+        params.Bomni: 'Bomni'})
 
 
 print("\nSAVING FULL MERGED DATASET AND SUMMARY STATS TABLE\n")
@@ -51,15 +50,15 @@ if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
 # Calculating derived variables
-# (using ni_omni due to issues with wind ni data)
+# (using ne due to issues with wind ni data)
 
 df_final["rhoe"] = (2.38e-5)*(df_final["Te"]**(1/2))*((df_final["Bwind"]*1e-5)**-1)  # Electron gyroradius
 df_final["rhoi"] = (1.02e-3)*(df_final["Ti"]**(1/2))*((df_final["Bwind"]*1e-5)**-1) # Ion gyroradius
 df_final["de"] = (5.31)*(df_final["ne"]**(-1/2)) # Electron inertial length
-df_final["di"] = (2.28e2)*(df_final["ni_omni"]**(-1/2)) # Ion inertial length
+df_final["di"] = (2.28e2)*(df_final["ne"]**(-1/2)) # Ion inertial length (swapped ni for ne)
 df_final["betae"] = (4.03e-11)*df_final["ne"]*df_final["Te"]*((df_final["Bwind"]*1e-5)**-2) # Electron plasma beta
-df_final["betai"] = (4.03e-11)*df_final["ni_omni"]*df_final["Ti"]*((df_final["Bwind"]*1e-5)**-2) # Ion plasma beta
-df_final["va"] = (2.18e6)*(df_final["ni_omni"]**(-1/2))*(df_final["Bwind"]*1e-5) # Alfven speed
+#df_final["betai"] = (4.03e-11)*df_final["ne"]*df_final["Ti"]*((df_final["Bwind"]*1e-5)**-2) # Ion plasma beta (now same as betae)
+df_final["va"] = (2.18e6)*(df_final["ne"]**(-1/2))*(df_final["Bwind"]*1e-5) # Alfven speed (swapped ni for ne)
 df_final["ld"] = (7.43e-3)*(df_final["Te"]**(1/2))*(df_final["ne"]**(-1/2)) # Debye length
 
 stats = df_final.describe()
