@@ -154,6 +154,7 @@ def SmoothySpec(a,nums=None):
       b[i+1:-1] = 0.25*b[i:-2]+0.5*b[i+1:-1]+0.25*b[i+2:]
    return b
 
+
 def fitpowerlaw(ax,ay,xi,xf):
    idxi=np.argmin(abs(ax-xi))
    idxf=np.argmin(abs(ax-xf))
@@ -210,23 +211,38 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
        spectral_break = [np.nan]
         
     if plot == True:
-        fig, ax = plt.subplots(figsize = (7,4))
-        ax.semilogy(f_periodogram, power_periodogram, label = "Raw periodogram")
-        ax.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "cyan")
-        ax.semilogy(xi, pi, c = "red", label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
-        ax.semilogy(xk, pk, c = "yellow", label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
+        fig, ax = plt.subplots(figsize = (5,3), constrained_layout=True)
+        ax.set_ylim(1e-6, 1e6)
+
+        ax.semilogy(f_periodogram, power_periodogram, label = "Raw periodogram", color = "black", alpha=0.2)
+        ax.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "black")
+        ax.semilogy(xi, pi*3, c = "black", ls='--', label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
+        ax.semilogy(xk, pk*3, c = "black", ls='--', label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
         ax.semilogx()
+
         if spectral_break[0] is not np.nan:
-            ax.axvline(np.exp(np.roots(zk-zi)), color = "black", label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
+            ax.axvline(
+                np.exp(np.roots(zk-zi)), 
+                alpha = 0.6, 
+                color = "black",
+                label = "Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
 
         # Adding in proton inertial frequency
         if di is not None and velocity is not None:
             f_di = velocity/(2*np.pi*di)
-            ax.axvline(f_di, color = "green", label = "Proton inertial frequency: $f_{di}=$" + "{0:.2f}".format(f_di))
-
+            ax.axvline(
+                f_di, 
+                color = "black",
+                alpha = 0.6, 
+                label = "Proton inertial frequency: $f_{di}=$" + "{0:.2f}".format(f_di))
+        
+        #bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.5)
+        ax.text(xi[0]*5, pi[0], "$q_i$")
+        ax.text(xk[0]*2, pk[0], "$q_k$")
+        ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
+        ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
         ax.set_xlabel('frequency [Hz]')
         ax.set_ylabel('PSD')
-        ax.legend()
         #plt.grid()
         #plt.show()
 
@@ -330,6 +346,9 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
                     fig, ax = plt.subplots(1, 3, figsize = (9, 4), constrained_layout=True)
                     
+                    ax[1].set_yticks([])
+                    ax[2].set_yticks([])
+
                     ax[0].plot(autocorrelation_x, autocorrelation_y)
                     ax[0].set_xlabel('$\\tau$ (sec)')
                     ax[0].set_ylabel('Autocorrelation')
@@ -405,7 +424,7 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
             ),
             label = "Exponential fit")
         ax[column].set_xlabel('$\\tau$ (sec)')
-        ax[column].set_ylabel('Autocorrelation')
+        #ax[column].set_ylabel('Autocorrelation')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -454,7 +473,7 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
         # ax.text(time_lags[-1]*(5/10), 0.9, f'$\lambda_c$: {round(lambda_c, 1)}s', style='italic', fontsize=10,
         #         bbox={'facecolor': box_color, 'alpha': 0.5, 'pad': 10})
         ax[column].set_xlabel('$\\tau$ (sec)')
-        ax[column].set_ylabel('Autocorrelation')
+        #ax[column].set_ylabel('Autocorrelation')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -475,6 +494,7 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
         # use of a float for the position:
         secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
+
 
         return int, fig, ax
     else:
@@ -612,12 +632,12 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
     # Optional plotting
     if fig is not None and ax is not None:
-        ax[1].plot(tau_fit*dt, tau_ts, color="blue",
-                    label="Range of $\\tau_{TS}$ calculation")
-        ax[1].plot(other_x*dt, other_y, color="black",
-                    label="Linear extrapolation", ls='--')
+        ax[1].scatter(tau_fit*dt, tau_ts, color="blue",
+                    label="Range of $\\tau_{TS}$ calculation", s = 0.7)
+        ax[1].plot(other_x*dt, other_y, alpha=0.5,
+                    label="Linear extrapolation")
         if q is not None:
-            ax[1].plot(0, ts_est, "go", label = "Final estimate $\\tau_{{TS}}$ (q={0:.2f})".format(q))
+            ax[1].plot(0, ts_est, "*", color="green", label = "Final estimate $\\tau_{{TS}}$ (q={0:.2f})".format(q))
             #ax[1].plot(0, ts_est_final_lower, "r+", markersize=1)
             #ax[1].plot(0, ts_est_final_upper, "r+", markersize=1)
         ax[1].set_xlabel("$\\tau_{fit}$ (sec)")
