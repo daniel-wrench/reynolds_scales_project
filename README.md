@@ -4,15 +4,8 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Re-run just the OMNI pipeline on Raapoi using new proton density (first check local commits here and copy to HPC script)
-2. Ask Thomas do to lit review on turbulence in the lunar wake
+1. Go back to ne di calculation
 2. Plots:
-    - Remove y-axis labels from Fig. 1 & 2
-    - Replace blue line with points in Fig. 2, star for final estimate
-    - Fig. 3: 0.2 alpha (grey) 
-        - for raw periodogram, make smoothed standout in black
-        - for slopes, dashed lines, perhaps vertically offset, qk, qi = ... in annotation next to dashed slopes
-        - (no colour needed)
     - give figures a specific font size and dimensions
     - Fig. 4: Simplify to 1x3 panels, manually provide tighter bounds
     - Fig 5: reduce size, tighter bounds, add mean vertical lines (remove Table 2 and Fig. 6)

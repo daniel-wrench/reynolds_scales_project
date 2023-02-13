@@ -4,16 +4,14 @@ library(corrplot)
 library(tidyverse)
 library(lares)
 
-
-
 # Session -> Set Working Directory -> To Source File Location
 # e.g.
-setwd("~/Research/reynolds_scales_project")
+setwd("~/Research/Code repos/reynolds_scales_project")
 
 data_raw <- read.csv("data/processed/wind_database.csv")
 
-data <- data_raw |> select(-c(Timestamp, ttu_std, ttc_std))
-data <- data |> relocate(c(Re_lt, Re_di, ttc, ttu, ttk, tce, tcf, tci))
+data <- data_raw |> select(-c(Timestamp, ttu_std, ttc_std, ttk))
+data <- data |> relocate(c(Re_lt, Re_di, ttc, ttu, tce, tcf, tci))
 corrmatrix <- data |>  cor(use="complete.obs")
 
 # Ordered according to variable order

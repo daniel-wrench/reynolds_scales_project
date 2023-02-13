@@ -42,15 +42,7 @@ import src.utils as utils
 # # # Checking merge (border between end of first file and start of second, with a ragged transition)
 # # # df_merged_final["1998-12-30":"1999-01-03"]
 
-# # # TEMP CODE FOR CALCULATING REYNOLDS NUMBERS 
-
-# df["Re_lt"] = (df["tcf"]/df["ttc"])**2
-# df["Re_lt_u"] = (df["tcf"]/df["ttu"])**2
-# df["Re_di"] = ((df["tcf"]*df["vsw"])/df["di"])**(4/3)
-
 # df.rename(columns={"tb":"fb"}, inplace=True)
-# df["tb"] = 1/((2*np.pi)*df["fb"])
-# df["Re_tb"] = ((df["tcf"]/df["tb"]))**(4/3)
 
 # # df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
 # # np.mean(df.Re_lt).round(-4)
@@ -65,6 +57,27 @@ import src.utils as utils
 ######################################################
 
 df = pd.read_csv("data/processed/wind_database.csv")
+
+# Calculating analytically-derived variables
+# Using ne in place of ni due to issues with wind ni data.
+
+df["di"] = (2.28e2)*(df["ne"]**(-1/2))
+
+df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
+df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
+df["de"] = (5.31)*(df["ne"]**(-1/2)) # Electron inertial length
+df["di"] = (2.28e2)*(df["ne"]**(-1/2)) # Ion inertial length
+df["betae"] = (4.03e-11)*df["ne"]*df["Te"]*((df["Bwind"]*1e-5)**-2) # Electron plasma beta
+# df["betai"] = (4.03e-11)*df["ni"]*df["Ti"]*((df["Bwind"]*1e-5)**-2) # Ion plasma beta
+df["va"] = (2.18e6)*(df["ne"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
+df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
+
+# Calculating Reynolds numbers
+df["Re_lt"] = (df["tcf"]/df["ttc"])**2
+df["Re_lt_u"] = (df["tcf"]/df["ttu"])**2
+df["Re_di"] = ((df["tcf"]*df["vsw"])/df["di"])**(4/3)
+df["tb"] = 1/((2*np.pi)*df["fb"])
+df["Re_tb"] = ((df["tcf"]/df["tb"]))**(4/3)
 
 #### DATA CLEANING (dealing with outliers)
 
@@ -92,12 +105,14 @@ df = pd.read_csv("data/processed/wind_database.csv")
 # df[["negative_ttc", "qk > -1.7", "qk > qi"]].mean()
 # df.groupby(["qk > -1.7", "qk > qi", "negative_ttc"])[["negative_ttc", "qk > -1.7", "qk > qi"]].value_counts()
 
-
-# Removing outliers 
+# Removing all these rows due to flow-on effects
 df_cleaned = df[df.qk < -1.7]
 df_cleaned = df_cleaned[df_cleaned.ttu > 1] # 3 values
 
-df_cleaned.Re_lt_u.describe()
+# Removing other outliers 
+df_cleaned.loc[df_cleaned.tci <0, "tci"] = np.nan
+
+df_cleaned.to_csv("data/processed/wind_database_cleaned.csv", index=False)
 
 ## CONVERTING SCALES FROM TIME TO DISTANCE
 
@@ -122,11 +137,12 @@ stats.to_csv("wind_database_summary_stats_cleaned.csv")
 # df.ttu.quantile(0.1)
 
 ## GETTING TIME PERIOD OF DATA
-df_no_na = df.dropna()
+
+df_no_na = df_cleaned.dropna()
 print(df_no_na.Timestamp.min(), df_no_na.Timestamp.max())
 
 corr_mat = df_no_na.corr()
-corr_mat.to_csv("corr_mat.csv")
+corr_mat.to_csv("cleaned_corr_mat.csv")
 # Save these extreme cases as case studies (as with strange slopes), but exclude from main statistical analysis
 
 ### SCATTERPLOTS AND HISTOGRAMS OF TAYLOR SCALES ###
@@ -189,7 +205,7 @@ g.ax_joint.plot(lims, lims, '--', c="black")
 # print("Coefficient of determination: %.2f" % r2_score(df_cleaned_clean[["Re_lt"]], Re_lt_predict))
 
 g.set_axis_labels(xlabel = "$\lambda_{TS}^{extra}$ (km)", ylabel = "$\lambda_{TS}$ (km)")
-plt.savefig("plots/final/taylor_bivariate.png")
+#plt.savefig("plots/final/taylor_bivariate.png")
 plt.show()
 
 sns.histplot(df_cleaned.ttu_km, log_scale=True, label = "$\lambda_{TS}^{extra}$ (km)")
@@ -303,7 +319,7 @@ def meanfunc(x, ax=None, **kws):
     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
-f = sns.PairGrid(df_cleaned[["tce_km", "tcf_km", "tci_km"]], diag_sharey=False, corner=False)
+f = sns.PairGrid(df_cleaned[["tce_km", "tcf_km", "tci_km"]], diag_sharey=False, corner=True)
 f.map_lower(sns.histplot, log_scale=True)
 f.map_lower(plot_unity)
 f.map_lower(corrfunc)
@@ -356,30 +372,3 @@ plt.show()
 
 # plt.savefig("plots/re_time_series.png")
 # plt.show()
-
-
-
-# Checking weird stuff
-df = pd.read_csv("data/processed/wind_database.csv")
-df.drop(df.columns[0], axis = 1, inplace=True)
-df.Timestamp = pd.to_datetime(df.Timestamp)
-df.set_index("Timestamp", inplace=True)
-check = df.loc["2005":"2015",["ni", "di", "Re_di"]]
-
-check.ni_norm = (check.ni-check.ni.min())/(check.ni.max()-check.ni.min())
-check.di_norm = (check.di-check.di.min())/(check.di.max()-check.di.min())
-#check.Re_di = (check.Re_di-check.Re_di.min())/(check.Re_di.max()-check.Re_di.min())
-
-fig, ax = plt.subplots(1,3)
-ax[1].plot(check.di, label = "di")
-ax[1].plot(check.ni, label = "ni")
-ax[0].plot(check.di_norm, label = "di_norm")
-ax[0].plot(check.ni_norm, label = "ni_norm")
-ax[2].plot(check.Re_di, label = "Re_di")
-ax[0].legend()
-ax[1].legend()
-ax[2].legend()
-plt.show()
-
-# Show to Tulasi
-# Note this will also be dragging down the Re_di values over this period
