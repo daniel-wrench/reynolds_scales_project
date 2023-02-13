@@ -61,8 +61,6 @@ df = pd.read_csv("data/processed/wind_database.csv")
 # Calculating analytically-derived variables
 # Using ne in place of ni due to issues with wind ni data.
 
-df["di"] = (2.28e2)*(df["ne"]**(-1/2))
-
 df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
 df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
 df["de"] = (5.31)*(df["ne"]**(-1/2)) # Electron inertial length
@@ -280,12 +278,7 @@ plt.savefig("plots/final/re_matrix.pdf")
 plt.show()
 
 
-
-
-
-
 # NOW FOR CORR SCALES
-
 
 # Following fn courtesy of bnaecker on stackoverflow
 def plot_unity(xdata, ydata, **kwargs):
