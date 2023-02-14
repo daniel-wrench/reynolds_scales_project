@@ -9,7 +9,7 @@ Paper should be a story of how to calculate Re for the solar wind, including all
 3. 2.sh -> calculate_numerical_vars.sh
 4. 3.sh -> calculate_analytical_vars.sh (both local and HPC version)
 5. R correlation plots
-3. Put Re calculations into `construct_database.py`
+3. Put Re calculations into `calculate_numerical_vars.py`
 4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
 5. Add vector velocities to params.py script, anticipating switch to PSP data
 5. Send to Tulasi (Sean, Marcus)
@@ -47,19 +47,19 @@ You will need to prefix the commands below with `!`, and use `%cd` to move into 
 
 3. **Download the raw CDF files using a set of recursive `wget` commands:**
 
-    Local: `bash 0_download_from_spdf.sh`
+    Local: `bash 0_download_files.sh`
 
     HPC: 
     - (`tmux new`)
     - `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
-    - `bash 0_download_from_spdf.sh`
+    - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
 4. **Get the raw variables by processing the CDF files:**
 
-    Local: `bash 1_process_raw_data_local.sh`
+    Local: `bash 1_get_raw_vars_local.sh`
 
-    HPC: `sbatch 1_process_raw_data.sh`
+    HPC: `sbatch 1_get_raw_vars.sh`
 
     Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
 
@@ -69,12 +69,12 @@ You will need to prefix the commands below with `!`, and use `%cd` to move into 
 
 5. **Get the analytical and numerical variables by running a sequence of calculations and output the final dataframe:**
 
-    Local: `bash 2_construct_database_local.sh` 
+    Local: `bash 2_calculate_numerical_vars_local.sh` 
 
     HPC: 
-    - `sbatch 2_construct_database.sh`
+    - `sbatch 2_calculate_numerical_vars.sh`
     - `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
-    - `bash 3_merge_dataframes.sh`
+    - `bash 3_calculate_analytical_vars.sh`
 
     See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
@@ -85,7 +85,7 @@ You will now find two output files corresponding to the final database and its s
 
 ### Optional next steps
 
-- Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_merge_dataframes` step
+- Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_calculate_analytical_vars` step
 - Add collisional age (Kasper PRL), energies (ask Mark), decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 
 ## Background

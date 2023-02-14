@@ -22,7 +22,7 @@ df_merged = df_merged.groupby(df_merged.index).agg(sum)
 df_merged = df_merged.replace(0, np.nan)
 
 # Bringing in omni data. This needs to be brought in separately as its files are monthly in size, rather than daily
-# Also, we do not calculate any secondary variables from the OMNI variables, so we do not need to do this in construct_database.py
+# Also, we do not calculate any secondary variables from the OMNI variables, so we do not need to do this in calculate_numerical_vars.py
 
 omni_file_paths = sorted(glob.iglob("data/processed/" + params.omni_path + params.int_size + "_*.pkl"))
 
@@ -49,7 +49,7 @@ df_final = df_final.sort_index()
 if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
-# Calculating derived variables
+# Calculating analytical derived variables
 # (using ne due to issues with wind ni data)
 
 df_final["rhoe"] = (2.38e-5)*(df_final["Te"]**(1/2))*((df_final["Bwind"]*1e-5)**-1)  # Electron gyroradius

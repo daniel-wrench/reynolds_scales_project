@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-#SBATCH --job-name          2_construct_database
+#SBATCH --job-name          2_calculate_numerical_vars
 #SBATCH --partition         parallel
 ##SBATCH --reservation       spacejam
 ##SBATCH --nodelist          spj01
@@ -16,6 +16,6 @@ source ActivatePython.sh
 echo "JOB STARTED"
 date
 
-mpirun --oversubscribe -n 256 python src/construct_database.py
+mpirun --oversubscribe -n 256 python src/calculate_numerical_vars.py
 
 date

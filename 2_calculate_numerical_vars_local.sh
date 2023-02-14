@@ -5,6 +5,6 @@ source venv/Scripts/activate
 echo "JOB STARTED"
 date
 
-python src/construct_database_local.py
+python src/calculate_numerical_vars_local.py
 
 date
