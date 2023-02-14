@@ -4,12 +4,11 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Go back to ne di calculation
-2. Plots:
-    - give figures a specific font size and dimensions
-    - Fig. 4: Simplify to 1x3 panels, manually provide tighter bounds
-    - Fig 5: reduce size, tighter bounds, add mean vertical lines (remove Table 2 and Fig. 6)
-    - R correlation plots
+1. Tidy 4.py
+2. Make better corr scales plot, with table of summary stats
+3. 2.sh -> calculate_numerical_vars.sh
+4. 3.sh -> calculate_analytical_vars.sh (both local and HPC version)
+5. R correlation plots
 3. Put Re calculations into `construct_database.py`
 4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
 5. Add vector velocities to params.py script, anticipating switch to PSP data

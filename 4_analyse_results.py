@@ -4,14 +4,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import src.utils as utils
+
+######################################################
+
 
 # TEMP CODE WHEN NEEDING TO MERGE FILES (i.e., did not run on all data at once)
 
 # df_1 = pd.read_csv("data/processed/wind_database_1995_1998.csv")
 # df_2 = pd.read_csv("data/processed/wind_database_1999_2007.csv")
 # df_3 = pd.read_csv("data/processed/wind_database_2007_2022.csv")
-
 
 # df_1 = df_1.set_index("Timestamp").sort_index()
 # df_2 = df_2.set_index("Timestamp").sort_index()
@@ -143,73 +144,26 @@ corr_mat = df_no_na.corr()
 corr_mat.to_csv("cleaned_corr_mat.csv")
 # Save these extreme cases as case studies (as with strange slopes), but exclude from main statistical analysis
 
-### SCATTERPLOTS AND HISTOGRAMS OF TAYLOR SCALES ###
 
-g = sns.JointGrid(
-    data=df_cleaned, 
-    x="ttu_km", 
-    y="ttc_km"#, 
-    #xlim = (1e3, 1e7), 
-    #ylim=(1e3, 1e7)
-    )
 
-g.ax_joint.set(xscale = "log", yscale="log")
+df_cleaned = pd.read_csv("data/processed/wind_database_cleaned.csv")
 
-# Create an inset legend for the histogram colorbar
-#cax = g.figure.add_axes([.15, .55, .02, .2])
 
-# Add the joint and marginal histogram plots
-g.plot_joint(
-    sns.histplot  #,
-    #cmap="light:#03012d", 
-    #pmax=.8, 
-    #cbar=True
-)
-g.plot_marginals(
-    sns.histplot  #, or kdeplot if you want densities 
-    # element="step",
-    # color="#03012d"
-)
 
-# Draw a line of x=y 
-x0, x1 = g.ax_joint.get_xlim()
-y0, y1 = g.ax_joint.get_ylim()
-lims = [max(x0, y0), min(x1, y1)]
-g.ax_joint.plot(lims, lims, '--', c="black")
 
-#Plot the means
-# g.ax_joint.axvline(np.mean(df_cleaned.ttu_km))
-# g.ax_joint.axhline(np.mean(df_cleaned.ttc_km))
+### HISTOGRAMS OF TAYLOR SCALES ###
 
-#Draw a regression line
-#g.plot_joint(sns.regplot, scatter=False, ci=False)
-
-#Also add correlation + log fit regression line
-
-# fit = np.polyfit(np.array(df_cleaned_clean["Re_di"]), np.array(df_cleaned_clean["Re_lt"]), deg=1)
-# g.ax_joint.plot(df_cleaned_clean[["Re_di"]], df_cleaned_clean["Re_di"]*fit[0]+fit[1], '-b')
-
-# df_cleaned_clean = df_cleaned.dropna()
-# reg = LinearRegression().fit(df_cleaned_clean[["Re_di"]], df_cleaned_clean[["Re_lt"]])
-# Re_lt_predict = reg.predict(df_cleaned_clean[["Re_di"]])
-
-## The coefficients
-# print("Coefficients: \n", reg.coef_)
-# print(reg.intercept_)
-
-# from sklearn.metrics import mean_squared_error, r2_score
-# print("Mean squared error: %.2f" % mean_squared_error(df_cleaned_clean[["Re_lt"]], Re_lt_predict))
-# The coefficient of determination: 1 is perfect prediction
-# print("Coefficient of determination: %.2f" % r2_score(df_cleaned_clean[["Re_lt"]], Re_lt_predict))
-
-g.set_axis_labels(xlabel = "$\lambda_{TS}^{extra}$ (km)", ylabel = "$\lambda_{TS}$ (km)")
-#plt.savefig("plots/final/taylor_bivariate.png")
-plt.show()
-
-sns.histplot(df_cleaned.ttu_km, log_scale=True, label = "$\lambda_{TS}^{extra}$ (km)")
-sns.histplot(df_cleaned.ttc_km, log_scale=True, color="orange", label = "$\lambda_{TS}$ (km)")
+fig, ax = plt.subplots(figsize=(6,3), constrained_layout=True)
+sns.histplot(ax=ax, data=df_cleaned.ttu_km, log_scale=True, color = "cornflowerblue", label = "$\lambda_{TS}^{extra}$")
+sns.histplot(df_cleaned.ttc_km, log_scale=True, color="green", label = "$\lambda_{TS}$")
+plt.axvline(df_cleaned.ttu_km.mean(), c="black")
+plt.axvline(df_cleaned.ttc_km.mean(), c="black")
 plt.xlabel("Length (km)")
+plt.xlim(500, 20000)
+plt.text(df_cleaned.ttu_km.mean()*1.1, 800, "Mean = {:.0f}".format((df_cleaned.ttu_km.mean())))
+plt.text(df_cleaned.ttc_km.mean()/2, 800, "Mean = {:.0f}".format((df_cleaned.ttc_km.mean())))
 plt.legend()
+
 plt.savefig("plots/final/taylor_overlapping_hist.pdf")
 
 # PLOTS FOR ALL THREE RE APPROXIMATIONS
@@ -226,16 +180,6 @@ def plot_unity(xdata, ydata, **kwargs):
     plt.gca().plot(points, points, color='k', marker=None,
             linestyle='--', linewidth=1.0)
 
-def corrfunc(x, y, ax=None, **kws):
-    """Plot the correlation coefficient in the top left hand corner of a plot."""
-    x = pd.Series(x)
-    y = pd.Series(y)
-    rp = x.corr(y, "pearson")
-    rs = x.corr(y, "spearman")
-    ax = ax or plt.gca()
-    ax.annotate(f'pearson = \n{rp:.2f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'spearman = \n{rs:.2f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
-
 def meanfunc(x, ax=None, **kws):
     #mean = np.mean(x)
     #med = np.median(x)
@@ -248,35 +192,69 @@ def meanfunc(x, ax=None, **kws):
     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
-f = sns.PairGrid(reynolds, diag_sharey=False, corner=False)
-f.map_lower(sns.histplot, log_scale=True)
-f.map_lower(plot_unity)
-f.map_lower(corrfunc)
+# f = sns.PairGrid(reynolds, diag_sharey=False, corner=True, despine=False)
+# f.map_lower(sns.histplot, log_scale=True)
+# f.map_lower(plot_unity)
+# f.map_lower(corrfunc)
 
-#f.map_lower(sns.regplot, scatter=False)
-f.map_diag(sns.kdeplot, log_scale=True)
-f.map_diag(meanfunc)
+# #f.map_lower(sns.regplot, scatter=False)
+# f.map_diag(sns.kdeplot, log_scale=True)
+# f.map_diag(meanfunc)
+
+# # f.axes[0,0].set_xlim(1e1, 1e8)
+# # f.axes[0,0].text(.8, .85, "Mean: 0.5", transform=f.axes[0,0].transAxes, fontweight="bold")
+# # f.axes[1,1].text(.8, .85, "Mean: 0.5", transform=f.axes[1,1].transAxes, fontweight="bold")
+# # f.axes[2,2].text(.8, .85, "Mean: 0.5", transform=f.axes[2,2].transAxes, fontweight="bold")
+
+# #f.axes[2,2].set_xlabel("$Re_{lt}$")
 
 # f.axes[0,0].set_xlim(1e1, 1e8)
-# f.axes[0,0].text(.8, .85, "Mean: 0.5", transform=f.axes[0,0].transAxes, fontweight="bold")
-# f.axes[1,1].text(.8, .85, "Mean: 0.5", transform=f.axes[1,1].transAxes, fontweight="bold")
-# f.axes[2,2].text(.8, .85, "Mean: 0.5", transform=f.axes[2,2].transAxes, fontweight="bold")
+# f.axes[0,0].set_ylim(1e1, 1e8)
 
-#f.axes[2,2].set_xlabel("$Re_{lt}$")
+# f.axes[1,1].set_xlim(1e1, 1e8)
+# f.axes[1,1].set_ylim(1e1, 1e8)
 
-f.axes[0,0].set_xlim(1e1, 1e8)
-f.axes[0,0].set_ylim(1e1, 1e8)
+# f.axes[2,2].set_xlim(1e1, 1e8)
+# f.axes[2,2].set_ylim(1e1, 1e8)
 
-f.axes[1,1].set_xlim(1e1, 1e8)
-f.axes[1,1].set_ylim(1e1, 1e8)
+# #plt.savefig("plots/final/re_matrix.pdf")
+# #plt.tight_layout()
+# plt.show()
 
-f.axes[2,2].set_xlim(1e1, 1e8)
-f.axes[2,2].set_ylim(1e1, 1e8)
+def plot_unity_histplot(ax, **kwargs):
+    mn = min(1e1, 1e8)
+    mx = max(1e1, 1e8)
+    points = np.linspace(mn, mx, 100)
+    for i in np.arange(3):
+        ax[i].plot(points, points, color='k', marker=None,
+                linestyle='--', linewidth=1.0)
 
-plt.savefig("plots/final/re_matrix.pdf")
-#plt.tight_layout()
-plt.show()
+def corrfunc(x, y, ax=None, **kws):
+    """Plot the correlation coefficient in the top left hand corner of a plot."""
+    x = pd.Series(x)
+    y = pd.Series(y)
+    rp = x.corr(y, "pearson")
+    rs = x.corr(y, "spearman")
+    ax = ax or plt.gca()
+    ax.annotate(f'pearson: \n{rp:.2f}', xy=(.65, .3), xycoords=ax.transAxes, size=7)
+    ax.annotate(f'spearman: \n{rs:.2f}', xy=(.65, .1), xycoords=ax.transAxes, size=7)
 
+fig, ax = plt.subplots(1, 3, figsize=(7,2.5), constrained_layout=True, sharex=True)
+sns.histplot(ax = ax[0], data=df_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
+corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_lt"], ax[0])
+sns.histplot(ax = ax[1], data=df_cleaned, x="Re_tb", y="Re_di", log_scale=True)
+corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_di"], ax[1])
+sns.histplot(ax = ax[2], data=df_cleaned, x="Re_lt", y="Re_di", log_scale=True)
+corrfunc(df_cleaned["Re_lt"], df_cleaned["Re_di"], ax[2])
+
+ax[0].set_xlim(1e3, 1e7)
+ax[0].set_ylim(1e3, 1e7)
+ax[1].set_ylim(1e3, 1e7)
+ax[2].set_ylim(1e3, 1e7)
+plot_unity_histplot(ax)
+#plt.show()
+
+plt.savefig("plots/final/re_panels.pdf")
 
 # NOW FOR CORR SCALES
 
@@ -312,34 +290,22 @@ def meanfunc(x, ax=None, **kws):
     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
-f = sns.PairGrid(df_cleaned[["tce_km", "tcf_km", "tci_km"]], diag_sharey=False, corner=True)
-f.map_lower(sns.histplot, log_scale=True)
-f.map_lower(plot_unity)
-f.map_lower(corrfunc)
 
-#f.map_lower(sns.regplot, scatter=False)
-f.map_diag(sns.kdeplot, log_scale=True)
-f.map_diag(meanfunc)
-
-# f.axes[0,0].set_xlim(1e1, 1e8)
-# f.axes[0,0].text(.8, .85, "Mean: 0.5", transform=f.axes[0,0].transAxes, fontweight="bold")
-# f.axes[1,1].text(.8, .85, "Mean: 0.5", transform=f.axes[1,1].transAxes, fontweight="bold")
-# f.axes[2,2].text(.8, .85, "Mean: 0.5", transform=f.axes[2,2].transAxes, fontweight="bold")
-
-#f.axes[2,2].set_xlabel("$Re_{lt}$")
-
-f.axes[0,0].set_xlim(1e4, 1e7)
-f.axes[0,0].set_ylim(1e4, 1e7)
-
-f.axes[1,1].set_xlim(1e4, 1e7)
-f.axes[1,1].set_ylim(1e4, 1e7)
-
-f.axes[2,2].set_xlim(1e4, 1e7)
-f.axes[2,2].set_ylim(1e4, 1e7)
-
-plt.savefig("plots/final/corr_scale_matrix.pdf")
+fig, ax = plt.subplots(1, 3, figsize=(7,2.5), constrained_layout=True, sharex=True)
+sns.histplot(ax = ax[0], data=df_cleaned, x="tce_km", y="tcf_km", log_scale=True)
+corrfunc(df_cleaned["tce"], df_cleaned["tcf"], ax[0])
+sns.histplot(ax = ax[1], data=df_cleaned, x="tce_km", y="tci_km", log_scale=True)
+corrfunc(df_cleaned["tce"], df_cleaned["tci"], ax[1])
+sns.histplot(ax = ax[2], data=df_cleaned, x="tcf_km", y="tci_km", log_scale=True)
+corrfunc(df_cleaned["tcf"], df_cleaned["tci"], ax[2])
+ax[0].set_xlim(1e5, 1e7)
+ax[0].set_ylim(1e5, 1e7)
+ax[1].set_ylim(1e5, 1e7)
+ax[2].set_ylim(1e5, 1e7)
+plot_unity_histplot(ax)
+plt.savefig("plots/final/corr_scale_panels.pdf")
 #plt.tight_layout()
-plt.show()
+#plt.show()
 
 
 # x0, x1 = g.ax_joint.get_xlim()
