@@ -250,7 +250,7 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
     else:
         return zi[0], zk[0], spectral_break[0]
 
-def compute_nd_acf(np_array, nlags, dt, show=False):
+def compute_nd_acf(np_array, nlags, dt, plot=False):
     """ Compute the autocorrelation function for a scalar or vector time series.
 
     Args:
@@ -284,7 +284,7 @@ def compute_nd_acf(np_array, nlags, dt, show=False):
     time_lags = np.arange(0, nlags+1)*dt
 
     # Optional plotting
-    if show == True:
+    if plot == True:
 
         fig, ax = plt.subplots(constrained_layout=True)
 

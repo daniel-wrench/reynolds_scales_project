@@ -71,13 +71,6 @@ df["betae"] = (4.03e-11)*df["ne"]*df["Te"]*((df["Bwind"]*1e-5)**-2) # Electron p
 df["va"] = (2.18e6)*(df["ne"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
 df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
 
-# Calculating Reynolds numbers
-df["Re_lt"] = (df["tcf"]/df["ttc"])**2
-df["Re_lt_u"] = (df["tcf"]/df["ttu"])**2
-df["Re_di"] = ((df["tcf"]*df["vsw"])/df["di"])**(4/3)
-df["tb"] = 1/((2*np.pi)*df["fb"])
-df["Re_tb"] = ((df["tcf"]/df["tb"]))**(4/3)
-
 #### DATA CLEANING (dealing with outliers)
 
 # Few timestamps (0.1%) have ttc < 0 

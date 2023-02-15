@@ -1,40 +1,12 @@
 import pandas as pd
-import glob
-import numpy as np
 import params
 import utils
+import numpy as np
 
-file_paths = sorted(glob.iglob("data/processed/dataset_*.pkl"))
-
-print("MERGING NON-OMNI DATASETS")
-df_merged = pd.DataFrame({})
-for file in file_paths:
-    print("Reading " + file)
-    df_merged = pd.concat([df_merged, pd.read_pickle(file)])
-    #os.remove(file)
+df_merged = pd.read_pickle("data/processed/dataset.pkl")
 df_merged = df_merged.sort_index()
 
-# Dealing with some occasional duplication of timestamps due to a timestamp at the end of a file
-# also appearing at the start of the next file 
-df_merged = df_merged.groupby(df_merged.index).agg(sum)
-# Dealing with any resultant 0s from summing to NAs together
-df_merged = df_merged.replace(0, np.nan)
-
-# Bringing in omni data. This needs to be brought in separately as its files are monthly in size, rather than daily
-# Also, we do not calculate any secondary variables from the OMNI variables, so we do not need to do this in calculate_numerical_vars.py
-
-omni_file_paths = sorted(glob.iglob("data/processed/" + params.omni_path + params.int_size + "_*.pkl"))
-electron_file_paths = sorted(glob.iglob("data/processed/" + params.electron_path + params.int_size + "_*.pkl"))
-proton_file_paths = sorted(glob.iglob("data/processed/" + params.proton_path + params.int_size + "_*.pkl"))
-
-print("MERGING OTHER DATASETS")
-
-df_omni = pd.DataFrame({})
-for file in omni_file_paths:
-    print("Reading " + file)
-    df_omni = pd.concat([df_omni, pd.read_pickle(file)])
-    #os.remove(omni_file)
-
+df_omni = pd.read_pickle("data/processed/" + params.omni_path + params.int_size + ".pkl")
 df_omni = df_omni.rename(
     columns={
         params.vsw: 'vsw',
@@ -43,26 +15,17 @@ df_omni = df_omni.rename(
 
 # Electron data
 
-df_electrons = pd.DataFrame({})
-for file in electron_file_paths:
-    print("Reading " + file)
-    df_electrons = pd.concat([df_electrons, pd.read_pickle(file)])
-    #os.remove(omni_file)
-
+df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + ".pkl")
 df_electrons = df_electrons.rename(
     columns={
         params.ne: 'ne',
         params.Te: 'Te'
     })
 
+
 # Proton data
 
-df_protons = pd.DataFrame({})
-for file in proton_file_paths:
-    print("Reading " + file)
-    df_protons = pd.concat([df_protons, pd.read_pickle(file)])
-    #os.remove(omni_file)
-
+df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + ".pkl")
 df_protons = df_protons.rename(
     columns={
         params.ni: 'ni',

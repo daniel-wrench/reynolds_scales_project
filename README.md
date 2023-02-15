@@ -5,11 +5,8 @@ Codes for constructing a database of solar wind parameters and scales as measure
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
 1. Tidy 4.py
-2. Make better corr scales plot, with table of summary stats
-3. 2.sh -> calculate_numerical_vars.sh
-4. 3.sh -> calculate_analytical_vars.sh (both local and HPC version)
+2. Flesh out summary stats tables, esp for corr scales.
 5. R correlation plots
-3. Put Re calculations into `calculate_numerical_vars.py`
 4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
 5. Add vector velocities to params.py script, anticipating switch to PSP data
 5. Send to Tulasi (Sean, Marcus)
@@ -67,16 +64,23 @@ You will need to prefix the commands below with `!`, and use `%cd` to move into 
 
     For the non-mfi datasets, we only get a missing value for a 12-hour average if there is no data for that period. Otherwise, we simply get an average of the available data for each period. 
 
-5. **Get the analytical and numerical variables by running a sequence of calculations and output the final dataframe:**
+5. **Get the numerical variables by running a sequence of calculations:**
 
     Local: `bash 2_calculate_numerical_vars_local.sh` 
 
+    HPC: `sbatch 2_calculate_numerical_vars.sh`
+
+    See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+
+6. **Get the analytical variables by running a sequence of calculations and output the final dataframe:**
+
+    Local: `bash 3_calculate_analytical_vars_local.sh` 
+
     HPC: 
-    - `sbatch 2_calculate_numerical_vars.sh`
     - `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
     - `bash 3_calculate_analytical_vars.sh`
 
-    See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+The figures for the paper are produced in `4_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
 
 You will now find two output files corresponding to the final database and its summary statistics:
 
