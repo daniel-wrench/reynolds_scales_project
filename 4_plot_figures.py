@@ -141,9 +141,6 @@ corr_mat.to_csv("cleaned_corr_mat.csv")
 
 df_cleaned = pd.read_csv("data/processed/wind_database_cleaned.csv")
 
-
-
-
 ### HISTOGRAMS OF TAYLOR SCALES ###
 
 fig, ax = plt.subplots(figsize=(6,3), constrained_layout=True)
@@ -160,59 +157,6 @@ plt.legend()
 plt.savefig("plots/final/taylor_overlapping_hist.pdf")
 
 # PLOTS FOR ALL THREE RE APPROXIMATIONS
-
-reynolds = df_cleaned[["Re_di", "Re_tb", "Re_lt"]]
-
-# Following fn courtesy of bnaecker on stackoverflow
-def plot_unity(xdata, ydata, **kwargs):
-    #mn = min(xdata.min(), ydata.min())
-    #mx = max(xdata.max(), ydata.max())
-    mn = min(1e1, 1e8)
-    mx = max(1e1, 1e8)
-    points = np.linspace(mn, mx, 100)
-    plt.gca().plot(points, points, color='k', marker=None,
-            linestyle='--', linewidth=1.0)
-
-def meanfunc(x, ax=None, **kws):
-    #mean = np.mean(x)
-    #med = np.median(x)
-    x = pd.Series(x)
-    mean = x.mean().round(-4)
-    med = x.median().round(-4)
-    std = x.std().round(-4)
-    ax = ax or plt.gca()
-    ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
-
-# f = sns.PairGrid(reynolds, diag_sharey=False, corner=True, despine=False)
-# f.map_lower(sns.histplot, log_scale=True)
-# f.map_lower(plot_unity)
-# f.map_lower(corrfunc)
-
-# #f.map_lower(sns.regplot, scatter=False)
-# f.map_diag(sns.kdeplot, log_scale=True)
-# f.map_diag(meanfunc)
-
-# # f.axes[0,0].set_xlim(1e1, 1e8)
-# # f.axes[0,0].text(.8, .85, "Mean: 0.5", transform=f.axes[0,0].transAxes, fontweight="bold")
-# # f.axes[1,1].text(.8, .85, "Mean: 0.5", transform=f.axes[1,1].transAxes, fontweight="bold")
-# # f.axes[2,2].text(.8, .85, "Mean: 0.5", transform=f.axes[2,2].transAxes, fontweight="bold")
-
-# #f.axes[2,2].set_xlabel("$Re_{lt}$")
-
-# f.axes[0,0].set_xlim(1e1, 1e8)
-# f.axes[0,0].set_ylim(1e1, 1e8)
-
-# f.axes[1,1].set_xlim(1e1, 1e8)
-# f.axes[1,1].set_ylim(1e1, 1e8)
-
-# f.axes[2,2].set_xlim(1e1, 1e8)
-# f.axes[2,2].set_ylim(1e1, 1e8)
-
-# #plt.savefig("plots/final/re_matrix.pdf")
-# #plt.tight_layout()
-# plt.show()
 
 def plot_unity_histplot(ax, **kwargs):
     mn = min(1e1, 1e8)
@@ -232,22 +176,64 @@ def corrfunc(x, y, ax=None, **kws):
     ax.annotate(f'pearson: \n{rp:.2f}', xy=(.65, .3), xycoords=ax.transAxes, size=7)
     ax.annotate(f'spearman: \n{rs:.2f}', xy=(.65, .1), xycoords=ax.transAxes, size=7)
 
-fig, ax = plt.subplots(1, 3, figsize=(7,2.5), constrained_layout=True, sharex=True)
-sns.histplot(ax = ax[0], data=df_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
-corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_lt"], ax[0])
-sns.histplot(ax = ax[1], data=df_cleaned, x="Re_tb", y="Re_di", log_scale=True)
-corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_di"], ax[1])
-sns.histplot(ax = ax[2], data=df_cleaned, x="Re_lt", y="Re_di", log_scale=True)
-corrfunc(df_cleaned["Re_lt"], df_cleaned["Re_di"], ax[2])
+# Create the plot
+fig = plt.figure(figsize=(7, 3))
+grid = fig.add_gridspec(4, 3, hspace=0)
 
-ax[0].set_xlim(1e3, 1e7)
-ax[0].set_ylim(1e3, 1e7)
-ax[1].set_ylim(1e3, 1e7)
-ax[2].set_ylim(1e3, 1e7)
-plot_unity_histplot(ax)
-#plt.show()
+# Define the axes for the plot
+ax_marg_x_0 = fig.add_subplot(grid[0, 0:1])
+ax_joint_0 = fig.add_subplot(grid[1:4, 0:1])
+ax_marg_x_1 = fig.add_subplot(grid[0, 1:2])
+ax_joint_1 = fig.add_subplot(grid[1:4, 1:2])
+ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
+ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
 
+# Create the plot using seaborn's jointplot function
+sns.kdeplot(data=df_cleaned, x="Re_tb", ax=ax_marg_x_0, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="Re_di", ax=ax_marg_x_1, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
+
+sns.histplot(ax = ax_joint_0, data=df_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
+corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_lt"], ax_joint_0)
+ax_joint_0.set_xlabel("$Re_{tb}$")
+ax_joint_0.set_ylabel("$Re_{lt}$")
+
+sns.histplot(ax = ax_joint_1, data=df_cleaned, x="Re_di", y="Re_tb", log_scale=True)
+corrfunc(df_cleaned["Re_di"], df_cleaned["Re_tb"], ax_joint_1)
+ax_joint_1.set_xlabel("$Re_{di}$")
+ax_joint_1.set_ylabel("$Re_{tb}$")
+
+sns.histplot(ax = ax_joint_2, data=df_cleaned, x="Re_lt", y="Re_di", log_scale=True)
+corrfunc(df_cleaned["Re_lt"], df_cleaned["Re_di"], ax_joint_2)
+ax_joint_2.set_xlabel("$Re_{lt}$")
+ax_joint_2.set_ylabel("$Re_{di}$")
+
+for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
+    ax.set_ylim(0, 1.2)
+    ax.set_xlim(1e3, 1e7)
+    ax.axis('off')
+
+for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
+    ax.set_xlim(1e3, 1e7)
+    ax.set_ylim(1e3, 1e7)
+    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.set_xticks([1e4,1e6])
+    ax.set_yticks([1e4,1e6])
+    ax.minorticks_off()
+    ax.grid()
+
+ax_joint_0.tick_params(direction='in')
+ax_joint_1.tick_params(direction='in', labelleft=False)
+ax_joint_2.tick_params(direction='in', labelleft=False)
+
+fig.tight_layout()
+
+# Save/show the plot
 plt.savefig("plots/final/re_panels.pdf")
+plt.show()
+
 
 # NOW FOR CORR SCALES
 
@@ -283,22 +269,63 @@ def meanfunc(x, ax=None, **kws):
     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
+# Create the plot
+fig = plt.figure(figsize=(7, 3))
+grid = fig.add_gridspec(4, 3, hspace=0)
 
-fig, ax = plt.subplots(1, 3, figsize=(7,2.5), constrained_layout=True, sharex=True)
-sns.histplot(ax = ax[0], data=df_cleaned, x="tce_km", y="tcf_km", log_scale=True)
-corrfunc(df_cleaned["tce"], df_cleaned["tcf"], ax[0])
-sns.histplot(ax = ax[1], data=df_cleaned, x="tce_km", y="tci_km", log_scale=True)
-corrfunc(df_cleaned["tce"], df_cleaned["tci"], ax[1])
-sns.histplot(ax = ax[2], data=df_cleaned, x="tcf_km", y="tci_km", log_scale=True)
-corrfunc(df_cleaned["tcf"], df_cleaned["tci"], ax[2])
-ax[0].set_xlim(1e5, 1e7)
-ax[0].set_ylim(1e5, 1e7)
-ax[1].set_ylim(1e5, 1e7)
-ax[2].set_ylim(1e5, 1e7)
-plot_unity_histplot(ax)
+# Define the axes for the plot
+ax_marg_x_0 = fig.add_subplot(grid[0, 0:1])
+ax_joint_0 = fig.add_subplot(grid[1:4, 0:1])
+ax_marg_x_1 = fig.add_subplot(grid[0, 1:2])
+ax_joint_1 = fig.add_subplot(grid[1:4, 1:2])
+ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
+ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
+
+# Create the plot using seaborn's jointplot function
+sns.kdeplot(data=df_cleaned, x="tce_km", ax=ax_marg_x_0, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="tcf_km", ax=ax_marg_x_1, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="tci_km", ax=ax_marg_x_2, log_scale=True)
+
+sns.histplot(ax = ax_joint_0, data=df_cleaned, x="tce_km", y="tci_km", log_scale=True)
+corrfunc(df_cleaned["tce_km"], df_cleaned["tci_km"], ax_joint_0)
+ax_joint_0.set_xlabel("$t_{ce}$ (km)")
+ax_joint_0.set_ylabel("$t_{ci}$ (km)")
+
+sns.histplot(ax = ax_joint_1, data=df_cleaned, x="tcf_km", y="tce_km", log_scale=True)
+corrfunc(df_cleaned["tcf_km"], df_cleaned["tce_km"], ax_joint_1)
+ax_joint_1.set_xlabel("$t_{cf}$ (km)")
+ax_joint_1.set_ylabel("$t_{ce}$ (km)")
+
+sns.histplot(ax = ax_joint_2, data=df_cleaned, x="tci_km", y="tcf_km", log_scale=True)
+corrfunc(df_cleaned["tci_km"], df_cleaned["tcf_km"], ax_joint_2)
+ax_joint_2.set_xlabel("$t_{ci}$ (km)")
+ax_joint_2.set_ylabel("$t_{cf}$ (km)")
+
+for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
+    ax.set_ylim(0, 2)
+    ax.set_xlim(1e5, 1e7)
+    ax.axis('off')
+
+for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
+    ax.set_xlim(1e5, 1e7)
+    ax.set_ylim(1e5, 1e7)
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    # ax.set_xticks([1e4,1e6])
+    # ax.set_yticks([1e4,1e6])
+    ax.minorticks_off()
+    ax.grid()
+
+ax_joint_0.tick_params(direction='in')
+ax_joint_1.tick_params(direction='in', labelleft=False)
+ax_joint_2.tick_params(direction='in', labelleft=False)
+
+fig.tight_layout()
+
+# Save/show the plot
 plt.savefig("plots/final/corr_scale_panels.pdf")
-#plt.tight_layout()
-#plt.show()
+plt.show()
 
 
 # x0, x1 = g.ax_joint.get_xlim()
