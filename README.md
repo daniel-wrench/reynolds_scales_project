@@ -4,18 +4,16 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Tidy 4.py
-2. Flesh out summary stats tables, esp for corr scales.
-5. R correlation plots
-4. Flesh out the text: methods section should discuss Richardson extrapolation etc., no intro.
-5. Add vector velocities to params.py script, anticipating switch to PSP data
-5. Send to Tulasi (Sean, Marcus)
+1. Plots
+    - Reproduce those in 4.py using only data from 2004-06 onwards
+    - Correct latex in plot labels
+4. Text 
+    - Focus on results section
+    - Add comment to Data and Results about subset, latter followed by any outlier cleaning of this subset
+    - Mention how 1/e method removes ambiguity and matches well the fit method, as we would expect in absence of large-scale inhomogeneities in the solar wind 
 6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
-    - [I. Methodology and Data Product](https://iopscience.iop.org/article/10.3847/1538-4365/ab22bd)
-    - [II. Statistics](https://iopscience.iop.org/article/10.3847/1538-4365/ab5445) 
-    - [III. Analysis](https://iopscience.iop.org/article/10.3847/1538-4357/ab7d39/meta)
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
-7. *Thorough outlier and error analysis for both scales and the final Re estimate. Note the skewed distribution we have to deal with, and Bill’s point that the correlation scale is known to have a log-normal distribution. Check Excel and sort by these values to get problem timestamps.*
+7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.*
 
 ## How to run this code
 
@@ -89,6 +87,7 @@ You will now find two output files corresponding to the final database and its s
 
 ### Optional next steps
 
+- Add vector velocities to params.py script, anticipating switch to PSP data
 - Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_calculate_analytical_vars` step
 - Add collisional age (Kasper PRL), energies (ask Mark), decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 

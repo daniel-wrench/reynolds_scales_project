@@ -96,8 +96,16 @@ df_final["Re_di"] = ((df_final["tcf"]*df_final["vsw"])/df_final["di"])**(4/3)
 df_final["tb"] = 1/((2*np.pi)*df_final["fb"])
 df_final["Re_tb"] = ((df_final["tcf"]/df_final["tb"]))**(4/3)
 
-stats = df_final.describe()
+# Converting scales from time to distance
+# (invoking Taylor's hypothesis)
 
+df_final['lambda_t_raw'] = df_final["ttu"]*df_final["vsw"]
+df_final['lambda_t'] = df_final["ttc"]*df_final["vsw"]
+df_final['lambda_c_e'] = df_final["tce"]*df_final["vsw"]
+df_final['lambda_c_fit'] = df_final["tcf"]*df_final["vsw"]
+df_final['lambda_c_int'] = df_final["tci"]*df_final["vsw"]
+
+stats = df_final.describe()
 print(df_final.info())
 
 df_final = df_final.reset_index() # So that Timestamp is a normal column in the CSV

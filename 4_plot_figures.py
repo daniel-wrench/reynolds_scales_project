@@ -59,18 +59,6 @@ import seaborn as sns
 
 df = pd.read_csv("data/processed/wind_database.csv")
 
-# Calculating analytically-derived variables
-# Using ne in place of ni due to issues with wind ni data.
-
-df["rhoe"] = (2.38e-5)*(df["Te"]**(1/2))*((df["Bwind"]*1e-5)**-1)  # Electron gyroradius
-df["rhoi"] = (1.02e-3)*(df["Ti"]**(1/2))*((df["Bwind"]*1e-5)**-1) # Ion gyroradius
-df["de"] = (5.31)*(df["ne"]**(-1/2)) # Electron inertial length
-df["di"] = (2.28e2)*(df["ne"]**(-1/2)) # Ion inertial length
-df["betae"] = (4.03e-11)*df["ne"]*df["Te"]*((df["Bwind"]*1e-5)**-2) # Electron plasma beta
-# df["betai"] = (4.03e-11)*df["ni"]*df["Ti"]*((df["Bwind"]*1e-5)**-2) # Ion plasma beta
-df["va"] = (2.18e6)*(df["ne"]**(-1/2))*(df["Bwind"]*1e-5) # Alfven speed
-df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
-
 #### DATA CLEANING (dealing with outliers)
 
 # Few timestamps (0.1%) have ttc < 0 
@@ -82,7 +70,6 @@ df["ld"] = (7.43e-3)*(df["Te"]**(1/2))*(df["ne"]**(-1/2)) # Debye length
 # It only slightly decreases the qk mean from -2.63 to -2.69, but it does
 # remove very large Re_lt outliers, reducing the mean from 4,500,000 to 160,000
 # It still leaves around 2% of rows where qk > qi
-
 
 # Tabulating counts and percentages of these outliers
 
@@ -102,31 +89,18 @@ df_cleaned = df[df.qk < -1.7]
 df_cleaned = df_cleaned[df_cleaned.ttu > 1] # 3 values
 
 # Removing other outliers 
-df_cleaned.loc[df_cleaned.tci <0, "tci"] = np.nan
+df_cleaned.loc[df_cleaned.tci < 0, "tci"] = np.nan
 
 df_cleaned.to_csv("data/processed/wind_database_cleaned.csv", index=False)
 
-## CONVERTING SCALES FROM TIME TO DISTANCE
-
-df_cleaned['ttk_km'] = df_cleaned["ttk"]*df_cleaned["vsw"]
-df_cleaned['ttu_km'] = df_cleaned["ttu"]*df_cleaned["vsw"]
-df_cleaned['ttc_km'] = df_cleaned["ttc"]*df_cleaned["vsw"]
-df_cleaned['tce_km'] = df_cleaned["tce"]*df_cleaned["vsw"]
-df_cleaned['tcf_km'] = df_cleaned["tcf"]*df_cleaned["vsw"]
-df_cleaned['tci_km'] = df_cleaned["tci"]*df_cleaned["vsw"]
+df_cleaned.columns
 
 corr_table = df_cleaned.corr()
 
-key_vars = df_cleaned[["tcf_km", "tci_km", "tce_km", "ttk_km", "ttu_km", "qi", "qk", "fb", "ttc_km", "Re_lt", "Re_lt_u", "Re_di", "Re_tb"]]
+key_vars = df_cleaned[["lambda_c_fit", "lambda_c_int", "lambda_c_e", "ttk_km", "lambda_t_raw", "qi", "qk", "fb", "lambda_t", "Re_lt", "Re_lt_u", "Re_di", "Re_tb"]]
 
 stats = key_vars.describe().round(2)
 stats.to_csv("wind_database_summary_stats_cleaned.csv")
-
-# key_vars.hist(bins=100)
-# plt.tight_layout()
-# plt.show()
-
-# df.ttu.quantile(0.1)
 
 ## GETTING TIME PERIOD OF DATA
 
@@ -137,21 +111,24 @@ corr_mat = df_no_na.corr()
 corr_mat.to_csv("cleaned_corr_mat.csv")
 # Save these extreme cases as case studies (as with strange slopes), but exclude from main statistical analysis
 
+df_cleaned_full = pd.read_csv("data/processed/wind_database_cleaned.csv")
+df_cleaned_full.Timestamp.info()
+df_cleaned_full.Timestamp = pd.to_datetime(df_cleaned_full.Timestamp)
+df_cleaned_full.set_index("Timestamp", inplace=True)
 
-
-df_cleaned = pd.read_csv("data/processed/wind_database_cleaned.csv")
+df_cleaned = df_cleaned_full["2004-06-01":]
 
 ### HISTOGRAMS OF TAYLOR SCALES ###
 
 fig, ax = plt.subplots(figsize=(6,3), constrained_layout=True)
-sns.histplot(ax=ax, data=df_cleaned.ttu_km, log_scale=True, color = "cornflowerblue", label = "$\lambda_{TS}^{extra}$")
-sns.histplot(df_cleaned.ttc_km, log_scale=True, color="green", label = "$\lambda_{TS}$")
-plt.axvline(df_cleaned.ttu_km.mean(), c="black")
-plt.axvline(df_cleaned.ttc_km.mean(), c="black")
+sns.histplot(ax=ax, data=df_cleaned.lambda_t_raw, log_scale=True, color = "cornflowerblue", label = "$\lambda_{TS}^{extra}$")
+sns.histplot(df_cleaned.lambda_t, log_scale=True, color="green", label = "$\lambda_{T}$")
+plt.axvline(df_cleaned.lambda_t_raw.mean(), c="black")
+plt.axvline(df_cleaned.lambda_t.mean(), c="black")
 plt.xlabel("Length (km)")
 plt.xlim(500, 20000)
-plt.text(df_cleaned.ttu_km.mean()*1.1, 800, "Mean = {:.0f}".format((df_cleaned.ttu_km.mean())))
-plt.text(df_cleaned.ttc_km.mean()/2, 800, "Mean = {:.0f}".format((df_cleaned.ttc_km.mean())))
+plt.text(df_cleaned.lambda_t_raw.mean()*1.1, 600, "Mean = {:.0f}".format((df_cleaned.lambda_t_raw.mean())))
+plt.text(df_cleaned.lambda_t.mean()/2, 600, "Mean = {:.0f}".format((df_cleaned.lambda_t.mean())))
 plt.legend()
 
 plt.savefig("plots/final/taylor_overlapping_hist.pdf")
@@ -196,7 +173,7 @@ sns.kdeplot(data=df_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
 sns.histplot(ax = ax_joint_0, data=df_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
 corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_lt"], ax_joint_0)
 ax_joint_0.set_xlabel("$Re_{tb}$")
-ax_joint_0.set_ylabel("$Re_{lt}$")
+ax_joint_0.set_ylabel("$Re_{\lambda_T}$")
 
 sns.histplot(ax = ax_joint_1, data=df_cleaned, x="Re_di", y="Re_tb", log_scale=True)
 corrfunc(df_cleaned["Re_di"], df_cleaned["Re_tb"], ax_joint_1)
@@ -205,7 +182,7 @@ ax_joint_1.set_ylabel("$Re_{tb}$")
 
 sns.histplot(ax = ax_joint_2, data=df_cleaned, x="Re_lt", y="Re_di", log_scale=True)
 corrfunc(df_cleaned["Re_lt"], df_cleaned["Re_di"], ax_joint_2)
-ax_joint_2.set_xlabel("$Re_{lt}$")
+ax_joint_2.set_xlabel("$Re_{\lambda_T}$")
 ax_joint_2.set_ylabel("$Re_{di}$")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
@@ -221,6 +198,8 @@ for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
     ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
     ax.set_xticks([1e4,1e6])
     ax.set_yticks([1e4,1e6])
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     ax.minorticks_off()
     ax.grid()
 
@@ -282,38 +261,40 @@ ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
 ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
 
 # Create the plot using seaborn's jointplot function
-sns.kdeplot(data=df_cleaned, x="tce_km", ax=ax_marg_x_0, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="tcf_km", ax=ax_marg_x_1, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="tci_km", ax=ax_marg_x_2, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="lambda_c_e", ax=ax_marg_x_0, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="lambda_c_fit", ax=ax_marg_x_1, log_scale=True)
+sns.kdeplot(data=df_cleaned, x="lambda_c_int", ax=ax_marg_x_2, log_scale=True)
 
-sns.histplot(ax = ax_joint_0, data=df_cleaned, x="tce_km", y="tci_km", log_scale=True)
-corrfunc(df_cleaned["tce_km"], df_cleaned["tci_km"], ax_joint_0)
-ax_joint_0.set_xlabel("$t_{ce}$ (km)")
-ax_joint_0.set_ylabel("$t_{ci}$ (km)")
+sns.histplot(ax = ax_joint_0, data=df_cleaned, x="lambda_c_fit", y="lambda_c_e", log_scale=True)
+corrfunc(df_cleaned["lambda_c_fit"], df_cleaned["lambda_c_e"], ax_joint_0)
+ax_joint_0.set_xlabel("$\lambda_{C}^{fit}$ (km)")
+ax_joint_0.set_ylabel("$\lambda_{C}^{1/e}$ (km)")
 
-sns.histplot(ax = ax_joint_1, data=df_cleaned, x="tcf_km", y="tce_km", log_scale=True)
-corrfunc(df_cleaned["tcf_km"], df_cleaned["tce_km"], ax_joint_1)
-ax_joint_1.set_xlabel("$t_{cf}$ (km)")
-ax_joint_1.set_ylabel("$t_{ce}$ (km)")
+sns.histplot(ax = ax_joint_1, data=df_cleaned, x="lambda_c_e", y="lambda_c_int", log_scale=True)
+corrfunc(df_cleaned["lambda_c_e"], df_cleaned["lambda_c_int"], ax_joint_1)
+ax_joint_1.set_xlabel("$\lambda_{C}^{1/e}$ (km)")
+ax_joint_1.set_ylabel("$\lambda_{C}^{int}$ (km)")
 
-sns.histplot(ax = ax_joint_2, data=df_cleaned, x="tci_km", y="tcf_km", log_scale=True)
-corrfunc(df_cleaned["tci_km"], df_cleaned["tcf_km"], ax_joint_2)
-ax_joint_2.set_xlabel("$t_{ci}$ (km)")
-ax_joint_2.set_ylabel("$t_{cf}$ (km)")
+sns.histplot(ax = ax_joint_2, data=df_cleaned, x="lambda_c_int", y="lambda_c_fit", log_scale=True)
+corrfunc(df_cleaned["lambda_c_int"], df_cleaned["lambda_c_fit"], ax_joint_2)
+ax_joint_2.set_xlabel("$\lambda_{C}^{int}$ (km)")
+ax_joint_2.set_ylabel("$\lambda_{C}^{fit}$ (km)")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
-    ax.set_ylim(0, 2)
-    ax.set_xlim(1e5, 1e7)
+    ax.set_ylim(0, 2.2)
+    ax.set_xlim(1e5, 1e7 + 1e6) # These annoying adjustments are needed to make the gridlines look nice
     ax.axis('off')
 
 for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
-    ax.set_xlim(1e5, 1e7)
+    ax.set_xlim(1e5, 1e7 + 1e6)
     ax.set_ylim(1e5, 1e7)
-    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
     # ax.set_xticks([1e4,1e6])
     # ax.set_yticks([1e4,1e6])
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     ax.minorticks_off()
     ax.grid()
 
