@@ -111,7 +111,7 @@ From OMNI CDAWEB dataset, where original cadence = 1min:
 - Pressure
 - Magnetic field
 
-See `wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
+See `doc/wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
 
 ## Analysis
 $Re=\frac{UL}{\nu}\approx(\frac{L}{\eta})^{4/3}\approx(\frac{L}{d_i})^{4/3}\approx(\frac{L}{\lambda_t})^2$
