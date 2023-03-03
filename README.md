@@ -6,10 +6,10 @@ Paper should be a story of how to calculate Re for the solar wind, including all
 
 1. Plots
     - Reproduce those in 4.py using only data from 2004-06 onwards
-    - Correct latex in plot labels
+    - Add comment to Results about outlier cleaning of this subset
+    - (Correct latex in plot labels)
 4. Text 
     - Focus on results section
-    - Add comment to Data and Results about subset, latter followed by any outlier cleaning of this subset
     - Mention how 1/e method removes ambiguity and matches well the fit method, as we would expect in absence of large-scale inhomogeneities in the solar wind 
 6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*

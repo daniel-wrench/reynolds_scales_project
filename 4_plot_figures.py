@@ -57,9 +57,14 @@ import seaborn as sns
 
 ######################################################
 
-df = pd.read_csv("data/processed/wind_database.csv")
+# df = pd.read_csv("data/processed/wind_database.csv")
+# df.Timestamp = pd.to_datetime(df.Timestamp)
+# df.set_index("Timestamp", inplace=True)
+# df.sort_index(inplace=True)
 
-#### DATA CLEANING (dealing with outliers)
+# #### DATA CLEANING (subsetting and dealing with outliers)
+
+# df_l1 = df["2004-06-01":]
 
 # Few timestamps (0.1%) have ttc < 0 
 # All of these have unusually large values for qk. Total of 5% have qk > -1.7
@@ -71,65 +76,62 @@ df = pd.read_csv("data/processed/wind_database.csv")
 # remove very large Re_lt outliers, reducing the mean from 4,500,000 to 160,000
 # It still leaves around 2% of rows where qk > qi
 
-# Tabulating counts and percentages of these outliers
+# Counting outliers
 
-# df.loc[:, "negative_ttc"] = 0 
-# df.loc[:, "qk > -1.7"] = 0
-# df.loc[:, "qk > qi"] = 0
+# df_l1.loc[:, "small_ttu"] = 0 
+# df_l1.loc[:, "qk > -1.7"] = 0
+# df_l1.loc[:, "qk > qi"] = 0
 
-# df.loc[df["ttc"] < 0, "negative_ttc"] = 1
-# df.loc[df["qk"] > -1.7, "qk > -1.7"] = 1
-# df.loc[df["qk"] > df["qi"], "qk > qi"] = 1
+# df_l1.loc[df_l1["ttu"] < 1, "small_ttu"] = 1
+# df_l1.loc[df_l1["qk"] > -1.7, "qk > -1.7"] = 1
+# df_l1.loc[df_l1["qk"] > df_l1["qi"], "qk > qi"] = 1
 
-# df[["negative_ttc", "qk > -1.7", "qk > qi"]].mean()
-# df.groupby(["qk > -1.7", "qk > qi", "negative_ttc"])[["negative_ttc", "qk > -1.7", "qk > qi"]].value_counts()
+# df_l1[["small_ttu", "qk > -1.7", "qk > qi"]].mean()
+# df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
+# df_l1.drop(["small_ttu", "qk > -1.7", "qk > qi"], axis=1, inplace=True)
 
-# Removing all these rows due to flow-on effects
-df_cleaned = df[df.qk < -1.7]
-df_cleaned = df_cleaned[df_cleaned.ttu > 1] # 3 values
+# Removing outlier slope rows
+# df_l1_cleaned = df_l1[df_l1.qk < -1.7]
+# df_l1_cleaned = df_l1_cleaned[df_l1_cleaned.ttu > 1] # not needed for L1 range
 
-# Removing other outliers 
-df_cleaned.loc[df_cleaned.tci < 0, "tci"] = np.nan
+# Removing negative tci values (only 5, numerical issue with finding argmin)
+# df_l1_cleaned.loc[df_l1_cleaned.tci < 0, "tci"] = np.nan
 
-df_cleaned.to_csv("data/processed/wind_database_cleaned.csv", index=False)
+# df_l1_cleaned.to_csv("data/processed/wind_dataset_l1_cleaned.csv", index=True)
 
-df_cleaned.columns
+# corr_table = df_l1_cleaned.corr()
+# corr_table.to_csv("wind_dataset_l1_cleaned_corr.csv")
 
-corr_table = df_cleaned.corr()
+# key_vars = df_l1_cleaned[["lambda_c_fit", "lambda_c_int", "lambda_c_e", "lambda_t_raw", "qi", "qk", "fb", "lambda_t", "Re_lt", "Re_di", "Re_tb"]]
 
-key_vars = df_cleaned[["lambda_c_fit", "lambda_c_int", "lambda_c_e", "ttk_km", "lambda_t_raw", "qi", "qk", "fb", "lambda_t", "Re_lt", "Re_lt_u", "Re_di", "Re_tb"]]
+# key_stats = key_vars.describe().round(2)
+# key_stats.to_csv("wind_dataset_l1_cleaned_key_stats.csv")
 
-stats = key_vars.describe().round(2)
-stats.to_csv("wind_database_summary_stats_cleaned.csv")
+#######################################################
+###################### PLOTTING #######################
+#######################################################
+
+df_l1_cleaned = pd.read_csv("data/processed/wind_dataset_l1_cleaned.csv")
+df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
+df_l1_cleaned.set_index("Timestamp", inplace=True)
+df_l1_cleaned.sort_index(inplace=True)
+print(df_l1_cleaned.info())
 
 ## GETTING TIME PERIOD OF DATA
-
-df_no_na = df_cleaned.dropna()
-print(df_no_na.Timestamp.min(), df_no_na.Timestamp.max())
-
-corr_mat = df_no_na.corr()
-corr_mat.to_csv("cleaned_corr_mat.csv")
-# Save these extreme cases as case studies (as with strange slopes), but exclude from main statistical analysis
-
-df_cleaned_full = pd.read_csv("data/processed/wind_database_cleaned.csv")
-df_cleaned_full.Timestamp.info()
-df_cleaned_full.Timestamp = pd.to_datetime(df_cleaned_full.Timestamp)
-df_cleaned_full.set_index("Timestamp", inplace=True)
-
-df_cleaned = df_cleaned_full["2004-06-01":]
 
 ### HISTOGRAMS OF TAYLOR SCALES ###
 
 fig, ax = plt.subplots(figsize=(6,3), constrained_layout=True)
-sns.histplot(ax=ax, data=df_cleaned.lambda_t_raw, log_scale=True, color = "cornflowerblue", label = "$\lambda_{TS}^{extra}$")
-sns.histplot(df_cleaned.lambda_t, log_scale=True, color="green", label = "$\lambda_{T}$")
-plt.axvline(df_cleaned.lambda_t_raw.mean(), c="black")
-plt.axvline(df_cleaned.lambda_t.mean(), c="black")
+sns.histplot(ax=ax, data=df_l1_cleaned.lambda_t_raw, log_scale=True, color = "cornflowerblue", label = "$\lambda_{T}^{extra}$")
+sns.histplot(df_l1_cleaned.lambda_t, log_scale=True, color="green", label = "$\lambda_{T}$")
+plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="black")
+plt.axvline(df_l1_cleaned.lambda_t.mean(), c="black")
 plt.xlabel("Length (km)")
 plt.xlim(500, 20000)
-plt.text(df_cleaned.lambda_t_raw.mean()*1.1, 600, "Mean = {:.0f}".format((df_cleaned.lambda_t_raw.mean())))
-plt.text(df_cleaned.lambda_t.mean()/2, 600, "Mean = {:.0f}".format((df_cleaned.lambda_t.mean())))
+plt.text(df_l1_cleaned.lambda_t_raw.mean()*1.1, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())))
+plt.text(df_l1_cleaned.lambda_t.mean()/2, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())))
 plt.legend()
+plt.show()
 
 plt.savefig("plots/final/taylor_overlapping_hist.pdf")
 
@@ -166,22 +168,22 @@ ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
 ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
 
 # Create the plot using seaborn's jointplot function
-sns.kdeplot(data=df_cleaned, x="Re_tb", ax=ax_marg_x_0, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="Re_di", ax=ax_marg_x_1, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="Re_tb", ax=ax_marg_x_0, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="Re_di", ax=ax_marg_x_1, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
 
-sns.histplot(ax = ax_joint_0, data=df_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
-corrfunc(df_cleaned["Re_tb"], df_cleaned["Re_lt"], ax_joint_0)
+sns.histplot(ax = ax_joint_0, data=df_l1_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
+corrfunc(df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], ax_joint_0)
 ax_joint_0.set_xlabel("$Re_{tb}$")
 ax_joint_0.set_ylabel("$Re_{\lambda_T}$")
 
-sns.histplot(ax = ax_joint_1, data=df_cleaned, x="Re_di", y="Re_tb", log_scale=True)
-corrfunc(df_cleaned["Re_di"], df_cleaned["Re_tb"], ax_joint_1)
+sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="Re_di", y="Re_tb", log_scale=True)
+corrfunc(df_l1_cleaned["Re_di"], df_l1_cleaned["Re_tb"], ax_joint_1)
 ax_joint_1.set_xlabel("$Re_{di}$")
 ax_joint_1.set_ylabel("$Re_{tb}$")
 
-sns.histplot(ax = ax_joint_2, data=df_cleaned, x="Re_lt", y="Re_di", log_scale=True)
-corrfunc(df_cleaned["Re_lt"], df_cleaned["Re_di"], ax_joint_2)
+sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="Re_lt", y="Re_di", log_scale=True)
+corrfunc(df_l1_cleaned["Re_lt"], df_l1_cleaned["Re_di"], ax_joint_2)
 ax_joint_2.set_xlabel("$Re_{\lambda_T}$")
 ax_joint_2.set_ylabel("$Re_{di}$")
 
@@ -261,22 +263,22 @@ ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
 ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
 
 # Create the plot using seaborn's jointplot function
-sns.kdeplot(data=df_cleaned, x="lambda_c_e", ax=ax_marg_x_0, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="lambda_c_fit", ax=ax_marg_x_1, log_scale=True)
-sns.kdeplot(data=df_cleaned, x="lambda_c_int", ax=ax_marg_x_2, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="lambda_c_e", ax=ax_marg_x_0, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="lambda_c_fit", ax=ax_marg_x_1, log_scale=True)
+sns.kdeplot(data=df_l1_cleaned, x="lambda_c_int", ax=ax_marg_x_2, log_scale=True)
 
-sns.histplot(ax = ax_joint_0, data=df_cleaned, x="lambda_c_fit", y="lambda_c_e", log_scale=True)
-corrfunc(df_cleaned["lambda_c_fit"], df_cleaned["lambda_c_e"], ax_joint_0)
+sns.histplot(ax = ax_joint_0, data=df_l1_cleaned, x="lambda_c_fit", y="lambda_c_e", log_scale=True)
+corrfunc(df_l1_cleaned["lambda_c_fit"], df_l1_cleaned["lambda_c_e"], ax_joint_0)
 ax_joint_0.set_xlabel("$\lambda_{C}^{fit}$ (km)")
 ax_joint_0.set_ylabel("$\lambda_{C}^{1/e}$ (km)")
 
-sns.histplot(ax = ax_joint_1, data=df_cleaned, x="lambda_c_e", y="lambda_c_int", log_scale=True)
-corrfunc(df_cleaned["lambda_c_e"], df_cleaned["lambda_c_int"], ax_joint_1)
+sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="lambda_c_e", y="lambda_c_int", log_scale=True)
+corrfunc(df_l1_cleaned["lambda_c_e"], df_l1_cleaned["lambda_c_int"], ax_joint_1)
 ax_joint_1.set_xlabel("$\lambda_{C}^{1/e}$ (km)")
 ax_joint_1.set_ylabel("$\lambda_{C}^{int}$ (km)")
 
-sns.histplot(ax = ax_joint_2, data=df_cleaned, x="lambda_c_int", y="lambda_c_fit", log_scale=True)
-corrfunc(df_cleaned["lambda_c_int"], df_cleaned["lambda_c_fit"], ax_joint_2)
+sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="lambda_c_int", y="lambda_c_fit", log_scale=True)
+corrfunc(df_l1_cleaned["lambda_c_int"], df_l1_cleaned["lambda_c_fit"], ax_joint_2)
 ax_joint_2.set_xlabel("$\lambda_{C}^{int}$ (km)")
 ax_joint_2.set_ylabel("$\lambda_{C}^{fit}$ (km)")
 
@@ -316,17 +318,17 @@ plt.show()
 
 # TIME SERIES OF RE
 
-# df_cleaned.Timestamp = pd.to_datetime(df_cleaned.Timestamp)
-# df_cleaned_1995 = df_cleaned[(df_cleaned.Timestamp > "1997-01-01") & (df_cleaned.Timestamp < "1998-01-01")]
+# df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
+# df_l1_cleaned_1995 = df_l1_cleaned[(df_l1_cleaned.Timestamp > "1997-01-01") & (df_l1_cleaned.Timestamp < "1998-01-01")]
 
 # # Min-max normalisation
-# df_cleaned_1995["Re_di_norm"] = (df_cleaned_1995["Re_di"]-df_cleaned_1995["Re_di"].min())/(df_cleaned_1995["Re_di"].max()-df_cleaned_1995["Re_di"].min())
-# df_cleaned_1995["Re_lt_norm"] = (df_cleaned_1995["Re_lt"]-df_cleaned_1995["Re_lt"].min())/(df_cleaned_1995["Re_lt"].max()-df_cleaned_1995["Re_lt"].min())
-# df_cleaned_1995["Re_tb_norm"] = (df_cleaned_1995["Re_tb"]-df_cleaned_1995["Re_tb"].min())/(df_cleaned_1995["Re_tb"].max()-df_cleaned_1995["Re_tb"].min())
+# df_l1_cleaned_1995["Re_di_norm"] = (df_l1_cleaned_1995["Re_di"]-df_l1_cleaned_1995["Re_di"].min())/(df_l1_cleaned_1995["Re_di"].max()-df_l1_cleaned_1995["Re_di"].min())
+# df_l1_cleaned_1995["Re_lt_norm"] = (df_l1_cleaned_1995["Re_lt"]-df_l1_cleaned_1995["Re_lt"].min())/(df_l1_cleaned_1995["Re_lt"].max()-df_l1_cleaned_1995["Re_lt"].min())
+# df_l1_cleaned_1995["Re_tb_norm"] = (df_l1_cleaned_1995["Re_tb"]-df_l1_cleaned_1995["Re_tb"].min())/(df_l1_cleaned_1995["Re_tb"].max()-df_l1_cleaned_1995["Re_tb"].min())
 
-# sns.lineplot(data=df_cleaned_1995, x="Timestamp", y="Re_di_norm", label="Re_di")
-# sns.lineplot(data=df_cleaned_1995, x="Timestamp", y="Re_lt_norm", label="Re_lt")
-# sns.lineplot(data=df_cleaned_1995, x="Timestamp", y="Re_tb_norm", label="Re_tb")
+# sns.lineplot(data=df_l1_cleaned_1995, x="Timestamp", y="Re_di_norm", label="Re_di")
+# sns.lineplot(data=df_l1_cleaned_1995, x="Timestamp", y="Re_lt_norm", label="Re_lt")
+# sns.lineplot(data=df_l1_cleaned_1995, x="Timestamp", y="Re_tb_norm", label="Re_tb")
 
 # plt.semilogy()
 
