@@ -90,12 +90,12 @@ import seaborn as sns
 # df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
 # df_l1.drop(["small_ttu", "qk > -1.7", "qk > qi"], axis=1, inplace=True)
 
-# Removing outlier slope rows
+# # Removing outlier slope rows
 # df_l1_cleaned = df_l1[df_l1.qk < -1.7]
 # df_l1_cleaned = df_l1_cleaned[df_l1_cleaned.ttu > 1] # not needed for L1 range
 
-# Removing negative tci values (only 5, numerical issue with finding argmin)
-# df_l1_cleaned.loc[df_l1_cleaned.tci < 0, "tci"] = np.nan
+# # Removing negative tci values (only 5, numerical issue with finding argmin)
+# df_l1_cleaned.loc[df_l1_cleaned.tci < 0, ["tci", "lambda_c_int"]] = np.nan
 
 # df_l1_cleaned.to_csv("data/processed/wind_dataset_l1_cleaned.csv", index=True)
 
@@ -131,19 +131,44 @@ plt.xlim(500, 20000)
 plt.text(df_l1_cleaned.lambda_t_raw.mean()*1.1, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())))
 plt.text(df_l1_cleaned.lambda_t.mean()/2, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())))
 plt.legend()
-plt.show()
 
 plt.savefig("plots/final/taylor_overlapping_hist.pdf")
+plt.show()
 
 # PLOTS FOR ALL THREE RE APPROXIMATIONS
 
-def plot_unity_histplot(ax, **kwargs):
-    mn = min(1e1, 1e8)
-    mx = max(1e1, 1e8)
-    points = np.linspace(mn, mx, 100)
-    for i in np.arange(3):
-        ax[i].plot(points, points, color='k', marker=None,
-                linestyle='--', linewidth=1.0)
+# unused helper functions
+
+# Following fn courtesy of bnaecker on stackoverflow
+# def plot_unity(xdata, ydata, **kwargs):
+#     mn = min(xdata.min(), ydata.min())
+#     mx = max(xdata.max(), ydata.max())
+#     #mn = min(0, 1e4)
+#     #mx = max(0, 1e7)
+#     points = np.linspace(mn, mx, 100)
+#     plt.gca().plot(points, points, color='k', marker=None,
+#             linestyle='--', linewidth=1.0)
+    
+# def plot_unity_histplot(ax, **kwargs):
+#     mn = min(1e1, 1e8)
+#     mx = max(1e1, 1e8)
+#     points = np.linspace(mn, mx, 100)
+#     for i in np.arange(3):
+#         ax[i].plot(points, points, color='k', marker=None,
+#                 linestyle='--', linewidth=1.0)
+
+# def meanfunc(x, ax=None, **kws):
+#     #mean = np.mean(x)
+#     #med = np.median(x)
+#     x = pd.Series(x)
+#     mean = x.mean().round(-4)
+#     med = x.median().round(-4)
+#     std = x.std().round(-4)
+#     ax = ax or plt.gca()
+#     ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
+#     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
+#     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
+
 
 def corrfunc(x, y, ax=None, **kws):
     """Plot the correlation coefficient in the top left hand corner of a plot."""
@@ -200,8 +225,8 @@ for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
     ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
     ax.set_xticks([1e4,1e6])
     ax.set_yticks([1e4,1e6])
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    #ax.spines['right'].set_visible(False)
+    #ax.spines['top'].set_visible(False)
     ax.minorticks_off()
     ax.grid()
 
@@ -217,38 +242,6 @@ plt.show()
 
 
 # NOW FOR CORR SCALES
-
-# Following fn courtesy of bnaecker on stackoverflow
-def plot_unity(xdata, ydata, **kwargs):
-    mn = min(xdata.min(), ydata.min())
-    mx = max(xdata.max(), ydata.max())
-    #mn = min(0, 1e4)
-    #mx = max(0, 1e7)
-    points = np.linspace(mn, mx, 100)
-    plt.gca().plot(points, points, color='k', marker=None,
-            linestyle='--', linewidth=1.0)
-
-def corrfunc(x, y, ax=None, **kws):
-    """Plot the correlation coefficient in the top left hand corner of a plot."""
-    x = pd.Series(x)
-    y = pd.Series(y)
-    rp = x.corr(y, "pearson")
-    rs = x.corr(y, "spearman")
-    ax = ax or plt.gca()
-    ax.annotate(f'pearson = \n{rp:.2f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'spearman = \n{rs:.2f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
-
-def meanfunc(x, ax=None, **kws):
-    #mean = np.mean(x)
-    #med = np.median(x)
-    x = pd.Series(x)
-    mean = x.mean().round(-4)
-    med = x.median().round(-4)
-    std = x.std().round(-4)
-    ax = ax or plt.gca()
-    ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
-    ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -284,19 +277,19 @@ ax_joint_2.set_ylabel("$\lambda_{C}^{fit}$ (km)")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
     ax.set_ylim(0, 2.2)
-    ax.set_xlim(1e5, 1e7 + 1e6) # These annoying adjustments are needed to make the gridlines look nice
+    ax.set_xlim(1e5, 1e7) # Annoying adjustment of xlim upper needed to make the gridlines look nice
     ax.axis('off')
 
 for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
-    ax.set_xlim(1e5, 1e7 + 1e6)
+    ax.set_xlim(1e5, 1e7)
     ax.set_ylim(1e5, 1e7)
-    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e5, 1e7], [1e5, 1e7 + 1e6], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e5, 1e7], [1e5, 1e7], linestyle='--', linewidth=1.0, c = "black")
     # ax.set_xticks([1e4,1e6])
     # ax.set_yticks([1e4,1e6])
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    # ax.spines['right'].set_visible(False)
+    # ax.spines['top'].set_visible(False)
     ax.minorticks_off()
     ax.grid()
 
@@ -332,5 +325,4 @@ plt.show()
 
 # plt.semilogy()
 
-# plt.savefig("plots/re_time_series.png")
 # plt.show()
