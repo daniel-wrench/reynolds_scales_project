@@ -47,13 +47,15 @@ output_dir = "data/processed/" + sys_arg_dict[sys.argv[1]]
 
 # input directory will already have been created by download data script
 # output directory may still need to be created
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-else:
-    # if it does exist, remove any existing files there: do not want confusion if
-    # using a different number of cores
-    for file in glob.glob(output_dir + "*"):
-        os.remove(file)
+
+if rank == 0:
+  if not os.path.exists(output_dir):
+      os.makedirs(output_dir)
+  else:
+      # if it does exist, remove any existing files there: do not want confusion if
+      # using a different number of cores
+      for file in glob.glob(output_dir + "*"):
+          os.remove(file)
 
 
 def get_subfolders(path):
@@ -83,7 +85,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # (Optionally) reducing the number of files for testing
-file_list = file_list[:]
+file_list = file_list[:20]
 
 list_of_lists = np.array_split(file_list, comm.size)
 
