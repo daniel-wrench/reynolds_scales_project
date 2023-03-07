@@ -1,5 +1,5 @@
 # README
-Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft (and potentially other spacecraft too)
+Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft and OMNI. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
 
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
@@ -48,6 +48,8 @@ You will need to prefix the commands below with `!`, and use `%cd` to move into 
     - `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
+
+    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 400 for the monthly datasets (OMNI)
 
 4. **Get the raw variables by processing the CDF files:**
 

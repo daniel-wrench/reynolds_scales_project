@@ -71,7 +71,7 @@ stats = df_final.describe()
 print(df_final.info())
 
 df_final = df_final.reset_index() # So that Timestamp is a normal column in the CSV
-df_final.to_csv("data/processed/wind_database.csv", index=False)
+df_final.to_csv("data/processed/wind_omni_dataset.csv", index=False)
 stats.to_csv("data/processed/wind_summary_stats.csv")
 
 print("\nChecking for missing data:")
