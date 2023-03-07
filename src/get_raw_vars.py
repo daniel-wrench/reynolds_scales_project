@@ -10,8 +10,8 @@ from utils import *
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
-size = comm.Get_size() # Number of cores
-rank = comm.Get_rank() # Current core
+size = comm.Get_size()  # Number of cores
+rank = comm.Get_rank()  # Current core
 status = MPI.Status()
 ##############################
 
@@ -42,25 +42,26 @@ sys_arg_dict = {
     "dt_lr": params.dt_lr
 }
 
-input_dir = 'data/raw/' + sys_arg_dict[sys.argv[1]]
-output_dir = 'data/processed/' + sys_arg_dict[sys.argv[1]]
+input_dir = "data/raw/" + sys_arg_dict[sys.argv[1]]
+output_dir = "data/processed/" + sys_arg_dict[sys.argv[1]]
 
 # input directory will already have been created by download data script
 # output directory may still need to be created
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 else:
-    # if it does exist, remove any existing files there: do not want confusion if 
+    # if it does exist, remove any existing files there: do not want confusion if
     # using a different number of cores
     for file in glob.glob(output_dir + "*"):
         os.remove(file)
 
+
 def get_subfolders(path):
-    return sorted(glob.glob(path + '/*'))
+    return sorted(glob.glob(path + "/*"))
 
 
 def get_cdf_paths(subfolder):
-    return sorted(glob.iglob(subfolder + '/*.cdf'))
+    return sorted(glob.iglob(subfolder + "/*.cdf"))
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
@@ -76,13 +77,13 @@ for sub in file_paths:
 # cdf = read_cdf(file_paths[0][0])
 # pprint(cdf.cdf_info())
 
-# pprint(cdf.varattsget(variable='BGSE', expand=True))
+# pprint(cdf.varattsget(variable="BGSE", expand=True))
 # cdf.varget("Epoch")
 
 ####### PARALLEL STUFF #######
 
-# Reducing the number of files for testing
-file_list = file_list[4380:]
+# (Optionally) reducing the number of files for testing
+file_list = file_list[:]
 
 list_of_lists = np.array_split(file_list, comm.size)
 
@@ -95,6 +96,7 @@ my_list = list_of_lists[rank]
 
 df = pd.DataFrame({})
 
+# A generator object might be faster here
 for file in my_list:
     try:
         temp_df = pipeline(
@@ -103,7 +105,8 @@ for file in my_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
-        print("Core {0:03d} reading {1}: {2:.2f}% missing".format(rank, file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
+        print("Core {0:03d} reading {1}: {2:.2f}% missing".format(
+            rank, file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
     except:
         print("Error reading CDF file; moving to next file")

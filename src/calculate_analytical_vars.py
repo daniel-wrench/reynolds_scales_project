@@ -1,8 +1,8 @@
 import pandas as pd
-import glob
 import numpy as np
 import params
 import utils
+import glob
 
 file_paths = sorted(glob.iglob("data/processed/dataset_*.pkl"))
 

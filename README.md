@@ -5,12 +5,11 @@ Codes for constructing a database of solar wind parameters and scales as measure
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
 1. Plots
-    - Reproduce those in 4.py using only data from 2004-06 onwards
-    - Add comment to Results about outlier cleaning of this subset
-    - (Correct latex in plot labels)
+2. Make spare copy of dataset somewhere else
+2. Proof codes
+3. Re-run codes on Rāpoi
 4. Text 
-    - Focus on results section
-    - Mention how 1/e method removes ambiguity and matches well the fit method, as we would expect in absence of large-scale inhomogeneities in the solar wind 
+    - Proof whole thing, making sure to add full details on the dataset creation and emphasising the availability of both the data and the code, and how it should be able to be only slightly modified to work on data from other spacecraft in CDAWeb. 
 6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
 7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.*

@@ -1,9 +1,10 @@
 import datetime
 import glob
 import params
-from utils import *
 import sys
 import os
+
+from utils import *
 
 sys_arg_dict = {
     # arg1
@@ -32,21 +33,25 @@ sys_arg_dict = {
     "dt_lr": params.dt_lr
 }
 
-input_dir = 'data/raw/' + sys_arg_dict[sys.argv[1]]
-output_dir = 'data/processed/' + sys_arg_dict[sys.argv[1]]
+input_dir = "data/raw/" + sys_arg_dict[sys.argv[1]]
+output_dir = "data/processed/" + sys_arg_dict[sys.argv[1]]
 
 # input directory will already have been created by download data script
 # output directory may still need to be created
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
+else:
+    # if it does exist, remove any existing files there: do not want confusion
+    for file in glob.glob(output_dir + "*"):
+        os.remove(file)
 
 
 def get_subfolders(path):
-    return sorted(glob.glob(path + '/*'))
+    return sorted(glob.glob(path + "/*"))
 
 
 def get_cdf_paths(subfolder):
-    return sorted(glob.iglob(subfolder + '/*.cdf'))
+    return sorted(glob.iglob(subfolder + "/*.cdf"))
 
 
 file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
@@ -62,7 +67,7 @@ for sub in file_paths:
 # cdf = read_cdf(file_paths[0][0])
 # pprint(cdf.cdf_info())
 
-# pprint(cdf.varattsget(variable='BGSE', expand=True))
+# pprint(cdf.varattsget(variable="BGSE", expand=True))
 # cdf.varget("Epoch")
 
 df = pd.DataFrame({})
@@ -76,23 +81,22 @@ for file in file_list:
             thresholds=sys_arg_dict[sys.argv[3]],
             cadence=sys_arg_dict[sys.argv[4]]
         )
-        print("Reading {0}: {1:.2f}% missing".format(file, temp_df.iloc[:,0].isna().sum()/len(temp_df)*100))
+        print("Reading {0}: {1:.2f}% missing".format(file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
         df = pd.concat([df, temp_df])
 
     except:
         print("Error reading CDF file; moving to next file")
-        # Print actual error here too?
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
 # NB: Using .asfreq() creates NA values
 
-df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + '.pkl')
+df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + ".pkl")
 
 # Also outputting pickle at second resolution, if specified
 if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + '.pkl')
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + ".pkl")
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
 else:

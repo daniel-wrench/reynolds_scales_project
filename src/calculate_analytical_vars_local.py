@@ -1,7 +1,7 @@
 import pandas as pd
+import numpy as np
 import params
 import utils
-import numpy as np
 
 df_merged = pd.read_pickle("data/processed/dataset.pkl")
 df_merged = df_merged.sort_index()
@@ -22,7 +22,6 @@ df_electrons = df_electrons.rename(
         params.Te: 'Te'
     })
 
-
 # Proton data
 
 df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + ".pkl")
@@ -41,7 +40,7 @@ df_final = df_final.sort_index()
 if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
-# Calculating analytical derived variables
+# Calculating analytically-derived variables
 # (using ne due to issues with wind ni data)
 
 df_final["rhoe"] = (2.38e-5)*(df_final["Te"]**(1/2))*((df_final["Bwind"]*1e-5)**-1)  # Electron gyroradius
@@ -59,8 +58,16 @@ df_final["Re_di"] = ((df_final["tcf"]*df_final["vsw"])/df_final["di"])**(4/3)
 df_final["tb"] = 1/((2*np.pi)*df_final["fb"])
 df_final["Re_tb"] = ((df_final["tcf"]/df_final["tb"]))**(4/3)
 
-stats = df_final.describe()
+# Converting scales from time to distance
+# (invoking Taylor's hypothesis)
 
+df_final['lambda_t_raw'] = df_final["ttu"]*df_final["vsw"]
+df_final['lambda_t'] = df_final["ttc"]*df_final["vsw"]
+df_final['lambda_c_e'] = df_final["tce"]*df_final["vsw"]
+df_final['lambda_c_fit'] = df_final["tcf"]*df_final["vsw"]
+df_final['lambda_c_int'] = df_final["tci"]*df_final["vsw"]
+
+stats = df_final.describe()
 print(df_final.info())
 
 df_final = df_final.reset_index() # So that Timestamp is a normal column in the CSV

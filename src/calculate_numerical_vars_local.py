@@ -3,27 +3,25 @@ import params
 import utils
 import numpy as np
 import pandas as pd
-
-print("#######################################")
-print("PROCESSING DATA FOR SOLAR WIND DATABASE")
-print("#######################################")
+from matplotlib import pyplot as plt
 
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
 
 print("\nREADING PICKLE FILES")
 
-## Wind magnetic field data
+# Wind magnetic field data
 
 # High-res data
 
-df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + ".pkl")
+df_wind_hr = pd.read_pickle(
+    "data/processed/" + params.mag_path + params.dt_hr + ".pkl")
 df_wind_hr = df_wind_hr.rename(
     columns={
-        params.Bwind: 'Bwind',
-        params.Bx: 'Bx',
-        params.By: 'By',
-        params.Bz: 'Bz'})
+        params.Bwind: "Bwind",
+        params.Bx: "Bx",
+        params.By: "By",
+        params.Bz: "Bz"})
 
 print("\nHigh-res Wind dataframe:\n")
 print(df_wind_hr.info())
@@ -55,10 +53,10 @@ df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr +
 
 df_wind_lr = df_wind_lr.rename(
     columns={
-        params.Bwind: 'Bwind',
-        params.Bx: 'Bx',
-        params.By: 'By',
-        params.Bz: 'Bz'})
+        params.Bwind: "Bwind",
+        params.Bx: "Bx",
+        params.By: "By",
+        params.Bz: "Bz"})
 
 print("\nLow-res Wind dataframe:\n")
 print(df_wind_lr.info())
@@ -83,23 +81,30 @@ taylor_scale_c_std_list = []
 
 # Splitting entire dataframe into a list of intervals
 
-wind_df_hr_list_missing = [] # This will be added as a column to the final dataframe
+wind_df_hr_list_missing = []  # This will be added as a column to the final dataframe
 
-starttime = df_wind_lr.index[0].round(params.int_size) # E.g. 2016-01-01 00:00. 
+# Saving acfs to list to then output as plot
+acf_hr_list = []
+acf_lr_list = []
+
+# E.g. 2016-01-01 00:00
+starttime = df_wind_lr.index[0].round(params.int_size)
 # Will account for when the dataset does not start at a nice round 12H timestamp
 
-endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S") # E.g. 2016-01-01 11:59:59.99
+# E.g. 2016-01-01 11:59:59.99
+endtime = starttime + \
+pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
 
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
                  pd.to_timedelta(params.int_size)).astype(int)
 
-# If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as 
+# If we subset timestamps that don"t exist in the dataframe, they will still be included in the list, just as
 # missing dataframes. We can identify these with df.empty = True (or missing)
 
 print("\nLOOPING OVER EACH INTERVAL")
 
 for i in np.arange(n_int).tolist():
-    
+
     int_start = starttime + i*pd.to_timedelta(params.int_size)
     int_end = (endtime + i*pd.to_timedelta(params.int_size))
 
@@ -110,7 +115,7 @@ for i in np.arange(n_int).tolist():
     if int_hr.empty:
         missing = 1
     else:
-        missing =  int_hr.iloc[:,0].isna().sum()/len(int_hr)
+        missing = int_hr.iloc[:, 0].isna().sum()/len(int_hr)
 
     wind_df_hr_list_missing.append(missing)
 
@@ -132,14 +137,17 @@ for i in np.arange(n_int).tolist():
 
             time_lags_lr, acf_lr = utils.compute_nd_acf(
                 np.array([
-                    int_lr.Bx, 
+                    int_lr.Bx,
                     int_lr.By,
                     int_lr.Bz
                 ]),
                 nlags=params.nlags_lr,
                 dt=float(params.dt_lr[:-1]))  # Removing "S" from end
 
-            corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
+            acf_lr_list.append(acf_lr)
+
+            corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
+                time_lags_lr, acf_lr)
             corr_scale_exp_trick_list.append(corr_scale_exp_trick)
 
             # Use estimate from 1/e method to select fit amount
@@ -147,9 +155,9 @@ for i in np.arange(n_int).tolist():
                 time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick))
             corr_scale_exp_fit_list.append(corr_scale_exp_fit)
 
-            corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
+            corr_scale_int = utils.compute_outer_scale_integral(
+                time_lags_lr, acf_lr)
             corr_scale_int_list.append(corr_scale_int)
-
 
             time_lags_hr, acf_hr = utils.compute_nd_acf(
                 np.array([
@@ -159,6 +167,8 @@ for i in np.arange(n_int).tolist():
                 ]),
                 nlags=params.nlags_hr,
                 dt=float(params.dt_hr[:-1]))
+
+            acf_hr_list.append(acf_hr)
 
         # ~1min per interval due to spectrum smoothing algorithm
             slope_i, slope_k, break_s = utils.compute_spectral_stats(
@@ -196,40 +206,35 @@ for i in np.arange(n_int).tolist():
         except:
             print("Error: missingness < 0.4 but error in computations")
 
-#filtered_list = [int_hr for i in range(len(wind_df_hr_list)) if wind_df_hr_list_missing[i] < 0.4]
+# Plotting all ACFs to check calculations
+for acf in acf_lr_list:
+    plt.plot(acf)
+plt.savefig("data/processed/all_acfs_lr.png")
+plt.close()
 
-#for i in np.arange(len(wind_df_lr_list)):
-
-# for acf in acf_lr_list:
-#     plt.plot(acf)
-# plt.savefig("data/processed/all_acfs_lr.png")
-# plt.close()    
-
-# for acf in acf_hr_list:
-#     plt.plot(acf)
-# plt.savefig("data/processed/all_acfs_hr.png")
-# plt.close()
-
-# Computing scales for each interval
+for acf in acf_hr_list:
+    plt.plot(acf)
+plt.savefig("data/processed/all_acfs_hr.png")
+plt.close()
 
 # Joining lists of scales and spectral_stats together into a dataframe
 
 df_lengths = pd.DataFrame({
-    'Timestamp': timestamps,
-    'missing_mfi': wind_df_hr_list_missing,
-    'tcf': corr_scale_exp_fit_list,
-    'tce': corr_scale_exp_trick_list,
-    'tci': corr_scale_int_list,
-    'ttu': taylor_scale_u_list,
-    'ttu_std': taylor_scale_u_std_list,
-    'ttc': taylor_scale_c_list,
-    'ttc_std': taylor_scale_c_std_list,
-    'qi': inertial_slope_list,
-    'qk': kinetic_slope_list,
-    'fb': spectral_break_list
+    "Timestamp": timestamps,
+    "missing_mfi": wind_df_hr_list_missing,
+    "tcf": corr_scale_exp_fit_list,
+    "tce": corr_scale_exp_trick_list,
+    "tci": corr_scale_int_list,
+    "ttu": taylor_scale_u_list,
+    "ttu_std": taylor_scale_u_std_list,
+    "ttc": taylor_scale_c_list,
+    "ttc_std": taylor_scale_c_std_list,
+    "qi": inertial_slope_list,
+    "qk": kinetic_slope_list,
+    "fb": spectral_break_list
 })
 
-df_lengths = df_lengths.set_index('Timestamp')
+df_lengths = df_lengths.set_index("Timestamp")
 
 print("JOINING COLUMNS INTO SINGLE DATAFRAME")
 df_complete = utils.join_dataframes_on_timestamp(df_vars, df_lengths)
