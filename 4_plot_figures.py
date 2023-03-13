@@ -57,7 +57,7 @@ import seaborn as sns
 
 ######################################################
 
-# df = pd.read_csv("data/processed/wind_database.csv")
+# df = pd.read_csv("data/processed/wind_omni_dataset.csv")
 # df.Timestamp = pd.to_datetime(df.Timestamp)
 # df.set_index("Timestamp", inplace=True)
 # df.sort_index(inplace=True)
