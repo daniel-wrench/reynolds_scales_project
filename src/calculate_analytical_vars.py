@@ -68,9 +68,23 @@ df_protons = df_protons.rename(
         params.ni: 'ni',
         params.Ti: 'Ti'})
 
+# Sunspot data
+
+df_ss = pd.read_csv("data/processed/sunspot_dataset.csv")
+df_ss["Timestamp"] = pd.to_datetime(df_ss["Timestamp"])
+df_ss.set_index("Timestamp", inplace=True)
+# Limit to only the sunspot number column
+df_ss = df_ss['SN']
+# Limit to only the range of other data
+df_ss = df_ss[df_omni.index.min():df_omni.index.max()]
+df_ss = df_ss.resample("12H").agg("ffill") # Up-sampling to twice daily
+
+# Merging datasets
+
 print("\nSAVING FULL MERGED DATASET AND SUMMARY STATS TABLE\n")
 df_vars = utils.join_dataframes_on_timestamp(df_omni, df_electrons)
 df_vars = utils.join_dataframes_on_timestamp(df_vars, df_protons)
+df_vars = utils.join_dataframes_on_timestamp(df_vars, df_ss)
 
 df_final = utils.join_dataframes_on_timestamp(df_merged, df_vars)
 df_final = df_final.sort_index()
@@ -78,7 +92,7 @@ df_final = df_final.sort_index()
 if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
-# Calculating analytical derived variables
+# Calculating analytically-derived variables
 # (using ne due to issues with wind ni data)
 
 df_final["rhoe"] = (2.38e-5)*(df_final["Te"]**(1/2))*((df_final["Bwind"]*1e-5)**-1)  # Electron gyroradius

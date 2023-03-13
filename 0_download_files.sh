@@ -5,6 +5,9 @@
 # Currently run in an interactive Rāpoi session using tmux
 # (can also run locally on a small number of files)
 
+# Get solar cycle (sunspot) data
+wget --directory-prefix=data/raw/sunspots https://www.sidc.be/silso/DATA/SN_d_tot_V2.0.txt
+
 # Use the following to download a sequence of files from a single directory
 ## (Currently downloading 1 week worth of data: takes about 4min locally, 20s on Google Colab
 
