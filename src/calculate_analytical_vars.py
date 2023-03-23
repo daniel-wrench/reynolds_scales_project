@@ -123,8 +123,8 @@ stats = df_final.describe()
 print(df_final.info())
 
 df_final = df_final.reset_index() # So that Timestamp is a normal column in the CSV
-df_final.to_csv("data/processed/wind_omni_dataset.csv", index=False)
-stats.to_csv("data/processed/wind_summary_stats.csv")
+df_final.to_csv("wind_omni_dataset.csv", index=False)
+stats.to_csv("wind_summary_stats.csv")
 
 print("\nChecking for missing data:")
 print(df_final.isna().sum()/len(df_final))

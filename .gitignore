@@ -8,6 +8,5 @@ __pycache__
 /plots/*.png
 *.out
 *.err
-*.csv
 ActivatePython.sh
 /pytaylor

@@ -4,22 +4,34 @@ Codes for constructing a database of solar wind parameters and scales as measure
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
-1. Plots
-2. Make spare copy of dataset somewhere else
-2. Proof codes
-3. Re-run codes on Rāpoi
-4. Text 
-    - Proof whole thing, making sure to add full details on the dataset creation and emphasising the availability of both the data and the code, and how it should be able to be only slightly modified to work on data from other spacecraft in CDAWeb. 
+1. Add decay rate, 
+1. Re-run codes on Rāpoi
+2. Plots
+    - Add spectra cartoon, no tick labels or axis labels, with 
+    - More 2D histograms: Re_lt vs. lambdaT, vs. Lambda_cfit, lambtaT vs. deltaB, Bwind, deltaB/Bwind
+    - Re_lt
+    - Taylor scale vs. delta b/b
+    - Larger fluctuations causes larger decay rate, steeper slope q_k
+    - INTERESTED IN CORRELATIONS OF OUR SCALES AND RE
+    - Fix scale symbols in notebook plots: tau_T, lambda_C^exp, etc.
+    - Use Google Colab to get one week's worth of ACFs?
+3. Text 
+2. Author contributions:
+    - TNP: Initial idea
+    - KL: Preliminary analysis under guidance of MF and TNP
+    - DW: Refined and extended pipeline, created final dataset, wrote draft manuscript
+    - All authors discussed results and implications, editing, refinement
 6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
+
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
-7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.*
+7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.* 
 
 ## How to run this code
 
 In order to create the full, 25-year dataset, an HPC cluster will be required. However, for the purposes of testing, a version of the pipeline is available that can be run locally on your machine with minimal computing requirements: note some Local/HPC differences in the instructions below.
 
 **Google Colab** is a highly recommended way to run the code for beginners on a Windows computer. 
-You will need to prefix the commands below with `!`, and use `%cd` to move into the project folder.
+You will need to prefix the commands below with `!`, use `%cd` to move into the project folder, and can safely ignore step 2.
 
 1. **Clone the repository to your local machine:**
 
@@ -49,7 +61,7 @@ You will need to prefix the commands below with `!`, and use `%cd` to move into 
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
-    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 400 for the monthly datasets (OMNI)
+    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 330 for the monthly datasets (OMNI)
 
 4. **Get the raw variables by processing the CDF files:**
 
@@ -88,6 +100,7 @@ You will now find two output files corresponding to the final database and its s
 
 ### Optional next steps
 
+- Add cross helicity (sigma_c) and residual energy (sigma_r), decay rate
 - Add vector velocities to params.py script, anticipating switch to PSP data
 - Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_calculate_analytical_vars` step
 - Add collisional age (Kasper PRL), energies (ask Mark), decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
