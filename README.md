@@ -15,7 +15,9 @@ Paper should be a story of how to calculate Re for the solar wind, including all
     - INTERESTED IN CORRELATIONS OF OUR SCALES AND RE
     - Fix scale symbols in notebook plots: tau_T, lambda_C^exp, etc.
     - Use Google Colab to get one week's worth of ACFs?
-3. Text 
+3. Text
+    - Confused about switch between collisionless and kinetic plasma to describe the necessity for these Re approximations.
+    - Introducing taylor scale: "order unity factors?" Can we write this more plainly?
 2. Author contributions:
     - TNP: Initial idea
     - KL: Preliminary analysis under guidance of MF and TNP
