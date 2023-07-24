@@ -24,6 +24,15 @@ Paper should be a story of how to calculate Re for the solar wind, including all
     - DW: Refined and extended pipeline, created final dataset, wrote draft manuscript
     - All authors discussed results and implications, editing, refinement
 6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
+7. What might be correlated with the breakscale? See the following from Bandy. 2020:
+*For example, Leamon et al. (2000) and Wang et al. (2018)
+argued that the ion-inertial scale controls the spectral break and
+onset of strong dissipation, while Bruno & Trenchi (2014)
+suggested the break frequency is associated with the resonance
+condition for a parallel propagating Alfvén wave. Another
+possibility is that the largest of the proton kinetic scales
+terminates the inertial range and controls the spectral break
+(Chen et al. 2014).*
 
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
 7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.* 
