@@ -5,7 +5,7 @@ Codes for constructing a database of solar wind parameters and scales as measure
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
 
 1. Add decay rate, 
-1. Re-run codes on Rāpoi
+1. Re-run codes on Rāpoi (IN PROGRESS - ADD NOTES ON REQUIREMENTS)
 2. Plots
     - Add spectra cartoon, no tick labels or axis labels, with 
     - More 2D histograms: Re_lt vs. lambdaT, vs. Lambda_cfit, lambtaT vs. deltaB, Bwind, deltaB/Bwind
@@ -68,6 +68,9 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     Local: `bash 1_get_raw_vars_local.sh`
 
     HPC: `sbatch 1_get_raw_vars.sh`
+        
+        Recommended HPC job requirements: 
+        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/220GB/3 hours. (Takes about 8min/file/core).
 
     Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
 
@@ -80,6 +83,10 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     Local: `bash 2_calculate_numerical_vars_local.sh` 
 
     HPC: `sbatch 2_calculate_numerical_vars.sh`
+       
+        Recommended HPC job requirements: 
+        As stated in the previous step, this requires > 500GB of memory for the full dataset, so recommended to instead run twice on half the data (no change needed to the code, simply run previous step on half the data): 256 CPUS/320GB/5 hours.
+        
 
     See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
