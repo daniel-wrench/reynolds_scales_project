@@ -242,8 +242,8 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         ax.text(xk[0]*2, pk[0], "$q_k$")
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
         ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
-        ax.set_xlabel('frequency [Hz]')
-        ax.set_ylabel('nT$^2$')
+        ax.set_xlabel('frequency (Hz)')
+        ax.set_ylabel('PSD (nT$^2$Hz$^{-1}$)')
         #plt.grid()
         #plt.show()
 
@@ -345,7 +345,7 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
                     dt = autocorrelation_x[1]-autocorrelation_x[0]
 
-                    fig, ax = plt.subplots(1, 3, figsize = (9, 4), constrained_layout=True)
+                    fig, ax = plt.subplots(1, 3, figsize = (8, 3), constrained_layout=True)
                     
                     ax[1].set_yticks([])
                     ax[2].set_yticks([])
@@ -507,7 +507,8 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = F
 
         #mpl_fig = plt.figure()
 
-        fig, ax = plt.subplots(1,2, figsize = (9,4), constrained_layout=True)
+        fig, ax = plt.subplots(2,1, figsize = (5,8))
+        fig.subplots_adjust(hspace=0.6)
 
         ax[0].scatter(time_lags, acf, label="Autocorrelation", s = 0.5)
         ax[0].plot(
@@ -518,7 +519,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = F
         #plt.axhline(0, color = 'black')
         ax[0].axvline(tau_fit*(time_lags[1]-time_lags[0]), color='purple', label = "$\\tau_{fit}=20$ lags")
 
-        ax[0].set_xlim(-0.2, tau_fit*dt*2)
+        ax[0].set_xlim(-0.2, tau_fit*dt*1.2)
         ax[0].set_ylim(0.99, 1.001)
 
         if show_intercept == True:
@@ -527,6 +528,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = F
 
         ax[0].set_xlabel('$\\tau$ (sec)')
         ax[0].set_ylabel('Autocorrelation')
+        ax[0].tick_params(which = "both", direction='in')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -537,6 +539,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = F
 
         secax_x = ax[0].secondary_xaxis('top', functions=(sec2lag, lag2sec))
         secax_x.set_xlabel('$\\tau$ (lag)')
+        secax_x.tick_params(which = "both", direction='in')
 
         def sec2km(x):
             return x * 400
@@ -547,8 +550,9 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept = F
         # use of a float for the position:
         secax_x2 = ax[0].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r$ (km)')
+        secax_x2.tick_params(which = "both", direction='in')
         
-        ax[0].legend(loc = "center right")
+        ax[0].legend(loc = "lower left")
 
         return lambda_t, fig, ax
 
@@ -618,6 +622,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
             #ax[1].plot(0, ts_est_final_upper, "r+", markersize=1)
         ax[1].set_xlabel("$\\tau_{fit}$ (sec)")
         ax[1].set_ylabel("$\\tau_{fit}^{est}$ (sec)")
+        ax[1].tick_params(which = "both", direction='in')
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -628,6 +633,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
         secax_x = ax[1].secondary_xaxis('top', functions=(sec2lag, lag2sec))
         secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
+        secax_x.tick_params(which = "both", direction='in')
 
         def sec2km(x):
             return x * 400
@@ -638,6 +644,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
         # use of a float for the position:
         secax_x2 = ax[1].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
         secax_x2.set_xlabel('$r_{fit}$ (km)')
+        secax_x2.tick_params(which = "both", direction='in')
         
         ax[1].legend()
         #plt.close()
