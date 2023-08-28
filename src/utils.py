@@ -218,6 +218,7 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         ax.semilogy(f_periodogram, p_smooth, label = "Smoothed periodogram", color = "black")
         ax.semilogy(xi, pi*3, c = "black", ls='--', label = "Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
         ax.semilogy(xk, pk*3, c = "black", ls='--', label = "Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
+        ax.tick_params(which = "both", direction='in')
         ax.semilogx()
 
         if spectral_break[0] is not np.nan:
@@ -242,11 +243,11 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
         ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
         ax.set_xlabel('frequency [Hz]')
-        ax.set_ylabel('PSD')
+        ax.set_ylabel('nT$^2$')
         #plt.grid()
         #plt.show()
 
-        return zi[0], zk[0], spectral_break[0], fig, ax
+        return zi[0], zk[0], spectral_break[0], fig, ax, f_periodogram, p_smooth
     else:
         return zi[0], zk[0], spectral_break[0]
 
@@ -349,33 +350,25 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                     ax[1].set_yticks([])
                     ax[2].set_yticks([])
 
-                    ax[0].plot(autocorrelation_x, autocorrelation_y)
-                    ax[0].set_xlabel('$\\tau$ (sec)')
+                    ax[0].plot(autocorrelation_x / 1000, autocorrelation_y)
+                    ax[0].set_xlabel('$\\tau$ (1e3 sec)')
                     ax[0].set_ylabel('Autocorrelation')
 
-                    # For plotting secondary axes
-                    def sec2lag(x):
-                        return x / dt
-
-                    def lag2sec(x):
-                        return x * dt
-
-                    secax_x = ax[0].secondary_xaxis('top', functions=(sec2lag, lag2sec))
-                    secax_x.set_xlabel('$\\tau$ (lag)')
-
                     def sec2km(x):
-                        return x * 400
+                        return x * 1000 * 400 / 1e6
 
                     def km2sec(x):
-                        return x / 400
+                        return x / 1000 / 400 * 1e6
 
                     # use of a float for the position:
-                    secax_x2 = ax[0].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-                    secax_x2.set_xlabel('$r$ (km)')
+                    secax_x2 = ax[0].secondary_xaxis('top', functions=(sec2km, km2sec))
+                    secax_x2.set_xlabel('$r$ (1e6 km)')
+                    secax_x2.tick_params(which = "both", direction='in')
 
                     ax[0].axhline(np.exp(-1), color = 'black')
-                    ax[0].axvline(x_opt[0], color = 'black')
-
+                    ax[0].axvline(x_opt[0] / 1000, color = 'black')
+                    ax[0].tick_params(which = "both", direction='in')
+                    
                     return round(x_opt[0], 3), fig, ax
                 else:
                     return round(x_opt[0], 3)
@@ -415,36 +408,28 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
             ax = ax
             column = 1
 
-        ax[column].plot(time_lags, acf, label = "Autocorrelation")
+        ax[column].plot(time_lags / 1000, acf, label = "Autocorrelation")
         ax[column].plot(
-            np.array(range(int(seconds_to_fit))),
+            np.array(range(int(seconds_to_fit))) / 1000,
             exp_fit(
                 np.array(range(int(seconds_to_fit))),
                 *c_opt
             ),
             label = "Exponential fit")
-        ax[column].set_xlabel('$\\tau$ (sec)')
+        ax[column].set_xlabel('$\\tau$ (1e3 sec)')
+        ax[column].tick_params(which = "both", direction='in')
         #ax[column].set_ylabel('Autocorrelation')
 
-        # For plotting secondary axes
-        def sec2lag(x):
-            return x / dt
-
-        def lag2sec(x):
-            return x * dt
-
-        secax_x = ax[column].secondary_xaxis('top', functions=(sec2lag, lag2sec))
-        secax_x.set_xlabel('$\\tau$ (lag)')
-
         def sec2km(x):
-            return x * 400
+            return x * 1000 * 400 / 1e6
 
         def km2sec(x):
-            return x / 400
+            return x / 1000 / 400 * 1e6
 
         # use of a float for the position:
-        secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r$ (km)')
+        secax_x2 = ax[column].secondary_xaxis('top', functions=(sec2km, km2sec))
+        secax_x2.set_xlabel('$r$ (1e6 km)')
+        secax_x2.tick_params(which = "both", direction='in')
 
         #ax[1].legend(loc='center right')
         #ax[1].set_title("{}: {:.2f}".format(figname, lambda_c))
@@ -467,34 +452,25 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
             ax = ax
             column = 2
         #ax.set_ylim(-.2, 1.2)
-        ax[column].plot(time_lags, acf, label="Autocorrelation")
-        ax[column].fill_between(time_lags, 0, acf, where=acf > 0)
+        ax[column].plot(time_lags / 1000, acf, label="Autocorrelation")
+        ax[column].fill_between(time_lags / 1000, 0, acf, where=acf > 0)
         # box_color = 'grey' if lambda_c > 50 else 'red'
         # ax.text(time_lags[-1]*(5/10), 0.9, f'$\lambda_c$: {round(lambda_c, 1)}s', style='italic', fontsize=10,
         #         bbox={'facecolor': box_color, 'alpha': 0.5, 'pad': 10})
-        ax[column].set_xlabel('$\\tau$ (sec)')
+        ax[column].set_xlabel('$\\tau$ (1e3 sec)')
+        ax[column].tick_params(which = "both", direction='in')
         #ax[column].set_ylabel('Autocorrelation')
 
-        # For plotting secondary axes
-        def sec2lag(x):
-            return x / dt
-
-        def lag2sec(x):
-            return x * dt
-
-        secax_x = ax[column].secondary_xaxis('top', functions=(sec2lag, lag2sec))
-        secax_x.set_xlabel('$\\tau$ (lag)')
-
         def sec2km(x):
-            return x * 400
+            return x * 1000 * 400 / 1e6
 
         def km2sec(x):
-            return x / 400
+            return x / 1000 / 400 * 1e6
 
         # use of a float for the position:
-        secax_x2 = ax[column].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r$ (km)')
-
+        secax_x2 = ax[column].secondary_xaxis('top', functions=(sec2km, km2sec))
+        secax_x2.set_xlabel('$r$ (1e6 km)')
+        secax_x2.tick_params(which = "both", direction='in')
 
         return int, fig, ax
     else:
