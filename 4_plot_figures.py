@@ -7,7 +7,6 @@ import seaborn as sns
 
 ######################################################
 
-
 # TEMP CODE WHEN NEEDING TO MERGE FILES (i.e., did not run on all data at once)
 
 # df_1 = pd.read_csv("data/processed/wind_database_1995_1998.csv")
@@ -373,19 +372,32 @@ plt.show()
 # sns.lineplot(data=df_l1_cleaned_1995, x="Timestamp", y="Re_tb_norm", label="Re_tb")
 
 # plt.semilogy()
-
 # plt.show()
 
+
+#### PLOTTING ADDITIONAL BREAKSCALE RELATIONSHIPS ####
+
 # Create side-by-side subplots with a shared y-axis
+
+# Want to plot the following:
+# - lambda d vs. lambda c x delta b ^ -1.737
+# - lambda d vs. lambda T x delta b ^ -0.579
+
 fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
 
-sns.histplot(x="$\lambda_{T}$ (s)", y="$\lambda_d$ (s)", data=df_l1_cleaned, ax=axes[0], log_scale=True)
-sns.histplot(x="$\lambda_{C}$ (s)", y="$\lambda_d$ (s)", data=df_l1_cleaned, ax=axes[1], log_scale=True)
+sns.histplot(x=df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579, y=df_l1_cleaned["tb"], ax=axes[0])
+sns.histplot(x=df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737, y=df_l1_cleaned["tb"], ax=axes[1])
 
-plt.tight_layout()
-axes[0].set_ylim(1e-1, 1e1)
-axes[1].set_ylim(1e-1, 1e1)
-axes[0].tick_params(direction='in')
-axes[1].tick_params(direction='in')
+axes[0].set_ylabel("$\lambda_d$ (sec)")
+axes[0].set_xlabel("$\lambda_{T} \delta b^{-0.579}$")
+axes[1].set_xlabel("$\lambda_{C} \delta b^{-1.737}$")
+
+#plt.tight_layout()
+axes[0].set_xlim(0, 2500)
+axes[1].set_xlim(0, 100000)
+axes[0].set_ylim(1e-1, 2)
+axes[1].set_ylim(1e-1, 2)
+# axes[0].tick_params(direction='in')
+# axes[1].tick_params(direction='in')
 
 plt.show()
