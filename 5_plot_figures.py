@@ -1,114 +1,10 @@
-#### ANALYSING WIND DATABASE ####
+
+#### ANALYSING and PLOTTING WIND DATABASE ####
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-
-######################################################
-
-# TEMP CODE WHEN NEEDING TO MERGE FILES (i.e., did not run on all data at once)
-
-# df_1 = pd.read_csv("data/processed/wind_database_1995_1998.csv")
-# df_2 = pd.read_csv("data/processed/wind_database_1999_2007.csv")
-# df_3 = pd.read_csv("data/processed/wind_database_2007_2022.csv")
-
-# df_1 = df_1.set_index("Timestamp").sort_index()
-# df_2 = df_2.set_index("Timestamp").sort_index()
-# df_3 = df_3.set_index("Timestamp").sort_index()
-# df_omni = df_1[["vsw", "p", "Bomni"]]
-
-# # We have the entire OMNI data in each dataframe
-# # We need to exclude it so it doesn't get added together during the following merging process
-# # which takes into account the ragged transitions from one df to the next
-
-# df_merged = pd.concat([df_1, df_2, df_3], verify_integrity=False)
-# df_merged = df_merged.drop(["vsw", "p", "Bomni"], axis=1)
-# df_merged.index.has_duplicates
-
-# # # Can also check for duplicate timestamps during the concatentation with the following: 
-# # #df_merged = pd.concat([df_1, df_2], verify_integrity=True)
-# # #ValueError: Indexes have overlapping values
-
-# df_merged = df_merged.groupby(df_merged.index).agg(sum)
-# # Dealing with any resultant 0s from summing to NAs together
-# df_merged = df_merged.replace(0, np.nan)
-
-# df_merged.index = pd.to_datetime(df_merged.index)
-# df_omni.index = pd.to_datetime(df_omni.index)
-# df = utils.join_dataframes_on_timestamp(df_merged, df_omni)
-# df.index.has_duplicates
-
-# # # Checking merge (border between end of first file and start of second, with a ragged transition)
-# # # df_merged_final["1998-12-30":"1999-01-03"]
-
-# df.rename(columns={"tb":"fb"}, inplace=True)
-
-# # df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
-# # np.mean(df.Re_lt).round(-4)
-# # np.mean(df.Re_di).round(-4)
-# # np.mean(df.Re_tb).round(-4)
-
-# # df[["di", "vsw", "ttk", "ttu", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe().round(2)
-# # # CHECK MAX VALS
-
-# df.to_csv("data/processed/wind_database.csv")
-
-######################################################
-
-# df = pd.read_csv("data/processed/wind_omni_dataset.csv")
-# df.Timestamp = pd.to_datetime(df.Timestamp)
-# df.set_index("Timestamp", inplace=True)
-# df.sort_index(inplace=True)
-
-# #### DATA CLEANING (subsetting and dealing with outliers)
-
-# df_l1 = df["2004-06-01":]
-
-# Few timestamps (0.1%) have ttc < 0 
-# All of these have unusually large values for qk. Total of 5% have qk > -1.7
-# 3 values also have ttu < 1
-
-# Here I am removing all these values
-# Removing NAs as well, this brings my total number of rows down to about 18,000
-# It only slightly decreases the qk mean from -2.63 to -2.69, but it does
-# remove very large Re_lt outliers, reducing the mean from 4,500,000 to 160,000
-# It still leaves around 2% of rows where qk > qi
-
-# Counting outliers
-
-# df_l1.loc[:, "small_ttu"] = 0 
-# df_l1.loc[:, "qk > -1.7"] = 0
-# df_l1.loc[:, "qk > qi"] = 0
-
-# df_l1.loc[df_l1["ttu"] < 1, "small_ttu"] = 1
-# df_l1.loc[df_l1["qk"] > -1.7, "qk > -1.7"] = 1
-# df_l1.loc[df_l1["qk"] > df_l1["qi"], "qk > qi"] = 1
-
-# df_l1[["small_ttu", "qk > -1.7", "qk > qi"]].mean()
-# df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
-# df_l1.drop(["small_ttu", "qk > -1.7", "qk > qi"], axis=1, inplace=True)
-
-# # Removing outlier slope rows
-# df_l1_cleaned = df_l1[df_l1.qk < -1.7]
-# df_l1_cleaned = df_l1_cleaned[df_l1_cleaned.ttu > 1] # not needed for L1 range
-
-# # Removing negative tci values (only 5, numerical issue with finding argmin)
-# df_l1_cleaned.loc[df_l1_cleaned.tci < 0, ["tci", "lambda_c_int"]] = np.nan
-
-# df_l1_cleaned.to_csv("data/processed/wind_dataset_l1_cleaned.csv", index=True)
-
-# corr_table = df_l1_cleaned.corr()
-# corr_table.to_csv("wind_dataset_l1_cleaned_corr.csv")
-
-# key_vars = df_l1_cleaned[["lambda_c_fit", "lambda_c_int", "lambda_c_e", "lambda_t_raw", "qi", "qk", "fb", "lambda_t", "Re_lt", "Re_di", "Re_tb"]]
-
-# key_stats = key_vars.describe().round(2)
-# key_stats.to_csv("wind_dataset_l1_cleaned_key_stats.csv")
-
-#######################################################
-###################### PLOTTING #######################
-#######################################################
 
 df_l1_cleaned = pd.read_csv("data/processed/wind_dataset_l1_cleaned.csv")
 df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
@@ -151,7 +47,7 @@ plt.show()
 
 ##### New method (densities, linear scale, hatching)
 
-fig, ax = plt.subplots(figsize=(4.5,2), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(3.5,2), constrained_layout=True)
 
 # Compute density estimates
 density1 = sns.kdeplot(df_l1_cleaned.lambda_t_raw).get_lines()[0].get_data()
@@ -180,42 +76,6 @@ plt.xlabel("Length (km)")
 
 plt.savefig("plots/final/taylor_overlapping_hist_v2.pdf")
 plt.show()
-
-#######################################################
-
-# PLOTS FOR ALL THREE RE APPROXIMATIONS
-
-# unused helper functions
-
-# Following fn courtesy of bnaecker on stackoverflow
-# def plot_unity(xdata, ydata, **kwargs):
-#     mn = min(xdata.min(), ydata.min())
-#     mx = max(xdata.max(), ydata.max())
-#     #mn = min(0, 1e4)
-#     #mx = max(0, 1e7)
-#     points = np.linspace(mn, mx, 100)
-#     plt.gca().plot(points, points, color='k', marker=None,
-#             linestyle='--', linewidth=1.0)
-    
-# def plot_unity_histplot(ax, **kwargs):
-#     mn = min(1e1, 1e8)
-#     mx = max(1e1, 1e8)
-#     points = np.linspace(mn, mx, 100)
-#     for i in np.arange(3):
-#         ax[i].plot(points, points, color='k', marker=None,
-#                 linestyle='--', linewidth=1.0)
-
-# def meanfunc(x, ax=None, **kws):
-#     #mean = np.mean(x)
-#     #med = np.median(x)
-#     x = pd.Series(x)
-#     mean = x.mean().round(-4)
-#     med = x.median().round(-4)
-#     std = x.std().round(-4)
-#     ax = ax or plt.gca()
-#     ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
-#     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
-#     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
 
 
 def corrfunc(x, y, ax=None, **kws):
@@ -352,6 +212,41 @@ plt.savefig("plots/final/corr_scale_panels.pdf")
 plt.show()
 
 
+#### PLOTTING ADDITIONAL BREAKSCALE RELATIONSHIPS ####
+
+# Create side-by-side subplots with a shared y-axis
+
+# Want to plot the following:
+# - lambda d vs. lambda c x delta b ^ -1.737
+# - lambda d vs. lambda T x delta b ^ -0.579
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+
+sns.histplot(x=df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579, y=df_l1_cleaned["tb"], ax=axes[0])
+sns.histplot(x=df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737, y=df_l1_cleaned["tb"], ax=axes[1])
+
+axes[0].set_ylabel("$\lambda_d$ (sec)")
+axes[0].set_xlabel("$\lambda_{T} \delta b^{-0.579}$")
+axes[1].set_xlabel("$\lambda_{C} \delta b^{-1.737}$")
+
+#plt.tight_layout()
+# axes[0].set_xlim(0, 2500)
+axes[1].set_xlim(0, 150000)
+axes[0].set_ylim(1e-1, 2)
+axes[1].set_ylim(1e-1, 2)
+# axes[0].tick_params(direction='in')
+# axes[1].tick_params(direction='in')
+
+plt.show()
+
+# Correlation coefficients
+x = df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737
+y = df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579
+x.corr(df_l1_cleaned["tb"], "pearson")
+y.corr(df_l1_cleaned["tb"], "pearson")
+
+###################################
+
 # x0, x1 = g.ax_joint.get_xlim()
 # y0, y1 = g.ax_joint.get_ylim()
 # lims = [max(x0, y0), min(x1, y1)]
@@ -375,29 +270,38 @@ plt.show()
 # plt.show()
 
 
-#### PLOTTING ADDITIONAL BREAKSCALE RELATIONSHIPS ####
+#######################################################
 
-# Create side-by-side subplots with a shared y-axis
+# PLOTS FOR ALL THREE RE APPROXIMATIONS
 
-# Want to plot the following:
-# - lambda d vs. lambda c x delta b ^ -1.737
-# - lambda d vs. lambda T x delta b ^ -0.579
+# unused helper functions
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+# Following fn courtesy of bnaecker on stackoverflow
+# def plot_unity(xdata, ydata, **kwargs):
+#     mn = min(xdata.min(), ydata.min())
+#     mx = max(xdata.max(), ydata.max())
+#     #mn = min(0, 1e4)
+#     #mx = max(0, 1e7)
+#     points = np.linspace(mn, mx, 100)
+#     plt.gca().plot(points, points, color='k', marker=None,
+#             linestyle='--', linewidth=1.0)
+    
+# def plot_unity_histplot(ax, **kwargs):
+#     mn = min(1e1, 1e8)
+#     mx = max(1e1, 1e8)
+#     points = np.linspace(mn, mx, 100)
+#     for i in np.arange(3):
+#         ax[i].plot(points, points, color='k', marker=None,
+#                 linestyle='--', linewidth=1.0)
 
-sns.histplot(x=df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579, y=df_l1_cleaned["tb"], ax=axes[0])
-sns.histplot(x=df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737, y=df_l1_cleaned["tb"], ax=axes[1])
-
-axes[0].set_ylabel("$\lambda_d$ (sec)")
-axes[0].set_xlabel("$\lambda_{T} \delta b^{-0.579}$")
-axes[1].set_xlabel("$\lambda_{C} \delta b^{-1.737}$")
-
-#plt.tight_layout()
-axes[0].set_xlim(0, 2500)
-axes[1].set_xlim(0, 100000)
-axes[0].set_ylim(1e-1, 2)
-axes[1].set_ylim(1e-1, 2)
-# axes[0].tick_params(direction='in')
-# axes[1].tick_params(direction='in')
-
-plt.show()
+# def meanfunc(x, ax=None, **kws):
+#     #mean = np.mean(x)
+#     #med = np.median(x)
+#     x = pd.Series(x)
+#     mean = x.mean().round(-4)
+#     med = x.median().round(-4)
+#     std = x.std().round(-4)
+#     ax = ax or plt.gca()
+#     ax.annotate(f'mean = \n{mean:.0f}', xy=(.1, .8), xycoords=ax.transAxes, size = 9)
+#     ax.annotate(f'median = \n{med:.0f}', xy=(.1, .6), xycoords=ax.transAxes, size = 9)
+#     ax.annotate(f'$\sigma$ = \n{std:.0f}', xy=(.1, .4), xycoords=ax.transAxes, size = 9)
