@@ -2,29 +2,23 @@
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft and OMNI. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
 
 ## To-do
-Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way.
+Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. Note also that work by Fordin2023 represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
 
-1. Add decay rate, 
-1. Re-run codes on Rāpoi (IN PROGRESS - ADD NOTES ON REQUIREMENTS)
+**General plot guidelines**
+- Refer to Matthaeus2016 (ApJ) and Parashar 2019 for good aesthetic figures
+- Tick-marks inside
+- B+W where possible, utilizing transparency and linestyles
+
+1. Re-run codes on Rāpoi, checking my instructions?
 2. Plots
-    - Add spectra cartoon, no tick labels or axis labels, with 
-    - More 2D histograms: Re_lt vs. lambdaT, vs. Lambda_cfit, lambtaT vs. deltaB, Bwind, deltaB/Bwind
-    - Re_lt
-    - Taylor scale vs. delta b/b
-    - Larger fluctuations causes larger decay rate, steeper slope q_k
-    - INTERESTED IN CORRELATIONS OF OUR SCALES AND RE
-    - Fix scale symbols in notebook plots: tau_T, lambda_C^exp, etc.
-    - Use Google Colab to get one week's worth of ACFs?
-3. Text
-    - Confused about switch between collisionless and kinetic plasma to describe the necessity for these Re approximations.
-    - Introducing taylor scale: "order unity factors?" Can we write this more plainly?
-2. Author contributions:
-    - TNP: Initial idea
-    - KL: Preliminary analysis under guidance of MF and TNP
-    - DW: Refined and extended pipeline, created final dataset, wrote draft manuscript
-    - All authors discussed results and implications, editing, refinement
-6. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*
-7. What might be correlated with the breakscale? See the following from Bandy. 2020:
+    - cheng and wang paper
+    - More 2D histograms: 
+        - Taylor scale vs. delta b/b
+        - Tb vs. ion inertial timescale vs. Taylor scale. Cf. Leamon2000, Fig. 4 and Matthaeus2008, Fig. 3
+        - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small.
+        - But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
+    - delta b/b vs. q_k: Larger fluctuations causes larger decay rate, steeper slope q_k?
+    - breakscale correlations: What might be correlated with the breakscale? See the following from Bandy. 2020:
 *For example, Leamon et al. (2000) and Wang et al. (2018)
 argued that the ion-inertial scale controls the spectral break and
 onset of strong dissipation, while Bruno & Trenchi (2014)
@@ -34,8 +28,13 @@ possibility is that the largest of the proton kinetic scales
 terminates the inertial range and controls the spectral break
 (Chen et al. 2014).*
 
+Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
+
+4. Add decay rate, cross-helicity, residual energy, etc.
+5. Think about using the standard error to express variation in the means of our Re estimates.
 6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
 7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.* 
+
 
 ## How to run this code
 
