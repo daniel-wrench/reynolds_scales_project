@@ -1,3 +1,33 @@
+"""
+calculate_analytical_vars.py
+
+Processes solar wind data by merging various datasets, calculating analytically-derived 
+variables, and saving the results to CSV files.
+
+Custom modules:
+    - params: Module containing parameter settings and constants.
+    - utils: Utility functions for operations like merging dataframes based on timestamps.
+
+Workflow:
+    1. Load datasets:
+        - MFI data
+        - OMNI data
+        - Electron data
+        - Proton data
+        - Sunspot data
+    2. Rename, sort, and preprocess datasets.
+    3. Merge datasets based on timestamps.
+    4. Calculate derived variables such as Electron gyroradius, Ion gyroradius, 
+       Electron inertial length, Ion inertial length, Electron plasma beta, Alfven speed, 
+       and Debye length.
+    5. Calculate Reynolds numbers and apply Taylor's hypothesis to convert scales from 
+       time to distance.
+    6. Save the final merged dataset and summary statistics to CSV files.
+
+Author: Daniel Wrench
+Last modified: 4/9/2023
+"""
+
 import pandas as pd
 import numpy as np
 import params

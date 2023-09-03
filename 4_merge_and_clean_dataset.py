@@ -3,52 +3,53 @@
 
 import numpy as np
 import pandas as pd
-import utils
 
-df_1 = pd.read_csv("data/processed/wind_database_1995_1998.csv")
-df_2 = pd.read_csv("data/processed/wind_database_1999_2007.csv")
-df_3 = pd.read_csv("data/processed/wind_database_2007_2022.csv")
+#import utils
 
-df_1 = df_1.set_index("Timestamp").sort_index()
-df_2 = df_2.set_index("Timestamp").sort_index()
-df_3 = df_3.set_index("Timestamp").sort_index()
-df_omni = df_1[["vsw", "p", "Bomni"]]
+# df_1 = pd.read_csv("data/processed/wind_database_1995_1998.csv")
+# df_2 = pd.read_csv("data/processed/wind_database_1999_2007.csv")
+# df_3 = pd.read_csv("data/processed/wind_database_2007_2022.csv")
 
-# We have the entire OMNI data in each dataframe
-# We need to exclude it so it doesn't get added together during the following merging process
-# which takes into account the ragged transitions from one df to the next
+# df_1 = df_1.set_index("Timestamp").sort_index()
+# df_2 = df_2.set_index("Timestamp").sort_index()
+# df_3 = df_3.set_index("Timestamp").sort_index()
+# df_omni = df_1[["vsw", "p", "Bomni"]]
 
-df_merged = pd.concat([df_1, df_2, df_3], verify_integrity=False)
-df_merged = df_merged.drop(["vsw", "p", "Bomni"], axis=1)
-df_merged.index.has_duplicates
+# # We have the entire OMNI data in each dataframe
+# # We need to exclude it so it doesn't get added together during the following merging process
+# # which takes into account the ragged transitions from one df to the next
 
-# # Can also check for duplicate timestamps during the concatentation with the following: 
-# #df_merged = pd.concat([df_1, df_2], verify_integrity=True)
-# #ValueError: Indexes have overlapping values
+# df_merged = pd.concat([df_1, df_2, df_3], verify_integrity=False)
+# df_merged = df_merged.drop(["vsw", "p", "Bomni"], axis=1)
+# df_merged.index.has_duplicates
 
-df_merged = df_merged.groupby(df_merged.index).agg(sum)
-# Dealing with any resultant 0s from summing to NAs together
-df_merged = df_merged.replace(0, np.nan)
+# # # Can also check for duplicate timestamps during the concatentation with the following: 
+# # #df_merged = pd.concat([df_1, df_2], verify_integrity=True)
+# # #ValueError: Indexes have overlapping values
 
-df_merged.index = pd.to_datetime(df_merged.index)
-df_omni.index = pd.to_datetime(df_omni.index)
-df = utils.join_dataframes_on_timestamp(df_merged, df_omni)
-df.index.has_duplicates
+# df_merged = df_merged.groupby(df_merged.index).agg(sum)
+# # Dealing with any resultant 0s from summing to NAs together
+# df_merged = df_merged.replace(0, np.nan)
 
-# # Checking merge (border between end of first file and start of second, with a ragged transition)
-# # df_merged_final["1998-12-30":"1999-01-03"]
+# df_merged.index = pd.to_datetime(df_merged.index)
+# df_omni.index = pd.to_datetime(df_omni.index)
+# df = utils.join_dataframes_on_timestamp(df_merged, df_omni)
+# df.index.has_duplicates
 
-df.rename(columns={"tb":"fb"}, inplace=True)
+# # # Checking merge (border between end of first file and start of second, with a ragged transition)
+# # # df_merged_final["1998-12-30":"1999-01-03"]
 
-# df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
-# np.mean(df.Re_lt).round(-4)
-# np.mean(df.Re_di).round(-4)
-# np.mean(df.Re_tb).round(-4)
+# df.rename(columns={"tb":"fb"}, inplace=True)
 
-# df[["di", "vsw", "ttk", "ttu", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe().round(2)
-# # CHECK MAX VALS
+# # df[["tcf", "ttc", "Re_di", "Re_lt", "Re_lt_u", "Re_tb"]].describe()
+# # np.mean(df.Re_lt).round(-4)
+# # np.mean(df.Re_di).round(-4)
+# # np.mean(df.Re_tb).round(-4)
 
-df.to_csv("data/processed/wind_database.csv")
+# # df[["di", "vsw", "ttk", "ttu", "ttc", "Re_di", "Re_lt", "Re_tb"]].describe().round(2)
+# # # CHECK MAX VALS
+
+# df.to_csv("data/processed/wind_database.csv")
 
 #####################################################
 
@@ -71,8 +72,7 @@ df_l1 = df["2004-06-01":]
 # remove very large Re_lt outliers, reducing the mean from 4,500,000 to 160,000
 # It still leaves around 2% of rows where qk > qi
 
-#Counting outliers
-
+# Counting outliers using outlier flag columns
 df_l1.loc[:, "small_ttu"] = 0 
 df_l1.loc[:, "qk > -1.7"] = 0
 df_l1.loc[:, "qk > qi"] = 0
@@ -92,8 +92,10 @@ df_l1_cleaned = df_l1_cleaned[df_l1_cleaned.ttu > 1] # not needed for L1 range
 # Removing negative tci values (only 5, numerical issue with finding argmin)
 df_l1_cleaned.loc[df_l1_cleaned.tci < 0, ["tci", "lambda_c_int"]] = np.nan
 
+# Saving cleaned dataset
 df_l1_cleaned.to_csv("data/processed/wind_dataset_l1_cleaned.csv", index=True)
 
+# Saving correlations and summary statistics
 corr_table = df_l1_cleaned.corr()
 corr_table.to_csv("wind_dataset_l1_cleaned_corr.csv")
 

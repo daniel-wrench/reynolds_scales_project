@@ -1,4 +1,24 @@
 
+"""
+calculate_numerical_vars.py
+
+This script processes high-resolution and low-resolution wind magnetic field data to compute various metrics related to magnetic field fluctuations and their statistical properties.
+
+Modules:
+    - params: Contains parameters and configurations for data processing.
+    - utils: Contains utility functions for data processing and analysis.
+
+Steps:
+    1. Read high-resolution and low-resolution wind magnetic field data from pickle files.
+    2. Process data and initialize lists for storing computed metrics.
+    4. Loop over each interval to compute autocorrelations and power spectra, handling missing data as necessary.
+    6. Create a DataFrame containing the computed statistics for each interval.
+    8. Save the final processed dataframes as pickle files.
+
+Author: Daniel Wrench
+Last modified: 4/9/2023
+"""
+
 import params
 import utils
 import numpy as np
@@ -28,8 +48,8 @@ print("\nREADING PICKLE FILES")
 
 # High-res data
 
-df_wind_hr = pd.read_pickle(
-    "data/processed/" + params.mag_path + params.dt_hr + "_{:03d}.pkl".format(rank))
+df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + "_{:03d}.pkl".format(rank))
+
 df_wind_hr = df_wind_hr.rename(
     columns={
         params.Bwind: "Bwind",
@@ -198,8 +218,9 @@ for i in np.arange(n_int).tolist():
 
             taylor_scale_c_list.append(taylor_scale_c)
             taylor_scale_c_std_list.append(taylor_scale_c_std)
-        except:
-            print("Error: missingness < 0.4 but error in computations")
+        
+        except Exception as e:
+            print("Error: missingness < 10% but error in computations: {}".format(e))
 
 
 # Joining lists of scales and spectral_stats together into a dataframe
@@ -229,6 +250,7 @@ df_complete.to_pickle("data/processed/dataset_{:03d}.pkl".format(rank))
 
 print("\nCORE {}: FINISHED".format(rank))
 
+# wait until all parallel processes are finished
 comm.Barrier()
 
 if rank == 0:

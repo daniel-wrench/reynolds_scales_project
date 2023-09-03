@@ -1,3 +1,33 @@
+"""
+get_raw_vars.py
+
+Description:
+    Processes raw CDF files to extract specified variables based on parameters defined in the `params` module.
+    The processed data is then saved as a pickle file in the specified output directory.
+
+Usage:
+    python get_raw_vars.py [data_file_path] [variable_list] [thresholds] [cadence] [second_resolution]
+
+Arguments:
+    data_file_path: Specifies the location of the input data files (e.g., mag_path, omni_path, etc.).
+    variable_list: List of variables to extract from the CDF files (e.g., mag_vars, omni_vars, etc.).
+    thresholds: Threshold values for the data processing.
+    cadence: The primary time resolution for the processed data.
+    second_resolution: An optional second time resolution for the processed data. Use "None" if not required.
+
+Outputs:
+    Pickle files containing the processed data, saved in the `data/processed/` directory.
+
+Note:
+    Ensure the required modules and dependencies are installed and the necessary data files are available in the `data/raw/` directory.
+
+Author:
+    Daniel Wrench
+Last modified:
+    3/9/2023
+
+"""
+
 import datetime
 import glob
 import params
@@ -66,8 +96,7 @@ def get_cdf_paths(subfolder):
     return sorted(glob.iglob(subfolder + "/*.cdf"))
 
 
-file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(
-    input_dir)]
+file_paths = [get_cdf_paths(subfolder) for subfolder in get_subfolders(input_dir)]
 
 file_list = []
 for sub in file_paths:
@@ -96,9 +125,8 @@ my_list = list_of_lists[rank]
 
 ##############################
 
-df = pd.DataFrame({})
+dataframes = []
 
-# A generator object might be faster here
 for file in my_list:
     try:
         temp_df = pipeline(
@@ -109,14 +137,18 @@ for file in my_list:
         )
         print("Core {0:03d} reading {1}: {2:.2f}% missing".format(
             rank, file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
-        df = pd.concat([df, temp_df])
-    except:
-        print("Error reading CDF file; moving to next file")
+        dataframes.append(temp_df)
+
+    except Exception as e:
+        print(f"Error reading {file}. Error: {e}; moving to next file")
+
+df = pd.concat(dataframes)
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
 # NB: Using .asfreq() creates NA values
 
+# Outputting pickle file
 df.to_pickle(
     output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
 
@@ -131,9 +163,11 @@ else:
     second_cadence = ""
 
 ####### PARALLEL STUFF #######
+# wait until all parallel processes are finished
 comm.Barrier()
 ##############################
 
+# Log statements
 if rank == 0:
     print("\nProcessed {} files of {} data at {} cadence using {} cores\n".format(
         len(file_list),

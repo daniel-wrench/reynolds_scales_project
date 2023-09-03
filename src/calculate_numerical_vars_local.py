@@ -1,4 +1,24 @@
 
+"""
+calculate_numerical_vars.py
+
+This script processes high-resolution and low-resolution wind magnetic field data to compute various metrics related to magnetic field fluctuations and their statistical properties.
+
+Modules:
+    - params: Contains parameters and configurations for data processing.
+    - utils: Contains utility functions for data processing and analysis.
+
+Steps:
+    1. Read high-resolution and low-resolution wind magnetic field data from pickle files.
+    2. Process data and initialize lists for storing computed metrics.
+    4. Loop over each interval to compute autocorrelations and power spectra, handling missing data as necessary.
+    6. Create a DataFrame containing the computed statistics for each interval.
+    8. Save the final processed dataframes as pickle files.
+
+Author: Daniel Wrench
+Last modified: 4/9/2023
+"""
+
 import params
 import utils
 import numpy as np
@@ -92,8 +112,7 @@ starttime = df_wind_lr.index[0].round(params.int_size)
 # Will account for when the dataset does not start at a nice round 12H timestamp
 
 # E.g. 2016-01-01 11:59:59.99
-endtime = starttime + \
-pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
+endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
 
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
                  pd.to_timedelta(params.int_size)).astype(int)
@@ -203,8 +222,9 @@ for i in np.arange(n_int).tolist():
 
             taylor_scale_c_list.append(taylor_scale_c)
             taylor_scale_c_std_list.append(taylor_scale_c_std)
-        except:
-            print("Error: missingness < 0.4 but error in computations")
+            
+        except Exception as e:
+            print("Error: missingness < 10% but error in computations: {}".format(e))
 
 # Plotting all ACFs to check calculations
 for acf in acf_lr_list:

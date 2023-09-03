@@ -127,7 +127,16 @@ def mask_outliers(dataframe: pd.DataFrame, threshold_dict: dict) -> pd.DataFrame
 
 def pipeline(file_path, varlist, cadence=None, thresholds={}):
     """
-    pipeline of all functions to streamline run file
+    Read a CDF file and return a cleaned dataframe
+
+    Args:
+        file_path: path to CDF file
+        varlist: list of variables to include in the dataframe
+        cadence: cadence to resample the dataframe to
+        thresholds: dictionary of thresholds to mask outliers
+
+    Returns:
+        dataframe: cleaned dataframe
     """
     try:
         df = convert_cdf_to_dataframe(read_cdf(file_path), varlist=varlist)
