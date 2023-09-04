@@ -504,11 +504,11 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
     # Optional plotting set up to eventually show Chuychai correction factor in second panel
     if plot == True:
 
-        fig, ax = plt.subplots(2, 1, figsize=(5, 9))
-        fig.subplots_adjust(hspace=0.7, left=0.2)
+        fig, ax = plt.subplots(2, 1, figsize=(5, 6))
+        fig.subplots_adjust(hspace=0, left=0.2, top=0.8)
 
         ax[0].scatter(
-            time_lags, 
+            time_lags/dt, 
             acf, 
             label="Autocorrelation", 
             s=8,
@@ -516,28 +516,30 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
             alpha=0.5)
         
         ax[0].plot(
-            extended_parabola_x,
-            extended_parabola_y,
+            (extended_parabola_x/dt),
+            (extended_parabola_y),
             '-y',
-            label="Parabolic fit",
+            label="Parabolic fit up to $\\tau= \\tau_{fit}$",
             c="black")
         
         ax[0].axvline(
-            tau_fit*(time_lags[1]-time_lags[0]), 
+            tau_fit*(time_lags[1]/dt-time_lags[0]/dt), 
             ls='--',
-            label="$\\tau_{fit}=20$ lags",
-            c="black")
+            label=f"$\\tau_{{fit}}={tau_fit}$ lags",
+            c="black",
+            alpha = 0.4)
 
-        ax[0].set_xlim(-0.2, tau_fit*dt*1.2)
-        ax[0].set_ylim(0.99, 1.001)
+        ax[0].set_xlim(-0.2, 40)
+        ax[0].set_ylim(0.986, 1.001)
 
         if show_intercept == True:
             ax[0].set_ylim(0, 1.05)
             ax[0].set_xlim(-2, lambda_t + 5)
 
-        ax[0].set_xlabel('$\\tau$ (sec)')
+        ax[0].set_xlabel('$\\tau$ (lags)')
+        ax[0].xaxis.set_label_position('top')
         ax[0].set_ylabel('$R(\\tau)$')
-        ax[0].tick_params(which="both", direction='in')
+        ax[0].tick_params(which="both", direction='in', top=True, bottom=False, labeltop=True, labelbottom=False)
 
         # For plotting secondary axes
         def sec2lag(x):
@@ -546,23 +548,12 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
         def lag2sec(x):
             return x * dt
 
-        secax_x = ax[0].secondary_xaxis('top', functions=(sec2lag, lag2sec))
-        secax_x.set_xlabel('$\\tau$ (lag)')
+        secax_x = ax[0].secondary_xaxis(1.3, functions=(lag2sec, sec2lag))
+        secax_x.set_xlabel('$\\tau$ (s)')
         secax_x.tick_params(which="both", direction='in')
 
-        def sec2km(x):
-            return x * 400
-
-        def km2sec(x):
-            return x / 400
-
-        # use of a float for the position:
-        secax_x2 = ax[0].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r$ (km)')
-        secax_x2.tick_params(which="both", direction='in')
-
-        ax[0].legend(loc="lower left")
-        ax[0].annotate('(a)', (0, 0.998), transform=ax[0].transAxes, size=15)
+        ax[0].legend(loc="upper right", fontsize=10)
+        ax[0].annotate('(a)', (2, 0.9875), transform=ax[0].transAxes, size=15)
 
         return lambda_t, fig, ax
 
@@ -624,32 +615,40 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
     # Optional plotting
     if fig is not None and ax is not None:
         ax[1].scatter(tau_fit*dt, tau_ts,
-                      label="Fitted values: $\\tau_{{TS}}^{{est}}$", 
+                      label="Fitted values $\\tau_{TS}^{est}$", 
                       s=8,
                       c="black", 
-                      alpha=0.5)
+                      alpha=0.5,
+                      marker="x")
         
         ax[1].plot(other_x*dt, other_y,
                    label="R.E.: $\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
                    c="black")
+
+        ax[1].axvline(
+            tau_fit*dt, 
+            ls='--',
+            #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
+            c="black",
+            alpha = 0.4)
         
         if q is not None:
             ax[1].plot(0, ts_est, "*", color="green", label="C.C. (final value): $\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
-            ax[1].set_xlabel("$\\tau_{fit}$ (sec)")
-        ax[1].set_ylabel("$\\tau_{fit}^{est}$ (sec)")
+        
+        ax[1].set_xlabel("")
+        ax[1].set_xticks([])
+
+        # ax[1].axvline(
+        #     tau_fit*dt, 
+        #     ls='--',
+        #     #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
+        #     c="black",
+        #     alpha = 0.4)
+
+        ax[1].set_ylabel("$\\tau_{TS}^{est}$ (s)")
         ax[1].tick_params(which="both", direction='in')
 
-        # For plotting secondary axes
-        def sec2lag(x):
-            return x / dt
-
-        def lag2sec(x):
-            return x * dt
-
-        secax_x = ax[1].secondary_xaxis('top', functions=(sec2lag, lag2sec))
-        secax_x.set_xlabel('$\\tau_{fit}$ (lags)')
-        secax_x.tick_params(which="both", direction='in')
-
+        # For plotting secondary axis
         def sec2km(x):
             return x * 400
 
@@ -657,14 +656,16 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
             return x / 400
 
         # use of a float for the position:
-        secax_x2 = ax[1].secondary_xaxis(-0.2, functions=(sec2km, km2sec))
-        secax_x2.set_xlabel('$r_{fit}$ (km)')
+        secax_x2 = ax[1].secondary_xaxis(0, functions=(sec2km, km2sec))
+        
+        secax_x2.set_xlabel('$r$ (km)')
         secax_x2.tick_params(which="both", direction='in')
 
         # Add legend with specific font size
-        ax[1].legend(loc="lower right")
-        ax[1].set_ylim(0, max(tau_ts)+1)
-        ax[1].annotate('(b)', (0.1, 23), size=15)
+        ax[1].legend(loc="lower right", fontsize=10)
+        ax[1].set_xlim(-0.2, 40*dt)
+        ax[1].set_ylim(-3, max(tau_ts)+1)
+        ax[1].annotate('(b)', (0.02, 24), size=15)
 
         return ts_est, ts_est_std, fig, ax
 
