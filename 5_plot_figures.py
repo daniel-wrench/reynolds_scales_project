@@ -47,7 +47,7 @@ plt.show()
 
 ##### New method (densities, linear scale, hatching)
 
-fig, ax = plt.subplots(figsize=(3.5,2), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(4,2), constrained_layout=True)
 
 # Compute density estimates
 density1 = sns.kdeplot(df_l1_cleaned.lambda_t_raw).get_lines()[0].get_data()
@@ -58,21 +58,25 @@ plt.plot(density1[0], density1[1], color="black", label="$\lambda_{T}^{extra}$")
 plt.plot(density2[0], density2[1], color="green", label="$\lambda_{T}$")
 
 # Fill between the density curve and the x-axis with hatching for each histogram
-# NB: Repeat character to hatching denser
+# NB: Repeat character to make hatching denser
 plt.fill_between(density1[0], density1[1], color="none", hatch="///", edgecolor="black", alpha=0.5)
 plt.fill_between(density2[0], density2[1], color="none", hatch="\\\\\\", edgecolor="green", alpha=0.5)
 
-plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="grey", ls='--')
-plt.axvline(df_l1_cleaned.lambda_t.mean(), c="grey", ls='--')
-plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())))
-plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())))
+plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="black", ls='--', alpha = 0.5)
+plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 
-plt.legend(loc="upper right")
-plt.xlim(0,10000)
+plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
+plt.text(800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), size=9, color="green")
+
+plt.text(6000, 0.00024, "$\lambda_{T}^{extra}$", color="black", size = 13)
+plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), size=9, color="black")
+
+#plt.legend(loc="upper right")
+plt.xlim(0,9000)
 plt.ylim(0,0.0006)
 plt.ylabel("Density")
 plt.yticks([])
-plt.xlabel("Length (km)")
+plt.xlabel("Taylor scale (km)")
 
 plt.savefig("plots/final/taylor_overlapping_hist_v2.pdf")
 plt.show()

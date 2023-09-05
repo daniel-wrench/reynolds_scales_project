@@ -53,7 +53,7 @@ import pandas as pd
 
 #####################################################
 
-df = pd.read_csv("data/processed/wind_omni_dataset.csv")
+df = pd.read_csv("wind_omni_dataset.csv")
 df.Timestamp = pd.to_datetime(df.Timestamp)
 df.set_index("Timestamp", inplace=True)
 df.sort_index(inplace=True)
@@ -73,16 +73,16 @@ df_l1 = df["2004-06-01":]
 # It still leaves around 2% of rows where qk > qi
 
 # Counting outliers using outlier flag columns
-df_l1.loc[:, "small_ttu"] = 0 
-df_l1.loc[:, "qk > -1.7"] = 0
-df_l1.loc[:, "qk > qi"] = 0
+df.loc[:, "small_ttu"] = 0 
+df.loc[:, "qk > -1.7"] = 0
+df.loc[:, "qk > qi"] = 0
 
-df_l1.loc[df_l1["ttu"] < 1, "small_ttu"] = 1
-df_l1.loc[df_l1["qk"] > -1.7, "qk > -1.7"] = 1
-df_l1.loc[df_l1["qk"] > df_l1["qi"], "qk > qi"] = 1
+df.loc[df["ttu"] < 1, "small_ttu"] = 1
+df.loc[df["qk"] > -1.7, "qk > -1.7"] = 1
+df.loc[df["qk"] > df["qi"], "qk > qi"] = 1
 
-df_l1[["small_ttu", "qk > -1.7", "qk > qi"]].mean()
-df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
+df[["small_ttu", "qk > -1.7", "qk > qi"]].mean()
+df.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
 df_l1.drop(["small_ttu", "qk > -1.7", "qk > qi"], axis=1, inplace=True)
 
 # Removing outlier slope rows
