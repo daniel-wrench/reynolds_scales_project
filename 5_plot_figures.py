@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+plt.rcParams.update({'font.size': 9})
+
 df_l1_cleaned = pd.read_csv("data/processed/wind_dataset_l1_cleaned.csv")
 df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
 df_l1_cleaned.set_index("Timestamp", inplace=True)
@@ -14,40 +16,9 @@ print(df_l1_cleaned.info())
 
 ### OVERLAPPING HISTOGRAMS OF CORRECTED AND UNCORRECTED TAYLOR SCALES ###
 
-##### Old method (histograms, log scale, no hatching)
-
-fig, ax = plt.subplots(figsize=(4,2), constrained_layout=True)
-hist1 = sns.histplot(
-    ax=ax, 
-    data=df_l1_cleaned.lambda_t_raw, 
-    log_scale=True, 
-    color = "yellow", 
-    #edgecolor = "none",
-    linewidth=0.4,
-    label = "$\lambda_{T}^{extra}$")
-
-sns.histplot(df_l1_cleaned.lambda_t, log_scale=True, 
-                 color = "blue", 
-                 #edgecolor = "none",
-                 linewidth=0.4,
-                 alpha = 0.5,
-                 label = "$\lambda_{T}$")
-
-plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="black")
-plt.axvline(df_l1_cleaned.lambda_t.mean(), c="black")
-plt.xlabel("Length (km)")
-plt.xlim(500, 20000)
-plt.text(df_l1_cleaned.lambda_t_raw.mean()*1.2, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())))
-plt.text(df_l1_cleaned.lambda_t.mean()/3, 600, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())))
-plt.legend(loc='lower right')
-ax.tick_params(which = "both", direction='in')
-
-plt.savefig("plots/final/taylor_overlapping_hist_v1.pdf")
-plt.show()
-
 ##### New method (densities, linear scale, hatching)
 
-fig, ax = plt.subplots(figsize=(4,2), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(3.3,1.8), constrained_layout=True)
 
 # Compute density estimates
 density1 = sns.kdeplot(df_l1_cleaned.lambda_t_raw).get_lines()[0].get_data()
@@ -66,10 +37,10 @@ plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="black", ls='--', alpha = 0.5)
 plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 
 plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
-plt.text(800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), size=9, color="green")
+plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
 
 plt.text(6000, 0.00024, "$\lambda_{T}^{extra}$", color="black", size = 13)
-plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), size=9, color="black")
+plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
 
 #plt.legend(loc="upper right")
 plt.xlim(0,9000)
@@ -82,6 +53,7 @@ plt.savefig("plots/final/taylor_overlapping_hist_v2.pdf")
 plt.show()
 
 
+
 def corrfunc(x, y, ax=None, **kws):
     """Plot the correlation coefficient in the top left hand corner of a plot."""
     x = pd.Series(x)
@@ -89,8 +61,8 @@ def corrfunc(x, y, ax=None, **kws):
     rp = x.corr(y, "pearson")
     rs = x.corr(y, "spearman")
     ax = ax or plt.gca()
-    ax.annotate(f'pearson: \n{rp:.2f}', xy=(.65, .3), xycoords=ax.transAxes, size=7)
-    ax.annotate(f'spearman: \n{rs:.2f}', xy=(.65, .1), xycoords=ax.transAxes, size=7)
+    ax.annotate(f'Pearson:\n{rp:.2f}', xy=(.95, .3), xycoords=ax.transAxes, ha="right")
+    ax.annotate(f'Spearman:\n{rs:.2f}', xy=(.95, .1), xycoords=ax.transAxes, ha="right")
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -146,6 +118,7 @@ ax_joint_0.tick_params(direction='in')
 ax_joint_1.tick_params(direction='in', labelleft=False)
 ax_joint_2.tick_params(direction='in', labelleft=False)
 
+# For these plots, need to use this instead of constrained_layout
 fig.tight_layout()
 
 # Save/show the plot

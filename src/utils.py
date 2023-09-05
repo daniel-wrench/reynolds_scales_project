@@ -7,6 +7,7 @@ import statsmodels.api as sm
 from pprint import pprint
 from scipy.optimize import curve_fit
 
+plt.rcParams.update({'font.size': 9})
 
 def read_cdf(cdf_file_path: str) -> cdflib.cdfread.CDF:
     """
@@ -234,7 +235,7 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         spectral_break = [np.nan]
 
     if plot == True:
-        fig, ax = plt.subplots(figsize=(5, 3), constrained_layout=True)
+        fig, ax = plt.subplots(figsize=(3.3, 2), constrained_layout=True)
         ax.set_ylim(1e-6, 1e6)
 
         ax.semilogy(f_periodogram, power_periodogram,
@@ -374,11 +375,12 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
                     dt = autocorrelation_x[1]-autocorrelation_x[0]
 
-                    fig, ax = plt.subplots(1, 1, figsize=(5, 3.5), constrained_layout=True)
+                    fig, ax = plt.subplots(1, 1, figsize=(3.3, 2.5), constrained_layout=True)
+                    #fig.subplots_adjust(left=0.2, top=0.8, bottom=0.8)
 
                     ax.plot(autocorrelation_x / 1000, autocorrelation_y,
                             c='black', label="Autocorrelation", lw=0.5)
-                    ax.set_xlabel('$\\tau$ ($10^3$ s)')
+                    ax.set_xlabel('$\\tau (10^3$ s)')
                     ax.set_ylabel('$R(\\tau)$')
 
                     def sec2km(x):
@@ -394,7 +396,7 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                     secax_x2.tick_params(which="both", direction='in')
 
                     ax.axhline(np.exp(-1), color='black', ls='--',
-                               label="$1/e$={:.0f}s".format(x_opt[0]))
+                               label="$1/e\\rightarrow${:.0f}s".format(x_opt[0]))
                     ax.axvline(x_opt[0] / 1000, color='black', ls='--')
                     ax.tick_params(which="both", direction='in')
 
@@ -442,7 +444,7 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
                     np.array(range(int(seconds_to_fit))),
                     *c_opt
                 ),
-                label="Exponential fit={:.0f}s".format(lambda_c),
+                label="Exponential fit$\\rightarrow${:.0f}s".format(lambda_c),
                 lw=3,
                 c='black')
 
@@ -465,7 +467,7 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
             ax = ax
 
             ax.fill_between(time_lags / 1000, 0, acf, where=acf > 0,
-                            color="black", alpha=0.2, label="Integral={:.0f}s".format(int))
+                            color="black", alpha=0.2, label="Integral$\\rightarrow${:.0f}s".format(int))
             ax.set_xlabel('$\\tau$ ($10^3$s)')
             ax.tick_params(which="both", direction='in')
             # Plot the legend
@@ -503,8 +505,8 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
 
     if plot == True:
 
-        fig, ax = plt.subplots(2, 1, figsize=(5, 6))
-        fig.subplots_adjust(hspace=0, left=0.2, top=0.8)
+        fig, ax = plt.subplots(2, 1, figsize=(3.3, 4), constrained_layout=True)
+        #fig.subplots_adjust(hspace=0.1, left=0.2, top=0.8)
 
         ax[0].scatter(
             time_lags/dt, # Plotting firstly in lag space for clearer visualisation 
@@ -518,7 +520,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
             (extended_parabola_x/dt),
             (extended_parabola_y),
             '-y',
-            label="1. Parabolic fit \nup to $\\tau_{fit}\\rightarrow\\tau_{TS}^{est}$",
+            label="Parabolic fit \nup to $\\tau_{fit}\\rightarrow\\tau_{TS}^{est}$",
             c="black")
         
         ax[0].axvline(
@@ -526,9 +528,9 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
             ls='--',
             #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
             c="black",
-            alpha = 0.4)
+            alpha = 0.6)
 
-        ax[0].set_xlim(-1, 40)
+        ax[0].set_xlim(-1, 45)
         ax[0].set_ylim(0.986, 1.001)
 
         if show_intercept == True:
@@ -551,8 +553,9 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
         secax_x.set_xlabel('$\\tau$ (s)')
         secax_x.tick_params(which="both", direction='in')
 
-        ax[0].legend(loc="upper right", fontsize=10)
-        ax[0].annotate('(a)', (2, 0.9875), transform=ax[0].transAxes, size=15)
+        ax[0].legend(loc="upper right")
+        ax[0].annotate('(a)', (2, 0.9875), transform=ax[0].transAxes, size=12)
+        ax[0].annotate('$\\tau_{fit}$', (10, 0.9875), transform=ax[0].transAxes, size=12, alpha=0.6)
 
         return lambda_t, fig, ax
 
@@ -621,7 +624,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
                       marker="x")
         
         ax[1].plot(other_x, other_y,
-                   label="2. R.E.$\\rightarrow\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
+                   label="R.E.$\\rightarrow\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
                    c="black")
 
         if tau_fit_single is not None:
@@ -631,10 +634,10 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
                 #ymin=0.5,
                 #ymax=1,
                 c="black",
-                alpha = 0.4)
+                alpha = 0.6)
         
         if q is not None:
-            ax[1].plot(0, ts_est, "*", color="green", label="3. C.C.$\\rightarrow\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
+            ax[1].plot(0, ts_est, "*", color="green", label="C.C.$\\rightarrow\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
         
         ax[1].set_xlabel("")
         ax[1].set_xticks([])
@@ -655,10 +658,10 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
         secax_x2.tick_params(which="both", direction='in')
 
         # Add legend with specific font size
-        ax[1].legend(loc="lower right", fontsize=10)
-        ax[1].set_xlim(-1, 40)
+        ax[1].legend(loc="lower right")
+        ax[1].set_xlim(-1, 45)
         ax[1].set_ylim(-3, max(tau_ts)+1)
-        ax[1].annotate('(b)', (2, 24), size=15)
+        ax[1].annotate('(b)', (2, 24), size=12)
 
         return ts_est, ts_est_std, fig, ax
 
