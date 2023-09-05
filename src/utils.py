@@ -378,8 +378,8 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
 
                     ax.plot(autocorrelation_x / 1000, autocorrelation_y,
                             c='black', label="Autocorrelation", lw=0.5)
-                    ax.set_xlabel('$\\tau$ (1e3 sec)')
-                    ax.set_ylabel('Autocorrelation')
+                    ax.set_xlabel('$\\tau$ ($10^3$ s)')
+                    ax.set_ylabel('$R(\\tau)$')
 
                     def sec2km(x):
                         return x * 1000 * 400 / 1e6
@@ -390,7 +390,7 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                     # use of a float for the position:
                     secax_x2 = ax.secondary_xaxis(
                         'top', functions=(sec2km, km2sec))
-                    secax_x2.set_xlabel('$r$ (1e6 km)')
+                    secax_x2.set_xlabel('$r$ ($10^6$ km)')
                     secax_x2.tick_params(which="both", direction='in')
 
                     ax.axhline(np.exp(-1), color='black', ls='--',
@@ -465,8 +465,8 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
             ax = ax
 
             ax.fill_between(time_lags / 1000, 0, acf, where=acf > 0,
-                            color="black", alpha=0.5, label="Integral={:.0f}s".format(int))
-            ax.set_xlabel('$\\tau$ (1e3 sec)')
+                            color="black", alpha=0.2, label="Integral={:.0f}s".format(int))
+            ax.set_xlabel('$\\tau$ ($10^3$s)')
             ax.tick_params(which="both", direction='in')
             # Plot the legend
             ax.legend(loc="upper right")
@@ -501,17 +501,16 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
     extended_parabola_x = np.arange(0, 1.2*lambda_t, 0.1)
     extended_parabola_y = para_fit(extended_parabola_x, *t_opt)
 
-    # Optional plotting set up to eventually show Chuychai correction factor in second panel
     if plot == True:
 
         fig, ax = plt.subplots(2, 1, figsize=(5, 6))
         fig.subplots_adjust(hspace=0, left=0.2, top=0.8)
 
         ax[0].scatter(
-            time_lags/dt, 
+            time_lags/dt, # Plotting firstly in lag space for clearer visualisation 
             acf, 
             label="Autocorrelation", 
-            s=8,
+            s=12,
             c="black",
             alpha=0.5)
         
@@ -519,17 +518,17 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
             (extended_parabola_x/dt),
             (extended_parabola_y),
             '-y',
-            label="Parabolic fit up to $\\tau= \\tau_{fit}$",
+            label="1. Parabolic fit \nup to $\\tau_{fit}\\rightarrow\\tau_{TS}^{est}$",
             c="black")
         
         ax[0].axvline(
             tau_fit*(time_lags[1]/dt-time_lags[0]/dt), 
             ls='--',
-            label=f"$\\tau_{{fit}}={tau_fit}$ lags",
+            #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
             c="black",
             alpha = 0.4)
 
-        ax[0].set_xlim(-0.2, 40)
+        ax[0].set_xlim(-1, 40)
         ax[0].set_ylim(0.986, 1.001)
 
         if show_intercept == True:
@@ -541,7 +540,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
         ax[0].set_ylabel('$R(\\tau)$')
         ax[0].tick_params(which="both", direction='in', top=True, bottom=False, labeltop=True, labelbottom=False)
 
-        # For plotting secondary axes
+        # For plotting secondary axis, units of tau(s)
         def sec2lag(x):
             return x / dt
 
@@ -561,7 +560,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
         return lambda_t
 
 
-def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None, q=None, save=False, figname=""):
+def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None, q=None, tau_fit_single=None, save=False, figname=""):
     """Compute a refined estimate of the Taylor microscale using a linear extrapolation method from Chuychai et al. (2014).
 
     Args:
@@ -614,48 +613,42 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
     # Optional plotting
     if fig is not None and ax is not None:
-        ax[1].scatter(tau_fit*dt, tau_ts,
+        ax[1].scatter(tau_fit, tau_ts,
                       label="Fitted values $\\tau_{TS}^{est}$", 
-                      s=8,
+                      s=12,
                       c="black", 
                       alpha=0.5,
                       marker="x")
         
-        ax[1].plot(other_x*dt, other_y,
-                   label="R.E.: $\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
+        ax[1].plot(other_x, other_y,
+                   label="2. R.E.$\\rightarrow\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
                    c="black")
 
-        ax[1].axvline(
-            tau_fit*dt, 
-            ls='--',
-            #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
-            c="black",
-            alpha = 0.4)
+        if tau_fit_single is not None:
+            ax[1].axvline(
+                tau_fit_single, 
+                ls='--',
+                #ymin=0.5,
+                #ymax=1,
+                c="black",
+                alpha = 0.4)
         
         if q is not None:
-            ax[1].plot(0, ts_est, "*", color="green", label="C.C. (final value): $\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
+            ax[1].plot(0, ts_est, "*", color="green", label="3. C.C.$\\rightarrow\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
         
         ax[1].set_xlabel("")
         ax[1].set_xticks([])
 
-        # ax[1].axvline(
-        #     tau_fit*dt, 
-        #     ls='--',
-        #     #label=f"$\\tau_{{fit}}={tau_fit}$ lags",
-        #     c="black",
-        #     alpha = 0.4)
-
-        ax[1].set_ylabel("$\\tau_{TS}^{est}$ (s)")
+        ax[1].set_ylabel("$\\tau$(s)")
         ax[1].tick_params(which="both", direction='in')
 
-        # For plotting secondary axis
+        # For plotting secondary axis, in units of r(km)
         def sec2km(x):
             return x * 400
 
         def km2sec(x):
             return x / 400
 
-        # use of a float for the position:
         secax_x2 = ax[1].secondary_xaxis(0, functions=(sec2km, km2sec))
         
         secax_x2.set_xlabel('$r$ (km)')
@@ -663,9 +656,9 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
         # Add legend with specific font size
         ax[1].legend(loc="lower right", fontsize=10)
-        ax[1].set_xlim(-0.2, 40*dt)
+        ax[1].set_xlim(-1, 40)
         ax[1].set_ylim(-3, max(tau_ts)+1)
-        ax[1].annotate('(b)', (0.02, 24), size=15)
+        ax[1].annotate('(b)', (2, 24), size=15)
 
         return ts_est, ts_est_std, fig, ax
 

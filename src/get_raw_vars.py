@@ -33,7 +33,6 @@ import glob
 import params
 import sys
 import os
-
 from utils import *
 
 ####### PARALLEL STUFF #######
