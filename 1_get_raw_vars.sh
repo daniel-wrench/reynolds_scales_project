@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 #SBATCH --job-name          1_get_raw_vars
-##SBATCH --partition         parallel
-#SBATCH --reservation       spacejam
+#SBATCH --partition         parallel
+##SBATCH --reservation       spacejam
 ##SBATCH --nodelist  	     spj01
 #SBATCH --mem               230G
 #SBATCH --cpus-per-task     256
