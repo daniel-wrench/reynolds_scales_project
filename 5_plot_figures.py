@@ -7,6 +7,7 @@ import numpy as np
 import seaborn as sns
 
 plt.rcParams.update({'font.size': 9})
+plt.rc('text', usetex=True) # Set default font to Latex font
 
 df_l1_cleaned = pd.read_csv("data/processed/wind_dataset_l1_cleaned.csv")
 df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
@@ -39,7 +40,7 @@ plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
 plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
 
-plt.text(6000, 0.00024, "$\lambda_{T}^{extra}$", color="black", size = 13)
+plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{extra}$", color="black", size = 13)
 plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
 
 #plt.legend(loc="upper right")
@@ -52,8 +53,6 @@ plt.xlabel("Taylor scale (km)")
 plt.savefig("plots/final/taylor_overlapping_hist_v2.pdf")
 plt.show()
 
-
-
 def corrfunc(x, y, ax=None, **kws):
     """Plot the correlation coefficient in the top left hand corner of a plot."""
     x = pd.Series(x)
@@ -63,6 +62,10 @@ def corrfunc(x, y, ax=None, **kws):
     ax = ax or plt.gca()
     ax.annotate(f'Pearson:\n{rp:.2f}', xy=(.95, .3), xycoords=ax.transAxes, ha="right")
     ax.annotate(f'Spearman:\n{rs:.2f}', xy=(.95, .1), xycoords=ax.transAxes, ha="right")
+
+
+# SUBSETTING THE REYNOLDS NUMBERS TO HIGHLIGHT MAIN DENSITY OF POINTS
+#df_test = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 3]
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -121,6 +124,9 @@ ax_joint_2.tick_params(direction='in', labelleft=False)
 # For these plots, need to use this instead of constrained_layout
 fig.tight_layout()
 
+# What prop are in this new subset?
+#len(df_test)/len(df_l1_cleaned)
+
 # Save/show the plot
 plt.savefig("plots/final/re_panels.pdf")
 plt.show()
@@ -147,18 +153,18 @@ sns.kdeplot(data=df_l1_cleaned, x="lambda_c_int", ax=ax_marg_x_2, log_scale=True
 
 sns.histplot(ax = ax_joint_0, data=df_l1_cleaned, x="lambda_c_fit", y="lambda_c_e", log_scale=True)
 corrfunc(df_l1_cleaned["lambda_c_fit"], df_l1_cleaned["lambda_c_e"], ax_joint_0)
-ax_joint_0.set_xlabel("$\lambda_{C}^{fit}$ (km)")
+ax_joint_0.set_xlabel("$\lambda_{C}^\\mathrm{fit}$ (km)")
 ax_joint_0.set_ylabel("$\lambda_{C}^{1/e}$ (km)")
 
 sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="lambda_c_e", y="lambda_c_int", log_scale=True)
 corrfunc(df_l1_cleaned["lambda_c_e"], df_l1_cleaned["lambda_c_int"], ax_joint_1)
 ax_joint_1.set_xlabel("$\lambda_{C}^{1/e}$ (km)")
-ax_joint_1.set_ylabel("$\lambda_{C}^{int}$ (km)")
+ax_joint_1.set_ylabel("$\lambda_{C}^\\mathrm{int}$ (km)")
 
 sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="lambda_c_int", y="lambda_c_fit", log_scale=True)
 corrfunc(df_l1_cleaned["lambda_c_int"], df_l1_cleaned["lambda_c_fit"], ax_joint_2)
-ax_joint_2.set_xlabel("$\lambda_{C}^{int}$ (km)")
-ax_joint_2.set_ylabel("$\lambda_{C}^{fit}$ (km)")
+ax_joint_2.set_xlabel("$\lambda_{C}^\\mathrm{int}$ (km)")
+ax_joint_2.set_ylabel("$\lambda_{C}^\\mathrm{fit}$ (km)")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
     ax.set_ylim(0, 2.2)

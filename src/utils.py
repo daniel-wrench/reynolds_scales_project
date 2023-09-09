@@ -8,6 +8,7 @@ from pprint import pprint
 from scipy.optimize import curve_fit
 
 plt.rcParams.update({'font.size': 9})
+plt.rc('text', usetex=True)
 
 def read_cdf(cdf_file_path: str) -> cdflib.cdfread.CDF:
     """
@@ -520,7 +521,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
             (extended_parabola_x/dt),
             (extended_parabola_y),
             '-y',
-            label="Parabolic fit \nup to $\\tau_{fit}\\rightarrow\\tau_{TS}^{est}$",
+            label="Parabolic fit \nup to $\\tau_\mathrm{fit}\\rightarrow\\tau_\mathrm{TS}^\mathrm{est}$",
             c="black")
         
         ax[0].axvline(
@@ -555,7 +556,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
 
         ax[0].legend(loc="upper right")
         ax[0].annotate('(a)', (2, 0.9875), transform=ax[0].transAxes, size=12)
-        ax[0].annotate('$\\tau_{fit}$', (10, 0.9875), transform=ax[0].transAxes, size=12, alpha=0.6)
+        ax[0].annotate('$\\tau_\mathrm{fit}$', (10, 0.9875), transform=ax[0].transAxes, size=12, alpha=0.6)
 
         return lambda_t, fig, ax
 
@@ -617,14 +618,14 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
     # Optional plotting
     if fig is not None and ax is not None:
         ax[1].scatter(tau_fit, tau_ts,
-                      label="Fitted values $\\tau_{TS}^{est}$", 
+                      label="Fitted values $\\tau_\mathrm{TS}^\mathrm{est}$", 
                       s=12,
                       c="black", 
                       alpha=0.5,
                       marker="x")
         
         ax[1].plot(other_x, other_y,
-                   label="R.E.$\\rightarrow\\tau_{{TS}}^{{extra}}$={:.0f}s".format(ts_est_extra),
+                   label="R.E.$\\rightarrow\\tau_\mathrm{{TS}}^\mathrm{{extra}}$={:.0f}s".format(ts_est_extra),
                    c="black")
 
         if tau_fit_single is not None:
@@ -637,7 +638,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
                 alpha = 0.6)
         
         if q is not None:
-            ax[1].plot(0, ts_est, "*", color="green", label="C.C.$\\rightarrow\\tau_{{TS}}$={:.0f}s".format(ts_est), markersize=10)
+            ax[1].plot(0, ts_est, "*", color="green", label="C.C.$\\rightarrow\\tau_\mathrm{{TS}}$={:.0f}s".format(ts_est), markersize=10)
         
         ax[1].set_xlabel("")
         ax[1].set_xticks([])

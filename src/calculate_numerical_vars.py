@@ -13,7 +13,7 @@ Steps:
     2. Process data and initialize lists for storing computed metrics.
     4. Loop over each interval to compute autocorrelations and power spectra, handling missing data as necessary.
     6. Create a DataFrame containing the computed statistics for each interval.
-    8. Save the final processed dataframes as pickle files.
+    8. Save the final processed dataframes as pickle files to the directory data/processed.
 
 Author: Daniel Wrench
 Last modified: 4/9/2023

@@ -1,39 +1,59 @@
 # README
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft and OMNI. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
 
+Takes in 300GB of CDF files, produces 8MB CSV file. 
+
 ## To-do
-Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. Note potentially useful reference paper: three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. Note also that work by Fordin2023 represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. 
 
-**General plot guidelines**
-- Refer to Matthaeus2016 (ApJ) and Parashar 2019 for good aesthetic figures
-- Tick-marks inside
-- B+W where possible, utilizing transparency and linestyles
-
-1. Re-run codes on Rāpoi, checking my instructions?
+1. Add new references to text
 2. Plots
-    - cheng and wang paper
-    - More 2D histograms: 
-        - Taylor scale vs. delta b/b
-        - Tb vs. ion inertial timescale vs. Taylor scale. Cf. Leamon2000, Fig. 4 and Matthaeus2008, Fig. 3
-        - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small.
-        - But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
-    - delta b/b vs. q_k: Larger fluctuations causes larger decay rate, steeper slope q_k?
-    - breakscale correlations: What might be correlated with the breakscale? See the following from Bandy. 2020:
-*For example, Leamon et al. (2000) and Wang et al. (2018)
-argued that the ion-inertial scale controls the spectral break and
-onset of strong dissipation, while Bruno & Trenchi (2014)
-suggested the break frequency is associated with the resonance
-condition for a parallel propagating Alfvén wave. Another
-possibility is that the largest of the proton kinetic scales
-terminates the inertial range and controls the spectral break
-(Chen et al. 2014).*
+    - Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?
 
-Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
+1. Re-run codes on Rāpoi, checking my instructions
 
-4. Add decay rate, cross-helicity, residual energy, etc.
-5. Think about using the standard error to express variation in the means of our Re estimates.
-6. *Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database*
-7. *Thorough outlier and error analysis for both scales and the final Re estimate. Check Excel and sort by these values to get problem timestamps.* 
+3. Refer to Cheng and wang paper
+6. Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+
+### Future work
+- Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
+- Add decay rate $U^3/L$ (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022), cross-helicity $\sigma_c$, residual energy $\sigma_r$, collisional age? (Kasper PRL)
+- Add vector velocities to params.py script, anticipating switch to PSP data
+- Think about using the standard error to express variation in the means of our Re estimates.
+- More 2D histograms: 
+    - Taylor scale vs. delta b/b
+    - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
+
+### References: 
+
+- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
+- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+
+## Notes on results
+
+Poster and AGU talk are available in the Comms folder, paper draft is in process
+
+### Outliers and data cleaning
+
+- In `calculate_numerical_vars.py`, intervals with more than 10% missing data are removed completely (all values set to NA). Otherwise, any gaps are linearly interpolated. The average amount missing is 3%.
+
+
+**2004-22 data**
+- For 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
+
+- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
+
+### Correlations
+
+#### Expected correlations:
+
+- **Spectral breakscale:** From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno & Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3
+
+- **Correlation scale vs. di:** see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
+
+- **$q_k$**: compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
+
+- **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
 
 
 ## How to run this code
@@ -71,7 +91,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
-    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 330 for the monthly datasets (OMNI)
+    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 330 for the monthly datasets (OMNI). **Requries 300GB of disk space**.
 
 4. **Get the raw variables by processing the CDF files:**
 
@@ -80,7 +100,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     HPC: `sbatch 1_get_raw_vars.sh`
         
         Recommended HPC job requirements: 
-        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/220GB/3 hours. (Takes about 8min/file/core).
+        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/230GB/3 hours. (Takes about 8min/file/core).
 
     Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
 
@@ -114,13 +134,6 @@ You will now find two output files corresponding to the final database and its s
 
 - `data/processed/wind_database.csv`
 - `data/processed/wind_summary_stats.csv`
-
-### Optional next steps
-
-- Add cross helicity (sigma_c) and residual energy (sigma_r), decay rate
-- Add vector velocities to params.py script, anticipating switch to PSP data
-- Add [sunspot number](https://www.sidc.be/silso/datafiles), probably in `3_calculate_analytical_vars` step
-- Add collisional age (Kasper PRL), energies (ask Mark), decay rate (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022)
 
 ## Background
 
@@ -160,17 +173,6 @@ These calculations, along with statistics, correlations, and plots, are done in 
 
 - Summary stats, including correlations, of all variables, but mainly scales and Re
 - Multi-var histograms and time series of scales and Re
-
-## Results
-
-### Outliers
-1995-98 data: for 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
-
-### Correlations
-tc vs. di: see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
-
-### AGU talk
-- See Comms folder
 
 ### Kevin's old pipeline
 
