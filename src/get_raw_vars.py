@@ -113,7 +113,7 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # (Optionally) reducing the number of files for testing
-file_list = file_list[:20]
+file_list = file_list[5000:]
 
 list_of_lists = np.array_split(file_list, comm.size)
 

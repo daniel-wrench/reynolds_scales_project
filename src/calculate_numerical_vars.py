@@ -42,7 +42,7 @@ comm.Barrier()
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
 
-print("\nREADING PICKLE FILES")
+print("\nCORE {}: STARTED READING PICKLE FILES".format(rank))
 
 # Wind magnetic field data
 
@@ -56,8 +56,6 @@ df_wind_hr = df_wind_hr.rename(
         params.Bx: "Bx",
         params.By: "By",
         params.Bz: "Bz"})
-
-print("\nCORE {}: FINISHED READING DATA".format(rank))
 
 # Adding magnetic field fluctuations (just going as far as calculating db for now)
 
@@ -87,6 +85,8 @@ df_wind_lr = df_wind_lr.rename(
         params.Bx: "Bx",
         params.By: "By",
         params.Bz: "Bz"})
+
+print("\nCORE {}: FINISHED READING PICKLE FILES".format(rank))
 
 timestamps = []
 

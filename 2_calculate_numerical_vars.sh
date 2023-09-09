@@ -2,13 +2,13 @@
 
 #SBATCH --job-name          2_calculate_numerical_vars
 #SBATCH --partition         parallel
-##SBATCH --reservation       spacejam
+##SBATCH --reservation	    spacejam
 ##SBATCH --nodelist          spj01
-#SBATCH --mem		    200G
+#SBATCH --mem		    320G
 #SBATCH --cpus-per-task     256	
-#SBATCH --time              2:00:00
-#SBATCH --output            %x.out
-#SBATCH --error             %x.err
+#SBATCH --time              5:00:00
+#SBATCH --output            %x_%j.out
+#SBATCH --error             %x_%j.err
 
 ## For running in Raapoi
 source ActivatePython.sh
