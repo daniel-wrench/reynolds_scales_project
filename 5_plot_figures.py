@@ -40,7 +40,7 @@ plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
 plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
 
-plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{extra}$", color="black", size = 13)
+plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{extrap}$", color="black", size = 13)
 plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
 
 #plt.legend(loc="upper right")
@@ -86,18 +86,18 @@ sns.kdeplot(data=df_l1_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
 
 sns.histplot(ax = ax_joint_0, data=df_l1_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
 corrfunc(df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], ax_joint_0)
-ax_joint_0.set_xlabel("$Re_{tb}$")
+ax_joint_0.set_xlabel("$Re_{t_b}$")
 ax_joint_0.set_ylabel("$Re_{\lambda_T}$")
 
 sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="Re_di", y="Re_tb", log_scale=True)
 corrfunc(df_l1_cleaned["Re_di"], df_l1_cleaned["Re_tb"], ax_joint_1)
-ax_joint_1.set_xlabel("$Re_{di}$")
-ax_joint_1.set_ylabel("$Re_{tb}$")
+ax_joint_1.set_xlabel("$Re_{d_i}$")
+ax_joint_1.set_ylabel("$Re_{t_b}$")
 
 sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="Re_lt", y="Re_di", log_scale=True)
 corrfunc(df_l1_cleaned["Re_lt"], df_l1_cleaned["Re_di"], ax_joint_2)
 ax_joint_2.set_xlabel("$Re_{\lambda_T}$")
-ax_joint_2.set_ylabel("$Re_{di}$")
+ax_joint_2.set_ylabel("$Re_{d_i}$")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
     ax.set_ylim(0, 1.2)

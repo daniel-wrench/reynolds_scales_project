@@ -536,22 +536,28 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
 
         if show_intercept == True:
             ax[0].set_ylim(0, 1.05)
-            ax[0].set_xlim(-2, lambda_t + 5)
+            ax[0].set_xlim(-1, 200) #lambda_t/dt + 5
+
+            ax[0].axvline(
+                lambda_t/dt, 
+                ls='dotted',
+                c="black",
+                alpha = 0.6)
 
         ax[0].set_xlabel('$\\tau$ (lags)')
         ax[0].xaxis.set_label_position('top')
         ax[0].set_ylabel('$R(\\tau)$')
         ax[0].tick_params(which="both", direction='in', top=True, bottom=False, labeltop=True, labelbottom=False)
 
-        # For plotting secondary axis, units of tau(s)
-        def sec2lag(x):
-            return x / dt
+        # For plotting secondary axis, in units of r(km)
+        def lag2km(x):
+            return x * dt * 400
 
-        def lag2sec(x):
-            return x * dt
+        def km2lag(x):
+            return x / (dt * 400)
 
-        secax_x = ax[0].secondary_xaxis(1.3, functions=(lag2sec, sec2lag))
-        secax_x.set_xlabel('$\\tau$ (s)')
+        secax_x = ax[0].secondary_xaxis(1.3, functions=(lag2km, km2lag))
+        secax_x.set_xlabel('$r$ (km)')
         secax_x.tick_params(which="both", direction='in')
 
         ax[0].legend(loc="upper right")
@@ -625,7 +631,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
                       marker="x")
         
         ax[1].plot(other_x, other_y,
-                   label="R.E.$\\rightarrow\\tau_\mathrm{{TS}}^\mathrm{{extra}}$={:.0f}s".format(ts_est_extra),
+                   label="R.E.$\\rightarrow\\tau_\mathrm{{TS}}^\mathrm{{extrap}}$={:.0f}s".format(ts_est_extra),
                    c="black")
 
         if tau_fit_single is not None:
@@ -645,22 +651,22 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
         ax[1].set_ylabel("$\\tau$(s)")
         ax[1].tick_params(which="both", direction='in')
-
-        # For plotting secondary axis, in units of r(km)
-        def sec2km(x):
-            return x * 400
-
-        def km2sec(x):
-            return x / 400
-
-        secax_x2 = ax[1].secondary_xaxis(0, functions=(sec2km, km2sec))
         
-        secax_x2.set_xlabel('$r$ (km)')
+        # For plotting secondary axis, units of tau(s)
+        def sec2lag(x):
+            return x / dt
+
+        def lag2sec(x):
+            return x * dt
+
+        secax_x2 = ax[1].secondary_xaxis(0, functions=(lag2sec, sec2lag))
+        
+        secax_x2.set_xlabel("$\\tau$(s)")
         secax_x2.tick_params(which="both", direction='in')
 
         # Add legend with specific font size
         ax[1].legend(loc="lower right")
-        ax[1].set_xlim(-1, 45)
+        ax[1].set_xlim(-1, 45) # Set to 200 if wanting to see extrapolation
         ax[1].set_ylim(-3, max(tau_ts)+1)
         ax[1].annotate('(b)', (2, 24), size=12)
 
