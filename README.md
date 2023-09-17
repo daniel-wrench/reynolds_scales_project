@@ -6,9 +6,10 @@ Takes in 300GB of CDF files, produces 8MB CSV file.
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. 
 
-1. Add new references to text
 2. Plots
-    - Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?
+    - Zenodo and new variables
+
+    - *Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?*
 
 1. Re-run codes on Rāpoi, checking my instructions
 

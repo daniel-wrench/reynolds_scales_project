@@ -3,9 +3,9 @@ src/__pycache__
 __pycache__
 /data/
 /doc/
-/plots/
+/plots/spare/
+/plots/thomas_plots/
 /spare_data/
-/plots/*.png
 *.out
 *.err
 ActivatePython.sh
