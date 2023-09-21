@@ -64,8 +64,17 @@ def corrfunc(x, y, ax=None, **kws):
     ax.annotate(f'Spearman:\n{rs:.2f}', xy=(.95, .1), xycoords=ax.transAxes, ha="right")
 
 
+
+
 # SUBSETTING THE REYNOLDS NUMBERS TO HIGHLIGHT MAIN DENSITY OF POINTS
 #df_test = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 3]
+
+df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
+
+# Correcting Re values with pre-factors
+
+# df_l1_cleaned["Re_di"] = df_l1_cleaned["Re_di"]*3
+# df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*100
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -101,15 +110,15 @@ ax_joint_2.set_ylabel("$Re_{d_i}$")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
     ax.set_ylim(0, 1.2)
-    ax.set_xlim(1e3, 1e7)
+    ax.set_xlim(1e3, 1e9)
     ax.axis('off')
 
 for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
-    ax.set_xlim(1e3, 1e7)
-    ax.set_ylim(1e3, 1e7)
-    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e3, 1e7], [1e3, 1e7], linestyle='--', linewidth=1.0, c = "black")
+    ax.set_xlim(1e3, 1e9)
+    ax.set_ylim(1e3, 1e9)
+    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
     ax.set_xticks([1e4,1e6])
     ax.set_yticks([1e4,1e6])
     #ax.spines['right'].set_visible(False)
@@ -128,7 +137,7 @@ fig.tight_layout()
 #len(df_test)/len(df_l1_cleaned)
 
 # Save/show the plot
-plt.savefig("plots/final/re_panels.pdf")
+plt.savefig("plots/final/reynolds_hist.pdf")
 plt.show()
 
 

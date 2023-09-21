@@ -395,12 +395,11 @@ def compute_outer_scale_exp_trick(autocorrelation_x: np.ndarray, autocorrelation
                         'top', functions=(sec2km, km2sec))
                     secax_x2.set_xlabel('$r$ ($10^6$ km)')
                     secax_x2.tick_params(which="both", direction='in')
-
                     ax.axhline(np.exp(-1), color='black', ls='--',
-                               label="$1/e\\rightarrow${:.0f}s".format(x_opt[0]))
+                               label="$1/e\\rightarrow\\lambda_C^{{1/e}}$={:.0f}s".format(x_opt[0]))
                     ax.axvline(x_opt[0] / 1000, color='black', ls='--')
                     ax.tick_params(which="both", direction='in')
-
+                    #label="$1/e\\rightarrow \lambda_C^{1/e}=${:.0f}s".format(x_opt[0]))
                     return round(x_opt[0], 3), fig, ax
                 else:
                     return round(x_opt[0], 3)
@@ -445,7 +444,7 @@ def compute_outer_scale_exp_fit(time_lags, acf, seconds_to_fit, fig=None, ax=Non
                     np.array(range(int(seconds_to_fit))),
                     *c_opt
                 ),
-                label="Exponential fit$\\rightarrow${:.0f}s".format(lambda_c),
+                label="Exp. fit$\\rightarrow\\lambda_C^{{\\mathrm{{fit}}}}$={:.0f}s".format(lambda_c),
                 lw=3,
                 c='black')
 
@@ -458,7 +457,7 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
 
     dt = time_lags[1]-time_lags[0]
     idx = np.argmin(np.abs(acf))  # Getting the index where the ACF falls to 0
-    int = np.sum(acf[:idx])*dt  # Computing integral up to that index
+    integral = np.sum(acf[:idx])*dt  # Computing integral up to that index
 
     # Optional plotting
     if plot == True:
@@ -468,15 +467,15 @@ def compute_outer_scale_integral(time_lags, acf, fig=None, ax=None, plot=False):
             ax = ax
 
             ax.fill_between(time_lags / 1000, 0, acf, where=acf > 0,
-                            color="black", alpha=0.2, label="Integral$\\rightarrow${:.0f}s".format(int))
+                            color="black", alpha=0.2, label="Integral$\\rightarrow\\lambda_C^{{\mathrm{{int}}}}$={:.0f}s".format(integral))
             ax.set_xlabel('$\\tau$ ($10^3$s)')
             ax.tick_params(which="both", direction='in')
             # Plot the legend
             ax.legend(loc="upper right")
 
-        return int, fig, ax
+        return integral, fig, ax
     else:
-        return int
+        return integral
 
 
 def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=False):
@@ -563,6 +562,7 @@ def compute_taylor_scale(time_lags, acf, tau_fit, plot=False, show_intercept=Fal
         ax[0].legend(loc="upper right")
         ax[0].annotate('(a)', (2, 0.9875), transform=ax[0].transAxes, size=12)
         ax[0].annotate('$\\tau_\mathrm{fit}$', (10, 0.9875), transform=ax[0].transAxes, size=12, alpha=0.6)
+        #ax[0].annotate('$\\tau_\mathrm{TS}^\mathrm{est}\\rightarrow=$', (35, 0.9875), transform=ax[0].transAxes, size=10, alpha=0.6)
 
         return lambda_t, fig, ax
 
@@ -631,7 +631,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
                       marker="x")
         
         ax[1].plot(other_x, other_y,
-                   label="R.E.$\\rightarrow\\tau_\mathrm{{TS}}^\mathrm{{extrap}}$={:.0f}s".format(ts_est_extra),
+                   label="R.E.$\\rightarrow\\tau_\mathrm{{TS}}^\mathrm{{ext}}$={:.0f}s".format(ts_est_extra),
                    c="black")
 
         if tau_fit_single is not None:
@@ -661,7 +661,7 @@ def compute_taylor_chuychai(time_lags, acf, tau_min, tau_max, fig=None, ax=None,
 
         secax_x2 = ax[1].secondary_xaxis(0, functions=(lag2sec, sec2lag))
         
-        secax_x2.set_xlabel("$\\tau$(s)")
+        secax_x2.set_xlabel("$\\tau_\\mathrm{fit}$(s)")
         secax_x2.tick_params(which="both", direction='in')
 
         # Add legend with specific font size

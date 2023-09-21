@@ -6,19 +6,14 @@ Takes in 300GB of CDF files, produces 8MB CSV file.
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. 
 
-2. Plots
-    - Zenodo and new variables
-
-    - *Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?*
-
-1. Re-run codes on Rāpoi, checking my instructions
-
-3. Refer to Cheng and wang paper
-6. Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+- Re-run codes on Rāpoi, checking my instructions
+- Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+- Add decay rate $U^3/L$ (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022), cross-helicity $\sigma_c$, residual energy $\sigma_r$, collisional age? (Kasper PRL)
+- *Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?*
 
 ### Future work
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
-- Add decay rate $U^3/L$ (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022), cross-helicity $\sigma_c$, residual energy $\sigma_r$, collisional age? (Kasper PRL)
+
 - Add vector velocities to params.py script, anticipating switch to PSP data
 - Think about using the standard error to express variation in the means of our Re estimates.
 - More 2D histograms: 
@@ -103,7 +98,9 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
         Recommended HPC job requirements: 
         This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/230GB/3 hours. (Takes about 8min/file/core).
 
-    Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
+    Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. Saves resultant datasets to `data/processed/*spacecraft*/`
+    
+    If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
 
     NB: Missing data is not reported if you do not resample to the desired frequency first. It is important that we do note the amount of missing data in each interval, even if we do interpolate over it.
 
