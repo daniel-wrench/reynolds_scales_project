@@ -64,10 +64,42 @@ def corrfunc(x, y, ax=None, **kws):
     ax.annotate(f'Spearman:\n{rs:.2f}', xy=(.95, .1), xycoords=ax.transAxes, ha="right")
 
 
+import statsmodels.api as sm
+import numpy as np
+import statsmodels.api as sm
 
+def plot_regression(ax, x, y, fit_type='linear', color='red'):
+    
+    if fit_type == 'log-log':
+        # Take the logarithm of the data for power-law fit
+        x_data = np.log(x)
+        y_data = np.log(y)
+    elif fit_type == 'linear':
+        x_data = x
+        y_data = y
+    else:
+        raise ValueError("fit_type must be either 'linear' or 'log-log'")
+    
+    x_data = sm.add_constant(x_data)
+    model = sm.OLS(y_data, x_data, missing='drop')
+    results = model.fit()
 
-# SUBSETTING THE REYNOLDS NUMBERS TO HIGHLIGHT MAIN DENSITY OF POINTS
-#df_test = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 3]
+    intercept, slope = results.params
+    
+    if fit_type == 'log-log':
+        # Plot the power-law relationship in the original space
+        ax.plot(x, (x**slope)*np.exp(intercept), color=color)
+        
+        # Add the regression equation to the plot
+        ax.text(0.05, 0.9, f"log(y) = {slope:.2f}log(x)+{intercept:.2f}", transform=ax.transAxes, color=color)
+    
+    elif fit_type == 'linear':
+        # Plot the linear relationship in the original space
+        ax.plot(x, x*slope + intercept, color=color)
+        
+        # Add the regression equation to the plot
+        ax.text(0.05, 0.9, f"y = {slope:.2f}x+{intercept:.2f}", transform=ax.transAxes, color=color)
+
 
 df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 
@@ -75,6 +107,12 @@ df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 
 # df_l1_cleaned["Re_di"] = df_l1_cleaned["Re_di"]*3
 # df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*100
+
+# Subsetting data to highlight main density of points
+# df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 300]
+
+# What prop are in this new subset?
+# len(df_subset)/len(df_l1_cleaned)
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -110,17 +148,17 @@ ax_joint_2.set_ylabel("$Re_{d_i}$")
 
 for ax in [ax_marg_x_0, ax_marg_x_1, ax_marg_x_2]:
     ax.set_ylim(0, 1.2)
-    ax.set_xlim(1e3, 1e9)
+    ax.set_xlim(1e3, 1e8)
     ax.axis('off')
 
 for ax in [ax_joint_0, ax_joint_1, ax_joint_2]:
-    ax.set_xlim(1e3, 1e9)
-    ax.set_ylim(1e3, 1e9)
-    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
-    ax.plot([1e3, 1e9], [1e3, 1e9], linestyle='--', linewidth=1.0, c = "black")
-    ax.set_xticks([1e4,1e6])
-    ax.set_yticks([1e4,1e6])
+    ax.set_xlim(1e3, 1e8)
+    ax.set_ylim(1e3, 1e8)
+    ax.plot([1e3, 1e8], [1e3, 1e8], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e8], [1e3, 1e8], linestyle='--', linewidth=1.0, c = "black")
+    ax.plot([1e3, 1e8], [1e3, 1e8], linestyle='--', linewidth=1.0, c = "black")
+    ax.set_xticks([1e4,1e6,1e8])
+    ax.set_yticks([1e4,1e6,1e8])
     #ax.spines['right'].set_visible(False)
     #ax.spines['top'].set_visible(False)
     ax.minorticks_off()
@@ -130,14 +168,16 @@ ax_joint_0.tick_params(direction='in')
 ax_joint_1.tick_params(direction='in', labelleft=False)
 ax_joint_2.tick_params(direction='in', labelleft=False)
 
+# Apply the regression function to each of the joint plots
+plot_regression(ax_joint_0, df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], fit_type='log-log')
+plot_regression(ax_joint_1, df_l1_cleaned["Re_di"], df_l1_cleaned["Re_tb"], fit_type='log-log')
+plot_regression(ax_joint_2, df_l1_cleaned["Re_lt"], df_l1_cleaned["Re_di"], fit_type='log-log')
+
 # For these plots, need to use this instead of constrained_layout
 fig.tight_layout()
 
-# What prop are in this new subset?
-#len(df_test)/len(df_l1_cleaned)
-
 # Save/show the plot
-plt.savefig("plots/final/reynolds_hist.pdf")
+plt.savefig("plots/final/reynolds_hist_v2.pdf")
 plt.show()
 
 
