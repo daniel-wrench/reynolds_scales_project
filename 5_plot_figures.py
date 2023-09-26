@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import statsmodels.api as sm
 
 plt.rcParams.update({'font.size': 9})
 plt.rc('text', usetex=True) # Set default font to Latex font
@@ -40,7 +41,7 @@ plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
 plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
 
-plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{extrap}$", color="black", size = 13)
+plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{ext}$", color="black", size = 13)
 plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
 
 #plt.legend(loc="upper right")
@@ -50,25 +51,20 @@ plt.ylabel("Density")
 plt.yticks([])
 plt.xlabel("Taylor scale (km)")
 
-plt.savefig("plots/final/taylor_overlapping_hist_v2.pdf")
+plt.savefig("plots/final/taylor_scale_hist.pdf")
 plt.show()
 
-def corrfunc(x, y, ax=None, **kws):
-    """Plot the correlation coefficient in the top left hand corner of a plot."""
+def corrfunc(x, y, ax=None, loc=[.95, .25], **kws):
+    """Plot the Pearson and Spearman correlation coefficients on a plot."""
     x = pd.Series(x)
     y = pd.Series(y)
     rp = x.corr(y, "pearson")
     rs = x.corr(y, "spearman")
     ax = ax or plt.gca()
-    ax.annotate(f'Pearson:\n{rp:.2f}', xy=(.95, .3), xycoords=ax.transAxes, ha="right")
-    ax.annotate(f'Spearman:\n{rs:.2f}', xy=(.95, .1), xycoords=ax.transAxes, ha="right")
+    ax.annotate(f'Pearson:\n{rp:.2f}', xy=(loc[0],loc[1]), xycoords=ax.transAxes, ha="right")
+    ax.annotate(f'Spearman:\n{rs:.2f}', xy=(loc[0],loc[1]-0.2), xycoords=ax.transAxes, ha="right")
 
-
-import statsmodels.api as sm
-import numpy as np
-import statsmodels.api as sm
-
-def plot_regression(ax, x, y, fit_type='linear', color='red'):
+def plot_regression(ax, x, y, fit_type='linear', color='red', loc=[0.05, 0.9]):
     
     if fit_type == 'log-log':
         # Take the logarithm of the data for power-law fit
@@ -91,14 +87,14 @@ def plot_regression(ax, x, y, fit_type='linear', color='red'):
         ax.plot(x, (x**slope)*np.exp(intercept), color=color)
         
         # Add the regression equation to the plot
-        ax.text(0.05, 0.9, f"log(y) = {slope:.2f}log(x)+{intercept:.2f}", transform=ax.transAxes, color=color)
+        ax.text(loc[0], loc[1], f"log(y) = {slope:.2f}log(x)+{intercept:.2f}", transform=ax.transAxes, color=color)
     
     elif fit_type == 'linear':
         # Plot the linear relationship in the original space
         ax.plot(x, x*slope + intercept, color=color)
         
         # Add the regression equation to the plot
-        ax.text(0.05, 0.9, f"y = {slope:.2f}x+{intercept:.2f}", transform=ax.transAxes, color=color)
+        ax.text(loc[0], loc[1], f"y = {slope:.2f}x+{intercept:.2f}", transform=ax.transAxes, color=color)
 
 
 df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
@@ -109,10 +105,15 @@ df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 # df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*100
 
 # Subsetting data to highlight main density of points
-# df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 300]
+df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 300]
+df_not_subset = df_l1_cleaned[~df_l1_cleaned.index.isin(df_subset.index)]
+
+# Alt grouping, keeping everything in one dataset
+df_l1_cleaned['Group'] = 'outliers'
+df_l1_cleaned.loc[df_subset.index, 'Group'] = 'cleaned'
 
 # What prop are in this new subset?
-# len(df_subset)/len(df_l1_cleaned)
+len(df_subset)/len(df_l1_cleaned)
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
@@ -126,22 +127,53 @@ ax_joint_1 = fig.add_subplot(grid[1:4, 1:2])
 ax_marg_x_2 = fig.add_subplot(grid[0, 2:3])
 ax_joint_2 = fig.add_subplot(grid[1:4, 2:3])
 
-# Create the plot using seaborn's jointplot function
-sns.kdeplot(data=df_l1_cleaned, x="Re_tb", ax=ax_marg_x_0, log_scale=True)
-sns.kdeplot(data=df_l1_cleaned, x="Re_di", ax=ax_marg_x_1, log_scale=True)
-sns.kdeplot(data=df_l1_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True)
+# Plot the marginal histograms
+sns.kdeplot(data=df_l1_cleaned, x="Re_tb", ax=ax_marg_x_0, log_scale=True, color="black")
+sns.kdeplot(data=df_l1_cleaned, x="Re_di", ax=ax_marg_x_1, log_scale=True, color="black")
+sns.kdeplot(data=df_l1_cleaned, x="Re_lt", ax=ax_marg_x_2, log_scale=True, color="black")
 
-sns.histplot(ax = ax_joint_0, data=df_l1_cleaned, x="Re_tb", y="Re_lt", log_scale=True)
-corrfunc(df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], ax_joint_0)
+
+# Plot the points NOT in the subset (e.g., in light gray)
+# sns.histplot(ax=ax_joint_0, data=df_not_subset, x="Re_tb", y="Re_lt", log_scale=True, color="lightgray", bins=(bin_edges_x_tb, bin_edges_y_lt))
+# sns.histplot(ax=ax_joint_1, data=df_not_subset, x="Re_di", y="Re_tb", log_scale=True, color="lightgray", bins=(bin_edges_x_di, bin_edges_x_tb))
+# sns.histplot(ax=ax_joint_2, data=df_not_subset, x="Re_lt", y="Re_di", log_scale=True, color="lightgray", bins=(bin_edges_y_lt, bin_edges_x_di))
+
+# Overlay the points in the subset (e.g., in red)
+# sns.histplot(ax=ax_joint_0, data=df_subset, x="Re_tb", y="Re_lt", log_scale=True, color="red")
+# sns.histplot(ax=ax_joint_1, data=df_subset, x="Re_di", y="Re_tb", log_scale=True, color="red")
+# sns.histplot(ax=ax_joint_2, data=df_subset, x="Re_lt", y="Re_di", log_scale=True, color="red")
+
+# Define the colors for the groups
+current_palette = sns.color_palette()
+
+# Assign the first two colors to your groups
+colors = {
+    "cleaned": current_palette[0],
+    "outliers": "lightgray"
+}
+
+# Plot the joint histograms
+
+sns.histplot(
+    ax = ax_joint_0, 
+    data=df_l1_cleaned, 
+    x="Re_tb", 
+    y="Re_lt", 
+    log_scale=True, 
+    hue='Group', 
+    hue_order=["outliers", "cleaned"],
+    palette=colors)
+
+corrfunc(df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], ax_joint_0, loc=(.95, .4))
 ax_joint_0.set_xlabel("$Re_{t_b}$")
 ax_joint_0.set_ylabel("$Re_{\lambda_T}$")
 
-sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="Re_di", y="Re_tb", log_scale=True)
+sns.histplot(ax = ax_joint_1, data=df_l1_cleaned, x="Re_di", y="Re_tb", log_scale=True, hue='Group', hue_order=["outliers", "cleaned"], palette=colors)
 corrfunc(df_l1_cleaned["Re_di"], df_l1_cleaned["Re_tb"], ax_joint_1)
 ax_joint_1.set_xlabel("$Re_{d_i}$")
 ax_joint_1.set_ylabel("$Re_{t_b}$")
 
-sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="Re_lt", y="Re_di", log_scale=True)
+sns.histplot(ax = ax_joint_2, data=df_l1_cleaned, x="Re_lt", y="Re_di", log_scale=True, hue='Group', hue_order=["outliers", "cleaned"], palette=colors)
 corrfunc(df_l1_cleaned["Re_lt"], df_l1_cleaned["Re_di"], ax_joint_2)
 ax_joint_2.set_xlabel("$Re_{\lambda_T}$")
 ax_joint_2.set_ylabel("$Re_{d_i}$")
@@ -168,13 +200,18 @@ ax_joint_0.tick_params(direction='in')
 ax_joint_1.tick_params(direction='in', labelleft=False)
 ax_joint_2.tick_params(direction='in', labelleft=False)
 
-# Apply the regression function to each of the joint plots
-plot_regression(ax_joint_0, df_l1_cleaned["Re_tb"], df_l1_cleaned["Re_lt"], fit_type='log-log')
-plot_regression(ax_joint_1, df_l1_cleaned["Re_di"], df_l1_cleaned["Re_tb"], fit_type='log-log')
-plot_regression(ax_joint_2, df_l1_cleaned["Re_lt"], df_l1_cleaned["Re_di"], fit_type='log-log')
+# Apply the regression function OF THE CLEANED SUBSETS to each of the joint plots
+plot_regression(ax_joint_0, df_subset["Re_tb"], df_subset["Re_lt"], fit_type='log-log', color="darkblue", loc=[0.2, 0.05])
+plot_regression(ax_joint_1, df_subset["Re_di"], df_subset["Re_tb"], fit_type='log-log', color="darkblue")  
+plot_regression(ax_joint_2, df_subset["Re_lt"], df_subset["Re_di"], fit_type='log-log', color="darkblue")
 
 # For these plots, need to use this instead of constrained_layout
 fig.tight_layout()
+
+# Remove the legends (labelling the groups)
+ax_joint_0.get_legend().remove()
+ax_joint_1.get_legend().remove()
+ax_joint_2.get_legend().remove()
 
 # Save/show the plot
 plt.savefig("plots/final/reynolds_hist_v2.pdf")
