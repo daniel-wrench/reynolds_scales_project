@@ -265,12 +265,13 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
                 color="black",
                 alpha=0.6,
                 label="Proton inertial frequency: $f_{di}=$" + "{0:.2f}".format(f_di))
+            ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
 
         #bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.5)
         ax.text(xi[0]*5, pi[0], "$q_i$")
         ax.text(xk[0]*2, pk[0], "$q_k$")
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
-        ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
+        
         ax.set_xlabel('frequency (Hz)')
         ax.set_ylabel('PSD (nT$^2$Hz$^{-1}$)')
         # plt.grid()

@@ -81,31 +81,41 @@ def plot_regression(ax, x, y, fit_type='linear', color='red', loc=[0.05, 0.9]):
     results = model.fit()
 
     intercept, slope = results.params
-    
+
+    # Determine the format string based on the sign of the intercept
+    if intercept < 0:
+        intercept_format = f"{intercept:.2f}"
+    else:
+        intercept_format = f"+{intercept:.2f}"
+
+    # Add the regression line to the plot based on fit_type
     if fit_type == 'log-log':
-        # Plot the power-law relationship in the original space
+         # Plot the power-law relationship in the original space
         ax.plot(x, (x**slope)*np.exp(intercept), color=color)
         
         # Add the regression equation to the plot
-        ax.text(loc[0], loc[1], f"log(y) = {slope:.2f}log(x)+{intercept:.2f}", transform=ax.transAxes, color=color)
-    
+        equation_format = f"ln(y) = {slope:.2f}ln(x){intercept_format}"
+        ax.text(loc[0], loc[1], equation_format, transform=ax.transAxes, color=color, bbox=dict(facecolor='white', alpha=0.2, edgecolor='none', boxstyle='round,pad=1'))
+        
     elif fit_type == 'linear':
         # Plot the linear relationship in the original space
         ax.plot(x, x*slope + intercept, color=color)
         
         # Add the regression equation to the plot
-        ax.text(loc[0], loc[1], f"y = {slope:.2f}x+{intercept:.2f}", transform=ax.transAxes, color=color)
+        equation_format = f"y = {slope:.2f}x{intercept_format}"
+        ax.text(loc[0], loc[1], equation_format, transform=ax.transAxes, color=color)
 
 
 df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 
 # Correcting Re values with pre-factors
 
+# df_l1_cleaned["Re_tb"] = df_l1_cleaned["Re_tb"]*3
 # df_l1_cleaned["Re_di"] = df_l1_cleaned["Re_di"]*3
-# df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*100
+# df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*50
 
 # Subsetting data to highlight main density of points
-df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 300]
+df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 50]
 df_not_subset = df_l1_cleaned[~df_l1_cleaned.index.isin(df_subset.index)]
 
 # Alt grouping, keeping everything in one dataset
@@ -214,7 +224,7 @@ ax_joint_1.get_legend().remove()
 ax_joint_2.get_legend().remove()
 
 # Save/show the plot
-plt.savefig("plots/final/reynolds_hist_v2.pdf")
+plt.savefig("plots/final/reynolds_hist.pdf")
 plt.show()
 
 
