@@ -287,7 +287,7 @@ ax_joint_2.tick_params(direction='in', labelleft=False)
 fig.tight_layout()
 
 # Save/show the plot
-plt.savefig("plots/final/corr_scale_panels.pdf")
+plt.savefig("plots/final/corr_scale_hist.pdf")
 plt.show()
 
 
