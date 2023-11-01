@@ -16,17 +16,27 @@ omni_thresh = {
 electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
 Te = "AVGTEMP"
+
 electron_thresh = {
     "DENSITY": [0, 200],
     "AVGTEMP": [0, 1000]
 }
 
-proton_path = "wind/3dp/3dp_plsp/"
-ni = "MOM.P.DENSITY"
-Ti = "MOM.P.AVGTEMP"
+
+# Metadata: 
+# https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0SKELTABLES/wi_pm_3dp_00000000_v01.skt
+
+proton_path = "wind/3dp/3dp_pm/"
+ni = "P_DENS" # density in #/cm3
+nalpha = "A_DENS" # alpha particle density in #/cm3
+Ti = "P_TEMP" # temperature in eV
+V_vec = "P_VELS" # velocity in km/s
+Vx = "P_VELS_0"
+Vy = "P_VELS_1"
+Vz = "P_VELS_2"
 proton_thresh = {
-    "MOM.P.DENSITY": [0, 200],
-    "MOM.P.AVGTEMP": [0, 1000]
+    "P_DENS": [0, 1000],
+    "P_TEMP": [0, 500]
 }
 
 mag_path = "wind/mfi/mfi_h2/"
@@ -42,6 +52,7 @@ mag_thresh = None
 dt_lr = "5S"
 nlags_lr = 2000
 dt_hr = "0.092S"
+dt_protons = "3S"
 nlags_hr = 100
 
 # Frequency bounds are taken from Wang et al. (2018, JGR)

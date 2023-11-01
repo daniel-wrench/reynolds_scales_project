@@ -30,12 +30,14 @@ Date:
 
 import datetime
 import glob
-import params
+import params # Add src. prefix and `as params` if running interactively (but sys.argv variable will not exist)
 import sys
 import os
 
-from utils import *
+from utils import * # Add src. prefix if running interactively (but sys.argv variable will not exist)
 
+# The following values should match the variables names in params.py 
+# Vector components do not need to be specified, just the overall vector
 sys_arg_dict = {
     # arg1
     "mag_path": params.mag_path,
@@ -46,7 +48,7 @@ sys_arg_dict = {
     # arg2
     "mag_vars": [params.timestamp, params.Bwind, params.Bwind_vec],
     "omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
-    "proton_vars": [params.timestamp, params.ni, params.Ti],
+    "proton_vars": [params.timestamp, params.ni, params.nalpha, params.Ti, params.V_vec],
     "electron_vars": [params.timestamp, params.ne, params.Te],
 
     # arg3
@@ -57,6 +59,7 @@ sys_arg_dict = {
 
     # arg4
     "dt_hr": params.dt_hr,
+    "dt_protons": params.dt_protons,
     "int_size": params.int_size,
 
     # arg5
@@ -96,8 +99,11 @@ for sub in file_paths:
 # cdf = read_cdf(file_paths[0][0])
 # pprint(cdf.cdf_info())
 
-# pprint(cdf.varattsget(variable="BGSE", expand=True))
-# cdf.varget("Epoch")
+# pprint(cdf.varattsget(variable="MOM.P.VELOCITY", expand=True))
+# cdf.varget("MOM.P.VELOCITY")
+
+# print("Done")
+# sys.exit()
 
 dataframes = []
 
@@ -120,6 +126,8 @@ df = pd.concat(dataframes)
 # Ensuring observations are in chronological order
 df = df.sort_index()
 # NB: Using .asfreq() creates NA values
+
+print(df.head())
 
 # Outputting pickle file
 df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + ".pkl")
