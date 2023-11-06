@@ -274,8 +274,8 @@ for i in np.arange(n_int).tolist():
         dboB0_list.append(db_rms/B0)
 
         ## in Alfvenic units
-        alfven_prefactor = (2.18e1)/np.sqrt(int_protons["np"].mean()) # Converting nT to Gauss and cm/s to km/s
-        # Using mean density of interval a la Wang2012ApJ
+        alfven_prefactor = (2.18e1)/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
+        # note that uses the mean density of the interval Wang2012ApJ
 
         dbx_a = dbx*alfven_prefactor
         dby_a = dby*alfven_prefactor
