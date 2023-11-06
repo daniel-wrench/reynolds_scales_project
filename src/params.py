@@ -1,4 +1,5 @@
-# Filepaths, variable names, variable thresholds
+# This file specifies the filepaths, variable names, thresholds and interval sizes
+# for the initial data processing
 
 timestamp = "Epoch"
 int_size = "12H"
@@ -25,10 +26,12 @@ electron_thresh = {
 
 # Metadata: 
 # https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0SKELTABLES/wi_pm_3dp_00000000_v01.skt
+# https://hpde.io/NASA/NumericalData/Wind/3DP/PM/PT03S
 
 proton_path = "wind/3dp/3dp_pm/"
 ni = "P_DENS" # density in #/cm3
 nalpha = "A_DENS" # alpha particle density in #/cm3
+Talpha = "A_TEMP"
 Ti = "P_TEMP" # temperature in eV
 V_vec = "P_VELS" # velocity in km/s
 Vx = "P_VELS_0"
@@ -36,7 +39,9 @@ Vy = "P_VELS_1"
 Vz = "P_VELS_2"
 proton_thresh = {
     "P_DENS": [0, 1000],
-    "P_TEMP": [0, 500]
+    "P_TEMP": [0, 500],
+    "A_DENS": [0, 1000],
+    "A_TEMP": [0, 500]
 }
 
 mag_path = "wind/mfi/mfi_h2/"
