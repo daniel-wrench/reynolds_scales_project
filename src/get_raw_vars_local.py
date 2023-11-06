@@ -41,19 +41,19 @@ from utils import * # Add src. prefix if running interactively (but sys.argv var
 sys_arg_dict = {
     # arg1
     "mag_path": params.mag_path,
-    #"omni_path": params.omni_path,
+    "omni_path": params.omni_path,
     "proton_path": params.proton_path,
     "electron_path": params.electron_path,
 
     # arg2
     "mag_vars": [params.timestamp, params.Bwind, params.Bwind_vec],
-    #"omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
+    "omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
     "proton_vars": [params.timestamp, params.np, params.nalpha, params.Tp, params.Talpha, params.V_vec],
     "electron_vars": [params.timestamp, params.ne, params.Te],
 
     # arg3
     "mag_thresh": params.mag_thresh,
-    #"omni_thresh": params.omni_thresh,
+    "omni_thresh": params.omni_thresh,
     "proton_thresh": params.proton_thresh,
     "electron_thresh": params.electron_thresh,
 
