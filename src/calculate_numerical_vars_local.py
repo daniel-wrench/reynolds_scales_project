@@ -48,8 +48,6 @@ print("\nHigh-res Wind dataframe:\n")
 print(df_wind_hr.info())
 print(df_wind_hr.describe().round(2))
 
-print("\nFINISHED READING DATA")
-
 # WANT TO LIMIT THE FOLLOWING ANALYSIS TO EACH INTERVAL
 # but check it works here first
 
@@ -63,8 +61,13 @@ df_protons = df_protons.rename(
         "P_VELS_1": "Vy",
         "P_VELS_2": "Vz",
         "P_DENS": 'ni',
-        "P_TEMP": 'Ti'})
+        "A_DENS": 'nalpha',
+        "P_TEMP": 'Ti',
+        "A_TEMP": 'Talpha'})
 
+print("\n3s proton dataframe:\n")
+print(df_protons.info())
+print(df_protons.describe().round(2))
 
 # Compute decay rates (velocity and elsasser variables) in analytical vars section
 # dv**3/L # correlation length
@@ -88,10 +91,15 @@ print("\nLow-res Wind dataframe:\n")
 print(df_wind_lr.info())
 print(df_wind_lr.describe().round(2))
 
+print("\nFINISHED READING DATA")
+
+
 timestamps = []
 
 B0_list = []
 dboB0_list = []
+V0_list = []
+v_r_list = []
 dv_list = []
 zp_list = []
 zm_list = []
@@ -99,6 +107,10 @@ sigma_c_list = []
 sigma_r_list = []
 ra_list = []
 cos_a_list = []
+ni_list = []
+nalpha_list = []
+Ti_list = []
+Talpha_list = []
 
 inertial_slope_list = []
 kinetic_slope_list = []
@@ -180,8 +192,13 @@ for i in np.arange(n_int).tolist():
             ## (Same as previous, except now calculating full db/B0 at this step, not just the fluctuations)
             ## Fluctuations are calculated relative to the mean of the specific dataset read in, however large that may b
 
-            # Resampling to 3s to match velocity data cadence
+            # Temps and densities
+            ni_list.append(int_protons["ni"].mean())
+            nalpha_list.append(int_protons["nalpha"].mean())
+            Ti_list.append(int_protons["Ti"].mean())
+            Talpha_list.append(int_protons["Talpha"].mean())
 
+            # Resampling mag field data to 3s to match velocity data cadence
             ## NB: there is also a 3s cadence version of the mfi data, e.g. as used by Podesta2010, 
             ## but we want the highest res possible for the Taylor scale calculations
 
@@ -193,7 +210,8 @@ for i in np.arange(n_int).tolist():
             By_mean = By.mean()
             Bz_mean = Bz.mean()
 
-            B0 = np.sqrt(Bx_mean**2+By_mean**2+Bz_mean**2)
+            # Calculate rms magnetic field
+            B0 = np.sqrt(np.mean(Bx**2)+np.mean(By**2)+np.mean(Bz**2))
             B0_list.append(B0)
 
             # Add velocity field fluctuations, dv
@@ -205,46 +223,57 @@ for i in np.arange(n_int).tolist():
             Vy_mean = Vy.mean()
             Vz_mean = Vz.mean()
 
-            # Add magnetic field fluctuations, db, in Alfvenic units
+            # Save mean radial velocity (should dominate velocity mag)
+            v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
 
+            # Calculate velocity magnitude
+            V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
+            V0_list.append(V0)
+
+            # Add magnetic field fluctuations, db
+            dbx = Bx - Bx_mean
+            dby = By - By_mean
+            dbz = Bz - Bz_mean
+            db = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2))
+            
+            dboB0_list.append(db/B0)
+
+            ## in Alfvenic units
             alfven_prefactor = (2.18e1)*(df_protons["ni"]**-1/2) # Converting nT to Gauss and cm/s to km/s
-            # NB: Wang2012 use the mean of ni instead
+            # NB: Wang2012 used the mean of ni instead
 
-            dbx = (Bx - Bx_mean)*alfven_prefactor
-            dby = (By - By_mean)*alfven_prefactor
-            dbz = (Bz - Bz_mean)*alfven_prefactor
-            db = np.sqrt(dbx**2+dby**2+dbz**2)
-
-            dboB0 = (db/(B0*alfven_prefactor)).rename('dboB0')
-            dboB0_list.append(dboB0)
+            dbx_a = dbx*alfven_prefactor
+            dby_a = dby*alfven_prefactor
+            dbz_a = dbz*alfven_prefactor
+            db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
 
             dvx = (Vx - Vx_mean)
             dvy = (Vy - Vy_mean)
             dvz = (Vz - Vz_mean)
 
-            dv = np.sqrt(dvx**2+dvy**2+dvz**2)
+            dv = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
             dv_list.append(dv)
 
             # Elsasser variables
-            zpx = dvx + dbx
-            zpy = dvy + dby
-            zpz = dvz + dbz
-            zp = np.sqrt(zpx**2+zpy**2+zpz**2)
+            zpx = dvx + dbx_a
+            zpy = dvy + dby_a
+            zpz = dvz + dbz_a
+            zp = np.sqrt(np.mean(zpx**2)+np.mean(zpy**2)+np.mean(zpz**2))
             zp_list.append(zp)
 
-            zmx = dvx - dbx
-            zmy = dvy - dby
-            zmz = dvz - dbz
-            zm = np.sqrt(zmx**2+zmy**2+zmz**2)
+            zmx = dvx - dbx_a
+            zmy = dvy - dby_a
+            zmz = dvz - dbz_a
+            zm = np.sqrt(np.mean(zmx**2)+np.mean(zmy**2)+np.mean(zmz**2))
             zm_list.append(zm)
 
             # Cross-helicity 
-            Hc = np.mean(dvx*dbx + dvy*dby + dvz*dbz)
+            Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
 
             # Normalize by energy (should then range between -1 and 1, like a normal correlation coefficient)
             # Only minor different calculating them separately, rather than np.mean(dv**2 + db**2)
             e_kinetic = np.mean(dv**2)
-            e_magnetic = np.mean(db**2)
+            e_magnetic = np.mean(db_a**2)
 
             sigma_c = 2*Hc/(e_kinetic+e_magnetic)
             sigma_c_list.append(sigma_c)
@@ -258,7 +287,7 @@ for i in np.arange(n_int).tolist():
             ra_list.append(ra)
 
             # Alignment cosine (see Parashar2018PRL)
-            cos_a = Hc/np.mean(np.sqrt(dv*db))
+            cos_a = Hc/np.mean(np.sqrt(dv*db_a))
             cos_a_list.append(cos_a)
 
             # Compute autocorrelations and power spectra
@@ -345,30 +374,42 @@ for acf in acf_hr_list:
 plt.savefig("data/processed/all_acfs_hr.png")
 plt.close()
 
-# Joining lists of scales and spectral_stats together into a dataframe
 
-df_lengths = pd.DataFrame({
+# Create a dataframe combining all of the lists above
+df = pd.DataFrame({
     "Timestamp": timestamps,
     "missing_mfi": wind_df_hr_list_missing,
+    "ni": ni_list,
+    "nalpha": nalpha_list,
+    "Ti": Ti_list,
+    "Talpha": Talpha_list,
+    "B0": B0_list,
+    "dboB0": dboB0_list,
+    "V0": V0_list,
+    "v_r": v_r_list,
+    "dv": dv_list,
+    "zp": zp_list,
+    "zm": zm_list,
+    "sigma_c": sigma_c_list,
+    "sigma_r": sigma_r_list,
+    "ra": ra_list,
+    "cos_a": cos_a_list,
+    "qi": inertial_slope_list,
+    "qk": kinetic_slope_list,
+    "fb": spectral_break_list,
     "tcf": corr_scale_exp_fit_list,
     "tce": corr_scale_exp_trick_list,
     "tci": corr_scale_int_list,
     "ttu": taylor_scale_u_list,
     "ttu_std": taylor_scale_u_std_list,
     "ttc": taylor_scale_c_list,
-    "ttc_std": taylor_scale_c_std_list,
-    "qi": inertial_slope_list,
-    "qk": kinetic_slope_list,
-    "fb": spectral_break_list
+    "ttc_std": taylor_scale_c_std_list
 })
 
-df_lengths = df_lengths.set_index("Timestamp")
+df = df.set_index("Timestamp")
+df = df.sort_index()
 
-print("JOINING COLUMNS INTO SINGLE DATAFRAME")
-df_complete = utils.join_dataframes_on_timestamp(df_vars, df_lengths)
-df_complete = df_complete.sort_index()
-
-df_complete.to_pickle("data/processed/dataset.pkl")
+df.to_pickle("data/processed/dataset.pkl")
 
 print("FINISHED")
 print("##################################")
