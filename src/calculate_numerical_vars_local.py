@@ -19,11 +19,12 @@ Author: Daniel Wrench
 Last modified: 4/9/2023
 """
 
-import params
-import src.utils as utils # Add src. prefix if running interactively (but sys.argv variable will not exist)
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+# Add src. prefix to following if running interactively
+import src.params as params
+import src.utils as utils
 
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
@@ -34,15 +35,14 @@ print("\nREADING PICKLE FILES")
 
 ## High-res data
 
-df_wind_hr = pd.read_pickle(
-    "data/processed/" + "wind/mfi/mfi_h2/" + "0.092S" + ".pkl")
+df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + ".pkl")
 
 df_wind_hr = df_wind_hr.rename(
     columns={
-        "BF1": "Bwind",
-        "BGSE_0": "Bx",
-        "BGSE_1": "By",
-        "BGSE_2": "Bz"})
+        params.Bwind: "Bwind",
+        params.Bx: "Bx",
+        params.By: "By",
+        params.Bz: "Bz"})
 
 print("\nHigh-res Wind dataframe:\n")
 print(df_wind_hr.info())
@@ -53,17 +53,17 @@ print(df_wind_hr.describe().round(2))
 
 # We also need velocities for cross-helicity and converting to Alfvenic units
 
-df_protons = pd.read_pickle("data/processed/" + "wind/3dp/3dp_pm/" + "3S" + ".pkl")
+df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.dt_protons + ".pkl")
 
 df_protons = df_protons.rename(
     columns={
-        "P_VELS_0": "Vx",
-        "P_VELS_1": "Vy",
-        "P_VELS_2": "Vz",
-        "P_DENS": 'ni',
-        "A_DENS": 'nalpha',
-        "P_TEMP": 'Ti',
-        "A_TEMP": 'Talpha'})
+        params.Vx: "Vx",
+        params.Vy: "Vy",
+        params.Vz: "Vz",
+        params.ni: "np",
+        params.nalpha: "nalpha",
+        params.Tp: "Tp",
+        params.Talpha: "Talpha"})
 
 print("\n3s proton dataframe:\n")
 print(df_protons.info())
@@ -78,14 +78,13 @@ print(df_protons.describe().round(2))
 
 # Low-res data
 
-df_wind_lr = pd.read_pickle("data/processed/" + "wind/mfi/mfi_h2/" + "5S" + ".pkl")
+df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + ".pkl")
 
 df_wind_lr = df_wind_lr.rename(
     columns={
-        "BF1": "Bwind",
-        "BGSE_0": "Bx",
-        "BGSE_1": "By",
-        "BGSE_2": "Bz"})
+        params.Bx: "Bx",
+        params.By: "By",
+        params.Bz: "Bz"})
 
 print("\nLow-res Wind dataframe:\n")
 print(df_wind_lr.info())
@@ -136,14 +135,14 @@ acf_hr_list = []
 acf_lr_list = []
 
 # E.g. 2016-01-01 00:00
-starttime = df_wind_lr.index[0].round("12H")
+starttime = df_wind_lr.index[0].round(params.int_size)
 # Will account for when the dataset does not start at a nice round 12H timestamp
 
 # E.g. 2016-01-01 11:59:59.99
-endtime = starttime + pd.to_timedelta("12H") - pd.to_timedelta("0.01S")
+endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
 
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
-                 pd.to_timedelta("12H")).astype(int)
+                 pd.to_timedelta(params.int_size)).astype(int)
 
 # If we subset timestamps that don"t exist in the dataframe, they will still be included in the list, just as
 # missing dataframes. We can identify these with df.empty = True (or missing)
@@ -152,8 +151,8 @@ print("\nLOOPING OVER EACH INTERVAL")
 
 for i in np.arange(n_int).tolist():
 
-    int_start = starttime + i*pd.to_timedelta("12H")
-    int_end = (endtime + i*pd.to_timedelta("12H"))
+    int_start = starttime + i*pd.to_timedelta(params.int_size)
+    int_end = (endtime + i*pd.to_timedelta(params.int_size))
 
     timestamps.append(int_start)
 
@@ -202,9 +201,9 @@ for i in np.arange(n_int).tolist():
             ## NB: there is also a 3s cadence version of the mfi data, e.g. as used by Podesta2010, 
             ## but we want the highest res possible for the Taylor scale calculations
 
-            Bx = int_hr["Bx"].resample("3S").mean()
-            By = int_hr["By"].resample("3S").mean()
-            Bz = int_hr["Bz"].resample("3S").mean()
+            Bx = int_hr["Bx"].resample(params.dt_protons).mean()
+            By = int_hr["By"].resample(params.dt_protons).mean()
+            Bz = int_hr["Bz"].resample(params.dt_protons).mean()
 
             Bx_mean = Bx.mean()
             By_mean = By.mean()
@@ -297,13 +296,12 @@ for i in np.arange(n_int).tolist():
                     int_lr.By,
                     int_lr.Bz
                 ]),
-                nlags=2000,
-                dt=float("5S"[:-1]))  # Removing "S" from end of dt string
+                nlags=params.nlags_lr,
+                dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
 
             acf_lr_list.append(acf_lr)
 
-            corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
-                time_lags_lr, acf_lr)
+            corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
             corr_scale_exp_trick_list.append(corr_scale_exp_trick)
 
             # Use estimate from 1/e method to select fit amount
@@ -311,8 +309,7 @@ for i in np.arange(n_int).tolist():
                 time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick))
             corr_scale_exp_fit_list.append(corr_scale_exp_fit)
 
-            corr_scale_int = utils.compute_outer_scale_integral(
-                time_lags_lr, acf_lr)
+            corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
             corr_scale_int_list.append(corr_scale_int)
 
             time_lags_hr, acf_hr = utils.compute_nd_acf(
@@ -321,8 +318,8 @@ for i in np.arange(n_int).tolist():
                     int_hr.By,
                     int_hr.Bz
                 ]),
-                nlags=2000,
-                dt=0.092)
+                nlags=params.nlags_hr,
+                dt=float(params.dt_hr[:-1]))
 
             acf_hr_list.append(acf_hr)
 
@@ -333,9 +330,9 @@ for i in np.arange(n_int).tolist():
                     int_hr.By,
                     int_hr.Bz
                 ]),
-                dt=0.092,
-                f_min_inertial=0.005, f_max_inertial=0.2,
-                f_min_kinetic=0.5, f_max_kinetic=1.4)
+                dt=float(params.dt_hr[:-1]),
+                f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+                f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
 
             inertial_slope_list.append(slope_i)
             kinetic_slope_list.append(slope_k)
@@ -344,8 +341,8 @@ for i in np.arange(n_int).tolist():
             taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
                 time_lags_hr,
                 acf_hr,
-                tau_min=10,
-                tau_max=50)
+                tau_min=params.tau_min,
+                tau_max=params.tau_max)
 
             taylor_scale_u_list.append(taylor_scale_u)
             taylor_scale_u_std_list.append(taylor_scale_u_std)
@@ -353,8 +350,8 @@ for i in np.arange(n_int).tolist():
             taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
                 time_lags_hr,
                 acf_hr,
-                tau_min=10,
-                tau_max=50,
+                tau_min=params.tau_min,
+                tau_max=params.tau_max,
                 q=slope_k)
 
             taylor_scale_c_list.append(taylor_scale_c)
