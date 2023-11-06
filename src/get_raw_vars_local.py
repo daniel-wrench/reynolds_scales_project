@@ -21,20 +21,18 @@ Outputs:
 Note:
     Ensure the required modules and dependencies are installed and the necessary data files are available in the `data/raw/` directory.
 
-Author:
-    Daniel Wrench
-Date:
-    3/9/2023
 
 """
 
 import datetime
 import glob
-import params # Add src. prefix and `as params` if running interactively (but sys.argv variable will not exist)
 import sys
 import os
 
-from utils import * # Add src. prefix if running interactively (but sys.argv variable will not exist)
+# Custom modules
+## Add src. prefix if running interactively (but sys.argv variable will not exist)
+import params 
+from utils import *
 
 # The following values should match the variables names in params.py 
 # Vector components do not need to be specified, just the overall vector

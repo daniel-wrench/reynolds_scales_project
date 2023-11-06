@@ -1,9 +1,16 @@
 # This file specifies the filepaths, variable names, thresholds and interval sizes
 # for the initial data processing
 
+# See here for brief description of all Wind datasets:
+# https://cdaweb.gsfc.nasa.gov/misc/NotesW.html
+
+# See also accessing Wind data with HelioPy:
+# https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf 
+
 timestamp = "Epoch"
 int_size = "12H"
 
+# Not using OMNI currently
 omni_path = "omni/omni_cdaweb/hro2_1min/"
 vsw = "flow_speed"
 p = "Pressure"
@@ -45,7 +52,7 @@ proton_thresh = {
 }
 
 mag_path = "wind/mfi/mfi_h2/"
-Bwind = "BF1"
+Bwind = "BF1" # not using currently
 Bwind_vec = "BGSE"
 Bx = "BGSE_0"
 By = "BGSE_1"
@@ -53,18 +60,16 @@ Bz = "BGSE_2"
 mag_thresh = None
 
 # Parameters for estimating numerical variables
-
 dt_lr = "5S"
 nlags_lr = 2000
 dt_hr = "0.092S"
 dt_protons = "3S"
 nlags_hr = 100
+tau_min = 10
+tau_max = 50
 
 # Frequency bounds are taken from Wang et al. (2018, JGR)
 f_min_inertial = 0.005
 f_max_inertial = 0.2
 f_min_kinetic = 0.5
 f_max_kinetic = 1.4
-
-tau_min = 10
-tau_max = 50

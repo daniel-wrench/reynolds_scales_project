@@ -13,18 +13,18 @@ Steps:
     2. Process data and initialize lists for storing computed metrics.
     3. Loop over each interval to compute autocorrelations and power spectra, handling missing data as necessary.
     4. Create a DataFrame containing the computed statistics for each interval.
-    5. Save the final processed dataframes as pickle files.
+    5. Save the final processed dataframes as pickle files to the directory data/processed.
 
-Author: Daniel Wrench
-Last modified: 4/9/2023
 """
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-# Add src. prefix to following if running interactively
-import params as params
-import utils as utils
+
+# Custom modules
+## Add src. prefix if running interactively
+import params
+import utils
 
 # In terms of intermediate output for checking, the most important would be the high-res and low-res mag
 # field stuff, given this is not retained in the final database
@@ -47,11 +47,6 @@ df_wind_hr = df_wind_hr.rename(
 print("\nHigh-res Wind dataframe:\n")
 print(df_wind_hr.info())
 print(df_wind_hr.describe().round(2))
-
-# WANT TO LIMIT THE FOLLOWING ANALYSIS TO EACH INTERVAL
-# but check it works here first
-
-# We also need velocities for cross-helicity and converting to Alfvenic units
 
 df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.dt_protons + ".pkl")
 
@@ -77,6 +72,7 @@ df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr +
 
 df_wind_lr = df_wind_lr.rename(
     columns={
+        params.Bwind: "Bwind",
         params.Bx: "Bx",
         params.By: "By",
         params.Bz: "Bz"})
@@ -142,7 +138,7 @@ endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S"
 n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
                  pd.to_timedelta(params.int_size)).astype(int)
 
-# If we subset timestamps that don"t exist in the dataframe, they will still be included in the list, just as
+# If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
 # missing dataframes. We can identify these with df.empty = True (or missing)
 
 print("\nLOOPING OVER EACH INTERVAL")

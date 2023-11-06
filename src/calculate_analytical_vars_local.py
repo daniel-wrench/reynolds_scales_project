@@ -24,13 +24,12 @@ Workflow:
        time to distance.
     6. Save the final merged dataset and summary statistics to CSV files.
 
-Author: Daniel Wrench
-Last modified: 4/9/2023
 """
 
 import pandas as pd
 import numpy as np
-# Need to add src. prefix to below when running interactively
+# Custom modules
+# Add src. prefix to below when running interactively
 import params
 import utils
 
@@ -48,7 +47,7 @@ df_omni = df_omni.rename(
         params.p: 'pomni',
         params.Bomni: 'Bomni'})
 
-# Electron data
+# Electron data (already have proton data in df_merged)
 
 df_electrons = pd.read_pickle("data/processed/" + params.electron_path + params.int_size + ".pkl")
 df_electrons = df_electrons.rename(
@@ -57,13 +56,6 @@ df_electrons = df_electrons.rename(
         params.Te: 'Te'
     })
 
-# Proton data (already have this from dataset.pkl)
-
-# df_protons = pd.read_pickle("data/processed/" + params.proton_path + params.int_size + ".pkl")
-# df_protons = df_protons.rename(
-#     columns={
-#         params.ni: 'ni',
-#         params.Ti: 'Ti'})
 
 # Sunspot data
 
@@ -89,18 +81,17 @@ if df_final.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
 # Calculating analytically-derived variables
-# (using ne due to issues with wind ni data)
+# (may need to only use ne due to issues with wind ni data from previous proton dataset)
 
-df_final["rhoe"] = (2.38e-5)*(df_final["Te"]**(1/2))*((df_final["B0"]*1e-5)**-1)  # Electron gyroradius
-df_final["rhoi"] = (1.02e-3)*(df_final["Tp"]**(1/2))*((df_final["B0"]*1e-5)**-1) # Ion gyroradius
-df_final["de"] = (5.31)*(df_final["ne"]**(-1/2)) # Electron inertial length
-df_final["di"] = (2.28e2)*(df_final["ne"]**(-1/2)) # Ion inertial length (swapped ni for ne)
-df_final["betae"] = (4.03e-11)*df_final["ne"]*df_final["Te"]*((df_final["B0"]*1e-5)**-2) # Electron plasma beta
-#df_final["betai"] = (4.03e-11)*df_final["ne"]*df_final["Tp"]*((df_final["B0"]*1e-5)**-2) # Ion plasma beta (now same as betae)
-df_final["va"] = (2.18e6)*(df_final["ne"]**(-1/2))*(df_final["B0"]*1e-5) # Alfven speed (swapped ni for ne)
-df_final["ld"] = (7.43e-3)*(df_final["Te"]**(1/2))*(df_final["ne"]**(-1/2)) # Debye length
-
-df_final["p"] = (2*10**-6)*df_final["np"]*df_final["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
+df_final["rhoe"] = 2.38*np.sqrt(df_final['Te'])/df_final['B0']    
+df_final['rhoi'] = 102*np.sqrt(df_final['Tp'])/df_final['B0']
+df_final["de"] = 5.31*np.sqrt(df_final["ne"]) # Electron inertial length
+df_final["di"] = 228*np.sqrt(df_final["ne"]) # Ion inertial length (swapped ni for ne)
+df_final["betae"] = 0.403*df_final["ne"]*df_final["Te"]/df_final["B0"]
+df_final["betai"] = 0.403*df_final["np"]*df_final["Tp"]/df_final["B0"]
+df_final["va"] = 21.8*df_final['B0']/np.sqrt(df_final["ne"]) # Alfven speed
+df_final["ld"] = 0.00743*np.sqrt(df_final["Te"])/np.sqrt(df_final["ne"]) # Debye length
+df_final["p"] = (2e-6)*df_final["np"]*df_final["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
 
 # Calculating Reynolds numbers
 df_final["Re_lt"] = (df_final["tcf"]/df_final["ttc"])**2

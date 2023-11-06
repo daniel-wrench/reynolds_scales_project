@@ -21,18 +21,16 @@ Outputs:
 Note:
     Ensure the required modules and dependencies are installed and the necessary data files are available in the `data/raw/` directory.
 
-Author:
-    Daniel Wrench
-Last modified:
-    3/9/2023
 
 """
 
 import datetime
 import glob
-import params
 import sys
 import os
+
+# Custom modules
+import params
 from utils import *
 
 ####### PARALLEL STUFF #######
@@ -44,6 +42,8 @@ rank = comm.Get_rank()  # Current core
 status = MPI.Status()
 ##############################
 
+# The following values should match the variables names in params.py 
+# Vector components do not need to be specified, just the overall vector
 sys_arg_dict = {
     # arg1
     "mag_path": params.mag_path,
@@ -54,7 +54,7 @@ sys_arg_dict = {
     # arg2
     "mag_vars": [params.timestamp, params.Bwind, params.Bwind_vec],
     "omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
-    "proton_vars": [params.timestamp, params.np, params.Tp],
+    "proton_vars": [params.timestamp, params.np, params.nalpha, params.Tp, params.Talpha, params.V_vec],
     "electron_vars": [params.timestamp, params.ne, params.Te],
 
     # arg3
@@ -65,6 +65,7 @@ sys_arg_dict = {
 
     # arg4
     "dt_hr": params.dt_hr,
+    "dt_protons": params.dt_protons,
     "int_size": params.int_size,
 
     # arg5
@@ -148,14 +149,12 @@ df = df.sort_index()
 # NB: Using .asfreq() creates NA values
 
 # Outputting pickle file
-df.to_pickle(
-    output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
+df.to_pickle(output_dir + sys_arg_dict[sys.argv[4]] + "_{:03d}.pkl".format(rank))
 
 # Also outputting pickle at second resolution, if specified
 if sys.argv[5] != "None":
     df = df.resample(sys_arg_dict[sys.argv[5]]).mean()
-    df.to_pickle(
-        output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
+    df.to_pickle(output_dir + sys_arg_dict[sys.argv[5]] + "_{:03d}.pkl".format(rank))
 
     second_cadence = " and " + sys_arg_dict[sys.argv[5]]
 else:
