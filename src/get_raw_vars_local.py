@@ -48,7 +48,7 @@ sys_arg_dict = {
     # arg2
     "mag_vars": [params.timestamp, params.Bwind, params.Bwind_vec],
     #"omni_vars": [params.timestamp, params.vsw, params.p, params.Bomni],
-    "proton_vars": [params.timestamp, params.ni, params.nalpha, params.Ti, params.Talpha, params.V_vec],
+    "proton_vars": [params.timestamp, params.np, params.nalpha, params.Tp, params.Talpha, params.V_vec],
     "electron_vars": [params.timestamp, params.ne, params.Te],
 
     # arg3

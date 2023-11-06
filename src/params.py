@@ -29,10 +29,10 @@ electron_thresh = {
 # https://hpde.io/NASA/NumericalData/Wind/3DP/PM/PT03S
 
 proton_path = "wind/3dp/3dp_pm/"
-ni = "P_DENS" # density in #/cm3
+np = "P_DENS" # density in #/cm3
 nalpha = "A_DENS" # alpha particle density in #/cm3
 Talpha = "A_TEMP"
-Ti = "P_TEMP" # temperature in eV
+Tp = "P_TEMP" # temperature in eV
 V_vec = "P_VELS" # velocity in km/s
 Vx = "P_VELS_0"
 Vy = "P_VELS_1"

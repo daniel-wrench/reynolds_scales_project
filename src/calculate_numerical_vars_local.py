@@ -107,9 +107,9 @@ sigma_c_list = []
 sigma_r_list = []
 ra_list = []
 cos_a_list = []
-ni_list = []
+np_list = []
 nalpha_list = []
-Ti_list = []
+Tp_list = []
 Talpha_list = []
 
 inertial_slope_list = []
@@ -193,9 +193,9 @@ for i in np.arange(n_int).tolist():
             ## Fluctuations are calculated relative to the mean of the specific dataset read in, however large that may b
 
             # Temps and densities
-            ni_list.append(int_protons["ni"].mean())
+            np_list.append(int_protons["np"].mean())
             nalpha_list.append(int_protons["nalpha"].mean())
-            Ti_list.append(int_protons["Ti"].mean())
+            Tp_list.append(int_protons["Tp"].mean())
             Talpha_list.append(int_protons["Talpha"].mean())
 
             # Resampling mag field data to 3s to match velocity data cadence
@@ -239,7 +239,7 @@ for i in np.arange(n_int).tolist():
             dboB0_list.append(db/B0)
 
             ## in Alfvenic units
-            alfven_prefactor = (2.18e1)*(df_protons["ni"]**-1/2) # Converting nT to Gauss and cm/s to km/s
+            alfven_prefactor = (2.18e1)*(df_protons["np"]**-1/2) # Converting nT to Gauss and cm/s to km/s
             # NB: Wang2012 used the mean of ni instead
 
             dbx_a = dbx*alfven_prefactor
@@ -379,9 +379,9 @@ plt.close()
 df = pd.DataFrame({
     "Timestamp": timestamps,
     "missing_mfi": wind_df_hr_list_missing,
-    "ni": ni_list,
+    "np": np_list,
     "nalpha": nalpha_list,
-    "Ti": Ti_list,
+    "Tp": Tp_list,
     "Talpha": Talpha_list,
     "B0": B0_list,
     "dboB0": dboB0_list,
