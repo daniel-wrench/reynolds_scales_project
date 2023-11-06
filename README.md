@@ -3,27 +3,44 @@ Codes for constructing a database of solar wind parameters and scales as measure
 
 Takes in 300GB of CDF files, produces 8MB CSV file. 
 
+## TRACKING DATASET UPDATES
+- No longer using OMNI: deriving all variables from Wind data
+- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments)
+- Added new variables
+- Calculating db/B0 slightly differently
+
 ## To-do
 Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. 
 
-- Re-run codes on Rāpoi, checking my instructions
-- Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-- Add decay rate $U^3/L$ (see eqn. 10 of Zhou2020, eqn. 1 of Wu2022), cross-helicity $\sigma_c$, residual energy $\sigma_r$, collisional age? (Kasper PRL)
-- *Fig. 4: Add multiple parabolic fit lines, put units at end of top 2 axes, add little arrows for vertical lines (fit, intercept)?*
+- Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday
+- Mag of average vs av of mag for db/b
+- Check new values match up against existing ones, esp. velocity
+- With new dataset, check issue with too many missing rhoe, rhoi, beta, va, and also strange values in March 96
+- Use standard error instead of SD?
+- Check values against literature https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar Table III
+- breakscale vs db
+- check no. of points reported; make clear subset contains ... points
 
-### Future work
+- Re-run codes on Rāpoi, checking my instructions. **Note changes to demo_numerical fns**
+- Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+
+- (derive mach number, make sure have rms b and v_i/center of mass, SSN)
+
+### Future statistical analysis
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
 
 - Add vector velocities to params.py script, anticipating switch to PSP data
 - Think about using the standard error to express variation in the means of our Re estimates.
 - More 2D histograms: 
     - Taylor scale vs. delta b/b
+    - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
     - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
 
 ### References: 
 
 - Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
 - Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
 
 ## Notes on results
 
