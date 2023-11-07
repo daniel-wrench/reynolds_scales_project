@@ -90,6 +90,7 @@ df_final["di"] = 228*np.sqrt(df_final["ne"]) # Ion inertial length (swapped ni f
 df_final["betae"] = 0.403*df_final["ne"]*df_final["Te"]/df_final["B0"]
 df_final["betai"] = 0.403*df_final["np"]*df_final["Tp"]/df_final["B0"]
 df_final["va"] = 21.8*df_final['B0']/np.sqrt(df_final["ne"]) # Alfven speed
+df_final["ma"] = df_final["V0"]/df_final["va"] # Alfven mach number
 df_final["ld"] = 0.00743*np.sqrt(df_final["Te"])/np.sqrt(df_final["ne"]) # Debye length
 df_final["p"] = (2e-6)*df_final["np"]*df_final["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
 
