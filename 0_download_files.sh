@@ -14,7 +14,7 @@ echo "Sunspot data downloaded."
 ## (Currently downloading 1 week worth of data: takes about 4min locally, 20s on Google Colab)
 
 #echo "Downloading OMNI data"
-wget --directory-prefix=data/raw/omni/omni_cdaweb/hro2_1min/1995/ https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/1995/omni_hro2_1min_19950101_v01.cdf
+wget --no-clobber --directory-prefix=data/raw/omni/omni_cdaweb/hro2_1min/1995/ https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/1995/omni_hro2_1min_19950101_v01.cdf
 #echo "OMNI data downloaded"
 
 echo "Downloading WIND data"
@@ -26,10 +26,10 @@ wget --no-clobber --directory-prefix=data/raw/wind/mfi/mfi_h2/1995/ https://spdf
 # Download all CDF files and sub-directories from a directory, removing the first two directories from the saved filepath
 ## In Raapoi terminal: 10.7MB/s
 
-#wget --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/
-#wget --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/
-#wget --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/
-#wget --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/
+#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/
+#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/
+#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/
+#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/
 
 # We don't want data before 1995 or after 2022, do delete these directories
 # (I think this is easier than specifying it in the wget command)
