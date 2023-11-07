@@ -2,8 +2,8 @@
 """
 calculate_numerical_vars.py
 
-This script processes high-resolution and low-resolution wind magnetic field data to compute various metrics related to magnetic field fluctuations and their statistical properties.
-
+This script processes high-resolution and low-resolution wind magnetic field data to compute various metrics 
+related to magnetic field fluctuations and their statistical properties.
 Modules:
     - params: Contains parameters and configurations for data processing.
     - utils: Contains utility functions for data processing and analysis.
@@ -11,12 +11,13 @@ Modules:
 Steps:
     1. Read high-resolution and low-resolution wind magnetic field data from pickle files.
     2. Process data and initialize lists for storing computed metrics.
-    3. Loop over each interval to compute autocorrelations and power spectra, handling missing data as necessary.
+    3. Loop over each interval to a variety of quantities, some using mfi data, some using proton data, and some both. 
+    This requires if-else logic to deal with missing data for each dataset in each interval. Basically, we linearly
+    interpolate gaps if there is less than 10% missing, otherwise the corresponding computed statistics for that interval 
+    are set to missing.
     4. Create a DataFrame containing the computed statistics for each interval.
-    5. Save the final processed dataframes as pickle files to the directory data/processed.
+    5. Save the final processed dataframes as pickle files to the directory data/processed/.
 
-Author: Daniel Wrench
-Last modified: 4/9/2023
 """
 
 import numpy as np
@@ -46,9 +47,7 @@ comm.Barrier()
 
 print("\nCORE {}: STARTED READING PICKLE FILES".format(rank))
 
-# Wind magnetic field data
-
-# High-res data
+# High-res magnetic field data
 
 df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr + "_{:03d}.pkl".format(rank))
 
@@ -72,9 +71,7 @@ df_protons = df_protons.rename(
         params.Talpha: "Talpha"})
 
 
-############
-
-# Low-res data
+# Low-res magnetic field data
 
 df_wind_lr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_lr + "_{:03d}.pkl".format(rank))
 
@@ -87,9 +84,10 @@ df_wind_lr = df_wind_lr.rename(
 
 print("\nCORE {}: FINISHED READING PICKLE FILES".format(rank))
 
-timestamps = []
 
 # Initializing lists for storing computed metrics
+timestamps = []
+
 Bwind_list = []
 B0_list = []
 dboB0_list = []
@@ -113,31 +111,28 @@ spectral_break_list = []
 corr_scale_exp_fit_list = []
 corr_scale_exp_trick_list = []
 corr_scale_int_list = []
-
-# Returning both corrected and un-corrected Chuychai versions
-
 taylor_scale_u_list = []
 taylor_scale_u_std_list = []
-
 taylor_scale_c_list = []
 taylor_scale_c_std_list = []
 
-# Splitting entire dataframe into a list of intervals
-
-wind_df_hr_list_missing = []  # This will be added as a column to the final dataframe
+wind_df_hr_list_missing = []
 wind_df_protons_list_missing = []
 
-# E.g. 2016-01-01 00:00
-starttime = df_wind_lr.index[0].round(params.int_size)
+# Splitting entire dataframe into a list of intervals (each themselves a dataframe)
+# First, set a start and end time for the first interval
+
+starttime = df_wind_lr.index[0].round(params.int_size) 
 # Will account for when the dataset does not start at a nice round 12H timestamp
+# E.g. 2016-01-01 00:00
 
-# E.g. 2016-01-01 11:59:59.99
 endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
+# E.g. 2016-01-01 11:59:59.99
 
-n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) /
-                 pd.to_timedelta(params.int_size)).astype(int)
+# Number of intervals in the dataset
+n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) / pd.to_timedelta(params.int_size)).astype(int)
 
-# If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
+# NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
 # missing dataframes. We can identify these with df.empty = True (or missing)
 
 print("\nCORE {}: LOOPING OVER EACH INTERVAL".format(rank))
@@ -153,19 +148,37 @@ for i in np.arange(n_int).tolist():
     int_hr = df_wind_hr[int_start:int_end]
     int_protons = df_protons[int_start:int_end]
 
-    # Record and deal with missing data
+    # Record amount of missing data in each dataset in each interval
     if int_hr.empty:
         missing_mfi = 1
     else:
         missing_mfi = int_hr.iloc[:, 0].isna().sum()/len(int_hr)
+
+    if int_protons.empty:
+        missing_3dp = 1
+    else:
         missing_3dp = int_protons.iloc[:, 0].isna().sum()/len(int_protons)
 
+    # Save these values to their respective lists, to become columns in the final dataframe
     wind_df_hr_list_missing.append(missing_mfi)
     wind_df_protons_list_missing.append(missing_3dp)
 
+    # What follows are nested if-else statements dealing with each combination of missing data between
+    # the magnetic field and proton datasets, interpolating and calculating variables where possible
+    # and setting them to missing where not 
+
     if missing_mfi > 0.1:
-        # If magnetic field data is sufficiently sparse, set values that require it (basically all) to missing
+        # If magnetic field data is sufficiently sparse, set values that require it to missing
         Bwind_list.append(np.nan)
+        B0_list.append(np.nan)
+        dboB0_list.append(np.nan)
+        zp_list.append(np.nan)
+        zm_list.append(np.nan)
+        sigma_c_list.append(np.nan)
+        sigma_r_list.append(np.nan)
+        ra_list.append(np.nan)
+        cos_a_list.append(np.nan)
+
         inertial_slope_list.append(np.nan)
         kinetic_slope_list.append(np.nan)
         spectral_break_list.append(np.nan)
@@ -176,229 +189,264 @@ for i in np.arange(n_int).tolist():
         taylor_scale_u_std_list.append(np.nan)
         taylor_scale_c_list.append(np.nan)
         taylor_scale_c_std_list.append(np.nan)
-        np_list.append(np.nan)
-        nalpha_list.append(np.nan)
-        Tp_list.append(np.nan)
-        Talpha_list.append(np.nan)
-        B0_list.append(np.nan)
-        dboB0_list.append(np.nan)
-        V0_list.append(np.nan)
-        v_r_list.append(np.nan)
-        dv_list.append(np.nan)
-        zp_list.append(np.nan)
-        zm_list.append(np.nan)
-        sigma_c_list.append(np.nan)
-        sigma_r_list.append(np.nan)
-        ra_list.append(np.nan)
-        cos_a_list.append(np.nan)
-    
-    else:
+
+        if missing_3dp > 0.1:
+            # If proton data is sufficiently sparse, set values that require it to missing
+            np_list.append(np.nan)
+            nalpha_list.append(np.nan)
+            Tp_list.append(np.nan)
+            Talpha_list.append(np.nan)
+            V0_list.append(np.nan)
+            v_r_list.append(np.nan)
+            dv_list.append(np.nan)
+
+        elif missing_3dp <= 0.1:
+            # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
+            int_protons = int_protons.interpolate(method="linear").ffill().bfill()
+
+            np_list.append(int_protons["np"].mean())
+            nalpha_list.append(int_protons["nalpha"].mean())
+            Tp_list.append(int_protons["Tp"].mean())
+            Talpha_list.append(int_protons["Talpha"].mean())
+
+            Vx = int_protons["Vx"]
+            Vy = int_protons["Vy"]
+            Vz = int_protons["Vz"]
+
+            Vx_mean = Vx.mean()
+            Vy_mean = Vy.mean()
+            Vz_mean = Vz.mean()
+
+            # Save mean radial velocity (should dominate velocity mag)
+            v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
+
+            # Velocity magnitude
+            V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
+            V0_list.append(V0)
+
+            # Velocity fluctuations
+            dvx = (Vx - Vx_mean)
+            dvy = (Vy - Vy_mean)
+            dvz = (Vz - Vz_mean)
+
+            dv = np.sqrt(dvx**2+dvy**2+dvz**2)
+            dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
+            dv_list.append(dv_rms)
+
+    elif missing_mfi <= 0.1:
+
+        try: # try statement for error handling; see except statement at end of loop
         # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
-        int_hr = int_hr.interpolate(method="linear").ffill().bfill() 
-        int_lr = int_lr.interpolate(method="linear").ffill().bfill()
 
-    if missing_3dp > 0.1:
-        # If proton data is sufficiently sparse, set values that require it to missing
-        np_list.append(np.nan)
-        nalpha_list.append(np.nan)
-        Tp_list.append(np.nan)
-        Talpha_list.append(np.nan)
-        B0_list.append(np.nan)
-        dboB0_list.append(np.nan)
-        V0_list.append(np.nan)
-        v_r_list.append(np.nan)
-        dv_list.append(np.nan)
-        zp_list.append(np.nan)
-        zm_list.append(np.nan)
-        sigma_c_list.append(np.nan)
-        sigma_r_list.append(np.nan)
-        ra_list.append(np.nan)
-        cos_a_list.append(np.nan)
+            int_hr = int_hr.interpolate(method="linear").ffill().bfill() 
+            int_lr = int_lr.interpolate(method="linear").ffill().bfill()
 
-    else:
-        # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
-        int_protons = int_protons.interpolate(method="linear").ffill().bfill()
+            # Firstly, do the calculations that we don't need proton data for
+            # Then, condition on sufficient proton data and do the remainder
 
-    try: # try statement for error handling; see except statement at end of loop
+            # Temps and densities, raw mag magnitude
+            Bwind_list.append(int_hr["Bwind"].mean())
 
-        ## Calculating magnetic field fluctuations, db/B0
-        ## (Same as previous, except now calculating full db/B0 at this step, not just the fluctuations)
-        ## Fluctuations are calculated relative to the mean of the specific dataset read in, however large that may b
+            # Resampling mag field data to 3s to match velocity data cadence
+            ## NB: there is also a 3s cadence version of the mfi data, e.g. as used by Podesta2010, 
+            ## but we want the highest res possible for the Taylor scale calculations
 
-        # Temps and densities, raw mag magnitude
-        Bwind_list.append(int_hr["Bwind"].mean())
-        np_list.append(int_protons["np"].mean())
-        nalpha_list.append(int_protons["nalpha"].mean())
-        Tp_list.append(int_protons["Tp"].mean())
-        Talpha_list.append(int_protons["Talpha"].mean())
+            Bx = int_hr["Bx"].resample(params.dt_protons).mean()
+            By = int_hr["By"].resample(params.dt_protons).mean()
+            Bz = int_hr["Bz"].resample(params.dt_protons).mean()
 
-        # Resampling mag field data to 3s to match velocity data cadence
-        ## NB: there is also a 3s cadence version of the mfi data, e.g. as used by Podesta2010, 
-        ## but we want the highest res possible for the Taylor scale calculations
+            Bx_mean = Bx.mean()
+            By_mean = By.mean()
+            Bz_mean = Bz.mean()
 
-        Bx = int_hr["Bx"].resample(params.dt_protons).mean()
-        By = int_hr["By"].resample(params.dt_protons).mean()
-        Bz = int_hr["Bz"].resample(params.dt_protons).mean()
+            # Calculate rms magnetic field
+            B0 = np.sqrt(np.mean(Bx**2)+np.mean(By**2)+np.mean(Bz**2))
+            B0_list.append(B0)
 
-        Bx_mean = Bx.mean()
-        By_mean = By.mean()
-        Bz_mean = Bz.mean()
+            # Add magnetic field fluctuations, db
+            dbx = Bx - Bx_mean
+            dby = By - By_mean
+            dbz = Bz - Bz_mean
+            db = np.sqrt(dbx**2+dby**2+dbz**2)
+            db_rms = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2))
+            
+            dboB0_list.append(db_rms/B0)
 
-        # Calculate rms magnetic field
-        B0 = np.sqrt(np.mean(Bx**2)+np.mean(By**2)+np.mean(Bz**2))
-        B0_list.append(B0)
+            # Compute autocorrelations and power spectra
+            time_lags_lr, acf_lr = utils.compute_nd_acf(
+                np.array([
+                    int_lr.Bx,
+                    int_lr.By,
+                    int_lr.Bz
+                ]),
+                nlags=params.nlags_lr,
+                dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
 
-        # Add velocity field fluctuations, dv
-        Vx = int_protons["Vx"]
-        Vy = int_protons["Vy"]
-        Vz = int_protons["Vz"]
+            corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
+            corr_scale_exp_trick_list.append(corr_scale_exp_trick)
 
-        Vx_mean = Vx.mean()
-        Vy_mean = Vy.mean()
-        Vz_mean = Vz.mean()
+            # Use estimate from 1/e method to select fit amount
+            corr_scale_exp_fit = utils.compute_outer_scale_exp_fit(
+                time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick))
+            corr_scale_exp_fit_list.append(corr_scale_exp_fit)
 
-        # Save mean radial velocity (should dominate velocity mag)
-        v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
+            corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
+            corr_scale_int_list.append(corr_scale_int)
 
-        # Calculate velocity magnitude
-        V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
-        V0_list.append(V0)
+            time_lags_hr, acf_hr = utils.compute_nd_acf(
+                np.array([
+                    int_hr.Bx,
+                    int_hr.By,
+                    int_hr.Bz
+                ]),
+                nlags=params.nlags_hr,
+                dt=float(params.dt_hr[:-1]))
 
-        # Add magnetic field fluctuations, db
-        dbx = Bx - Bx_mean
-        dby = By - By_mean
-        dbz = Bz - Bz_mean
-        db = np.sqrt(dbx**2+dby**2+dbz**2)
-        db_rms = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2))
-        
-        dboB0_list.append(db_rms/B0)
+        # ~1min per interval due to spectrum smoothing algorithm
+            slope_i, slope_k, break_s = utils.compute_spectral_stats(
+                np.array([
+                    int_hr.Bx,
+                    int_hr.By,
+                    int_hr.Bz
+                ]),
+                dt=float(params.dt_hr[:-1]),
+                f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+                f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
 
-        ## in Alfvenic units
-        alfven_prefactor = (2.18e1)/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
-        # note that uses the mean density of the interval Wang2012ApJ
+            inertial_slope_list.append(slope_i)
+            kinetic_slope_list.append(slope_k)
+            spectral_break_list.append(break_s)
 
-        dbx_a = dbx*alfven_prefactor
-        dby_a = dby*alfven_prefactor
-        dbz_a = dbz*alfven_prefactor
-        db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
+            taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
+                time_lags_hr,
+                acf_hr,
+                tau_min=params.tau_min,
+                tau_max=params.tau_max)
 
-        dvx = (Vx - Vx_mean)
-        dvy = (Vy - Vy_mean)
-        dvz = (Vz - Vz_mean)
+            taylor_scale_u_list.append(taylor_scale_u)
+            taylor_scale_u_std_list.append(taylor_scale_u_std)
 
-        dv = np.sqrt(dvx**2+dvy**2+dvz**2)
-        dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
-        dv_list.append(dv_rms)
+            taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
+                time_lags_hr,
+                acf_hr,
+                tau_min=params.tau_min,
+                tau_max=params.tau_max,
+                q=slope_k)
 
-        # Cross-helicity 
-        Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
+            taylor_scale_c_list.append(taylor_scale_c)
+            taylor_scale_c_std_list.append(taylor_scale_c_std)
 
-        # Normalize by energy (should then range between -1 and 1, like a normal correlation coefficient)
-        # Only minor different calculating them separately, rather than np.mean(dv**2 + db**2)
-        e_kinetic = np.mean(dv**2)
-        e_magnetic = np.mean(db_a**2)
 
-        sigma_c = 2*Hc/(e_kinetic+e_magnetic)
-        sigma_c_list.append(sigma_c)
+            # Now do the stuff that requires proton data
 
-        # Normalized residual energy
-        sigma_r = (e_kinetic-e_magnetic)/(e_kinetic+e_magnetic)
-        sigma_r_list.append(sigma_r)
+            if missing_3dp > 0.1:
+                # If proton data is sufficiently sparse, set values that require it to missing
+                np_list.append(np.nan)
+                nalpha_list.append(np.nan)
+                Tp_list.append(np.nan)
+                Talpha_list.append(np.nan)
+                V0_list.append(np.nan)
+                v_r_list.append(np.nan)
+                dv_list.append(np.nan)
+                zp_list.append(np.nan)
+                zm_list.append(np.nan)
+                sigma_c_list.append(np.nan)
+                sigma_r_list.append(np.nan)
+                ra_list.append(np.nan)
+                cos_a_list.append(np.nan)
 
-        # Alfven ratio (ratio between kinetic and magnetic energy)
-        ra = e_kinetic/e_magnetic
-        ra_list.append(ra)
+            elif missing_3dp <= 0.1:
+                # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
+                int_protons = int_protons.interpolate(method="linear").ffill().bfill()
 
-        # Alignment cosine (see Parashar2018PRL)
-        cos_a = Hc/np.mean(np.sqrt(e_kinetic*e_magnetic))
-        cos_a_list.append(cos_a)
+                np_list.append(int_protons["np"].mean())
+                nalpha_list.append(int_protons["nalpha"].mean())
+                Tp_list.append(int_protons["Tp"].mean())
+                Talpha_list.append(int_protons["Talpha"].mean())
+            
+                ## Calculating magnetic field fluctuations, db/B0
+                ## (Same as previous, except now calculating full db/B0 at this step, not just the fluctuations)
+                ## Fluctuations are calculated relative to the mean of the specific dataset read in, however large that may b
 
-        # Elsasser variables
-        zpx = dvx + dbx_a
-        zpy = dvy + dby_a
-        zpz = dvz + dbz_a
-        zp = np.sqrt(np.mean(zpx**2)+np.mean(zpy**2)+np.mean(zpz**2))
-        zp_list.append(zp)
+                # Add velocity field fluctuations, dv
+                Vx = int_protons["Vx"]
+                Vy = int_protons["Vy"]
+                Vz = int_protons["Vz"]
 
-        zmx = dvx - dbx_a
-        zmy = dvy - dby_a
-        zmz = dvz - dbz_a
-        zm = np.sqrt(np.mean(zmx**2)+np.mean(zmy**2)+np.mean(zmz**2))
-        zm_list.append(zm)
+                Vx_mean = Vx.mean()
+                Vy_mean = Vy.mean()
+                Vz_mean = Vz.mean()
 
-        # Compute autocorrelations and power spectra
-        time_lags_lr, acf_lr = utils.compute_nd_acf(
-            np.array([
-                int_lr.Bx,
-                int_lr.By,
-                int_lr.Bz
-            ]),
-            nlags=params.nlags_lr,
-            dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
+                # Save mean radial velocity (should dominate velocity mag)
+                v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
 
-        corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
-        corr_scale_exp_trick_list.append(corr_scale_exp_trick)
+                # Calculate velocity magnitude
+                V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
+                V0_list.append(V0)
 
-        # Use estimate from 1/e method to select fit amount
-        corr_scale_exp_fit = utils.compute_outer_scale_exp_fit(
-            time_lags_lr, acf_lr, np.round(2*corr_scale_exp_trick))
-        corr_scale_exp_fit_list.append(corr_scale_exp_fit)
+                ## Convert magnetic field fluctuations to Alfvenic units
+                alfven_prefactor = (2.18e1)/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
+                # note that uses the mean density of the interval Wang2012ApJ
 
-        corr_scale_int = utils.compute_outer_scale_integral(time_lags_lr, acf_lr)
-        corr_scale_int_list.append(corr_scale_int)
+                dbx_a = dbx*alfven_prefactor
+                dby_a = dby*alfven_prefactor
+                dbz_a = dbz*alfven_prefactor
+                db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
 
-        time_lags_hr, acf_hr = utils.compute_nd_acf(
-            np.array([
-                int_hr.Bx,
-                int_hr.By,
-                int_hr.Bz
-            ]),
-            nlags=params.nlags_hr,
-            dt=float(params.dt_hr[:-1]))
+                dvx = (Vx - Vx_mean)
+                dvy = (Vy - Vy_mean)
+                dvz = (Vz - Vz_mean)
 
-    # ~1min per interval due to spectrum smoothing algorithm
-        slope_i, slope_k, break_s = utils.compute_spectral_stats(
-            np.array([
-                int_hr.Bx,
-                int_hr.By,
-                int_hr.Bz
-            ]),
-            dt=float(params.dt_hr[:-1]),
-            f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
-            f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
+                dv = np.sqrt(dvx**2+dvy**2+dvz**2)
+                dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
+                dv_list.append(dv_rms)
 
-        inertial_slope_list.append(slope_i)
-        kinetic_slope_list.append(slope_k)
-        spectral_break_list.append(break_s)
+                # Cross-helicity 
+                Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
 
-        taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
-            time_lags_hr,
-            acf_hr,
-            tau_min=params.tau_min,
-            tau_max=params.tau_max)
+                # Normalize by energy (should then range between -1 and 1, like a normal correlation coefficient)
+                # Only minor different calculating them separately, rather than np.mean(dv**2 + db**2)
+                e_kinetic = np.mean(dv**2)
+                e_magnetic = np.mean(db_a**2)
 
-        taylor_scale_u_list.append(taylor_scale_u)
-        taylor_scale_u_std_list.append(taylor_scale_u_std)
+                sigma_c = 2*Hc/(e_kinetic+e_magnetic)
+                sigma_c_list.append(sigma_c)
 
-        taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
-            time_lags_hr,
-            acf_hr,
-            tau_min=params.tau_min,
-            tau_max=params.tau_max,
-            q=slope_k)
+                # Normalized residual energy
+                sigma_r = (e_kinetic-e_magnetic)/(e_kinetic+e_magnetic)
+                sigma_r_list.append(sigma_r)
 
-        taylor_scale_c_list.append(taylor_scale_c)
-        taylor_scale_c_std_list.append(taylor_scale_c_std)
-    
-    except Exception as e:
-        print("Error: missingness < 10% but error in computations: {}".format(e))
+                # Alfven ratio (ratio between kinetic and magnetic energy, typically ~0.5)
+                ra = e_kinetic/e_magnetic
+                ra_list.append(ra)
 
-print("\nCORE {}: JOINING COLUMNS INTO SINGLE DATAFRAME".format(rank))
+                # Alignment cosine (see Parashar2018PRL, ranges between -1 and 1)
+                cos_a = Hc/np.mean(np.sqrt(e_kinetic*e_magnetic))
+                cos_a_list.append(cos_a)
+
+                # Elsasser variables
+                zpx = dvx + dbx_a
+                zpy = dvy + dby_a
+                zpz = dvz + dbz_a
+                zp = np.sqrt(np.mean(zpx**2)+np.mean(zpy**2)+np.mean(zpz**2))
+                zp_list.append(zp)
+
+                zmx = dvx - dbx_a
+                zmy = dvy - dby_a
+                zmz = dvz - dbz_a
+                zm = np.sqrt(np.mean(zmx**2)+np.mean(zmy**2)+np.mean(zmz**2))
+                zm_list.append(zm)
+
+
+        except Exception as e:
+            print("Error: missingness < 10% but error in computations: {}".format(e))
+
 
 # Create a dataframe combining all of the lists above
 df = pd.DataFrame({
     "Timestamp": timestamps,
     "missing_mfi": wind_df_hr_list_missing,
+    "missing_3dp": wind_df_protons_list_missing,
     "np": np_list,
     "nalpha": nalpha_list,
     "Tp": Tp_list,
