@@ -220,13 +220,13 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
     # Slowest part of this function - takes ~ 10 seconds
     p_smooth = SmoothySpec(power_periodogram)
 
-    zk, xk, pk = fitpowerlaw(f_periodogram, p_smooth,
+    qk, xk, pk = fitpowerlaw(f_periodogram, p_smooth,
                              f_min_kinetic, f_max_kinetic)  # Kinetic range
-    zi, xi, pi = fitpowerlaw(f_periodogram, p_smooth,
+    qi, xi, pi = fitpowerlaw(f_periodogram, p_smooth,
                              f_min_inertial, f_max_inertial)  # Inertial range
 
     try:
-        powerlaw_intersection = np.roots(zk-zi)
+        powerlaw_intersection = np.roots(qk-qi)
         spectral_break = np.exp(powerlaw_intersection)
     except:
         print("could not compute power-law intersection")
@@ -244,15 +244,15 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         ax.semilogy(f_periodogram, p_smooth,
                     label="Smoothed periodogram", color="black")
         ax.semilogy(xi, pi*3, c="black", ls='--',
-                    label="Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(zi[0]))
+                    label="Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(qi[0]))
         ax.semilogy(xk, pk*3, c="black", ls='--',
-                    label="Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(zk[0]))
+                    label="Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(qk[0]))
         ax.tick_params(which="both", direction='in')
         ax.semilogx()
 
         if spectral_break[0] is not np.nan:
             ax.axvline(
-                np.exp(np.roots(zk-zi)),
+                np.exp(np.roots(qk-qi)),
                 alpha=0.6,
                 color="black",
                 label="Spectral break: $f_d={0:.2f}$".format(spectral_break[0]))
@@ -268,18 +268,27 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
             ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
 
         #bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.5)
-        ax.text(xi[0]*5, pi[0], "$q_i$")
-        ax.text(xk[0]*2, pk[0], "$q_k$")
+        ax.text(xi[0]*5, pi[0], "$k^{q_i}$")
+        ax.text(xk[0]*2, pk[0], "$k^{q_k}$")
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
+
+            # Add box with values of qi and qk
+        textstr = '\n'.join((
+            r'$q_i=%.2f$' % (qi[0], ),
+            r'$q_k=%.2f$' % (qk[0], )))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        # Place the text box. (x, y) position is in axis coordinates.
+        ax.text(0.05, 0.05, textstr, transform=ax.transAxes, fontsize=8,
+                verticalalignment='bottom', bbox=props)
         
-        ax.set_xlabel('frequency (Hz)')
-        ax.set_ylabel('PSD (nT$^2$Hz$^{-1}$)')
+        ax.set_xlabel('$\log(k)$')
+        ax.set_ylabel('$\log(E(k))$')
         # plt.grid()
         # plt.show()
 
-        return zi[0], zk[0], spectral_break[0], fig, ax, f_periodogram, p_smooth
+        return qi[0], qk[0], spectral_break[0], fig, ax, f_periodogram, p_smooth
     else:
-        return zi[0], zk[0], spectral_break[0]
+        return qi[0], qk[0], spectral_break[0]
 
 
 def compute_nd_acf(np_array, nlags, dt, plot=False):
