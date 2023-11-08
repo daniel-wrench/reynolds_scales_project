@@ -386,15 +386,6 @@ for i in np.arange(n_int).tolist():
                 V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
                 V0_list.append(V0)
 
-                ## Convert magnetic field fluctuations to Alfvenic units
-                alfven_prefactor = (2.18e1)/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
-                # note that uses the mean density of the interval Wang2012ApJ
-
-                dbx_a = dbx*alfven_prefactor
-                dby_a = dby*alfven_prefactor
-                dbz_a = dbz*alfven_prefactor
-                db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
-
                 dvx = (Vx - Vx_mean)
                 dvy = (Vy - Vy_mean)
                 dvz = (Vz - Vz_mean)
@@ -402,6 +393,15 @@ for i in np.arange(n_int).tolist():
                 dv = np.sqrt(dvx**2+dvy**2+dvz**2)
                 dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
                 dv_list.append(dv_rms)
+
+                ## Convert magnetic field fluctuations to Alfvenic units
+                alfven_prefactor = 218/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
+                # note that Wang2012ApJ uses the mean density of the interval 
+
+                dbx_a = dbx*alfven_prefactor
+                dby_a = dby*alfven_prefactor
+                dbz_a = dbz*alfven_prefactor
+                db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
 
                 # Cross-helicity 
                 Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
@@ -438,7 +438,6 @@ for i in np.arange(n_int).tolist():
                 zmz = dvz - dbz_a
                 zm = np.sqrt(np.mean(zmx**2)+np.mean(zmy**2)+np.mean(zmz**2))
                 zm_list.append(zm)
-
 
         except Exception as e:
             print("Error: missingness < 10% but error in computations: {}".format(e))

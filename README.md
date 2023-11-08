@@ -1,64 +1,72 @@
 # README
-Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft and OMNI. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
+Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft, with optional merging with OMNI data. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
 
-Takes in 300GB of CDF files, produces 8MB CSV file. 
+Currently ingests 300GB of CDF files (data from 1995-2022) and produces a 8MB CSV file.
 
-## TRACKING DATASET UPDATES
-- No longer using OMNI: deriving all variables from Wind data
-- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments)
-- Added new variables
-- Calculating db/B0 slightly differently
+## Research output
+- Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. Poster and AGU talk are available in the Comms folder. **Insert link**
+
+## Current dataset
+- Missing some rhoe, rhoi, beta, va (should only correspond to B0 missingness)
+- Strange values in March 1996
+- **Does not use ne in place of ni; backup in data/processed does**
+- **Need to update prefactors**
 
 ## To-do
-Paper should be a story of how to calculate Re for the solar wind, including all the assumptions and annoyances along the way. 
+1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday**
+2. Push analytical fixes and re-run on 4 months
+3. Check how well new values match up against existing ones and literature (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+- Final dataset in this directory does not use ne in place ni
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar Table III
+- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6 Fig. 4 
+4. Add vars from that paper. Mag of average vs av of mag for db/b
+6. Talk to Tulasi about new numerical vars in 100 file-4 month subset, comparing with lit. averages
+7. Once confirmed, run steps 2 and 3 on two 5000 subsets
+8. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+9. Check issue with too many missing rhoe, rhoi, beta, va SHOULD CORRELATE TO B0 MISSINGNESS, and also strange values in March 96
+10. Check if new ni is ok
+11. Clean, subset, and calculate new stats and plot new figures
+12. Use standard error instead of SD?
+13. Check no. of points reported; make clear subset contains ... points
 
-- Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday
-- Mag of average vs av of mag for db/b
-- Check new values match up against existing ones, esp. velocity
-- With new dataset, check issue with too many missing rhoe, rhoi, beta, va, and also strange values in March 96
-- Use standard error instead of SD?
-- Check values against literature https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar Table III
-- breakscale vs db
-- check no. of points reported; make clear subset contains ... points
+## Tracking dataset updates
+- No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
+- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments) in order to calculate things like cross helicity
+- Added new variables such as cross-helicity and elsasser decay rates
+- Calculating db/B0 slightly differently
+- Previous dataset had mistake of Bwind being retained despite high missing %
 
-- Re-run codes on Rāpoi, checking my instructions. **Note changes to demo_numerical fns**
-- Perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+-np avg =8.6, vs. 8.3
+-tp = 11.9, vs. 15.8
+- CALCULATE % DIFFERENCE B0 VS B0MNI, dboB0 vs. db/Bwind (from previous dataset), V0 vs. vomni vs. v_r,
+pomni vs. p
 
-- (derive mach number, make sure have rms b and v_i/center of mass, SSN)
-
-### Future statistical analysis
-- Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
-
-- Add vector velocities to params.py script, anticipating switch to PSP data
-- Think about using the standard error to express variation in the means of our Re estimates.
-- More 2D histograms: 
-    - Taylor scale vs. delta b/b
-    - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
-    - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
-
-### References: 
-
-- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
-- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
-- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
-
-## Notes on results
-
-Poster and AGU talk are available in the Comms folder, paper draft is in process
-
-### Outliers and data cleaning
+## Outliers and data cleaning
 
 - In `calculate_numerical_vars.py`, intervals with more than 10% missing data are removed completely (all values set to NA). Otherwise, any gaps are linearly interpolated. The average amount missing is 3%.
-
 
 **2004-22 data**
 - For 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
 
 - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
 
-### Correlations
+## Future statistical analysis
+- Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
 
-#### Expected correlations:
+- Add vector velocities to params.py script, anticipating switch to PSP data
+- Think about using the standard error to express variation in the means of our Re estimates.
+- More 2D histograms:
+    - Taylor scale, breakscale vs. delta b/b
+    - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
+    - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
+
+## References
+
+- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
+- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
+
+### Expected correlations
 
 - **Spectral breakscale:** From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno & Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3
 
@@ -67,7 +75,6 @@ Poster and AGU talk are available in the Comms folder, paper draft is in process
 - **$q_k$**: compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
 
 - **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
-
 
 ## How to run this code
 
@@ -88,7 +95,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     `python -m venv venv`
 
-    `venv\Scripts\activate`
+    `venv\Scripts\activate` (For HPCs, use `source venv/bin/activate`)
 
 2. **Install the required packages:**
 
@@ -100,7 +107,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     HPC: 
     - (`tmux new`)
-    - `srun --pty --cpus-per-task=2 --mem=1G --time=01:00:00 --partition=quicktest bash`
+    - `srun --pty --cpus-per-task=2 --mem=1G --time=02:00:00 --partition=quicktest bash`
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
@@ -137,11 +144,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
 6. **Get the analytical variables by running a sequence of calculations and output the final dataframe:**
 
-    Local: `bash 3_calculate_analytical_vars_local.sh` 
-
-    HPC: 
-    - `srun --pty --cpus-per-task=1 --mem=1G --time=00:05:00 --partition=quicktest bash`
-    - `bash 3_calculate_analytical_vars.sh`
+    Local and HPC: `bash 3_calculate_analytical_vars_local.sh > 3_calculate_analytical_vars_local.out` 
 
 The figures for the paper are produced in `4_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
 
@@ -171,38 +174,3 @@ From OMNI CDAWEB dataset, where original cadence = 1min:
 - Magnetic field
 
 See `doc/wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
-
-## Analysis
-$Re=\frac{UL}{\nu}\approx(\frac{L}{\eta})^{4/3}\approx(\frac{L}{d_i})^{4/3}\approx(\frac{L}{\lambda_t})^2$
-
-- $U$ is the flow speed
-- $L$ is the characteristic length a.k.a. correlation scale: the size of the largest "eddies" at the start of inertial range of turbulence where energy is input into the system.
-- $\nu$ is the kinematic viscosity, **which cannot be determined for a collisionless plasma**.
-- $\eta$ is the Kolmogorov length scale at which eddies become critically damped and the "dissipation" range begins: $(\frac{\nu^3}{\epsilon})^{1/4}$, where $\epsilon$ is the rate of energy dissipation. We cannot determine this scale since we do not have viscosity, but we can approximate it using the ion inertial length $d_i$ and the spectral break $tb$.
-- $\lambda_t$ is the Taylor microscale. This is the size of the smallest eddies in the inertial range, or the size of the largest eddies that are effected by dissipation. It is also related to mean square spatial derivatives, and can be intepreted as the "single-wavenumber equivalent dissipation scale" (Hinze 1975).
-
-The Reynolds number represents the competition between inertial forces that promote turbulence against viscous forces that prevent it. It also represents the separation between the large, energy-containing length scale $L$ and the small, dissipative length scale $\eta$.
-
-Therefore, using this dataset, we calculate the Reynolds number using the last two approximation in the equation above.
-These calculations, along with statistics, correlations, and plots, are done in `4_analyse_results.py`.
-
-- Summary stats, including correlations, of all variables, but mainly scales and Re
-- Multi-var histograms and time series of scales and Re
-
-### Kevin's old pipeline
-
-1. `mfi_lr.py`: Make low-res (0.2Hz) magnetic field dataframe pickle (Rāpoi job)
-2. `compute_corr.py` (Rāpoi job): Compute correlation scale using two methods for 6-hour intervals of low-res dataframe
-    - 3D ACF is calculated for 1500 lags = 50min at 0.2Hz
-    - Produces two estimates using `compute_correlation_scale()`:
-        1. 1/e trick: `estimate` and `Correlation_timescale_est`, calculated using `estimate_correlation_scale()` *This method tends to produce larger values.*
-        2. Exponential fit: `lambda_c` and `Correlation_timescale`, calculated using `curve_fit()`. `num_seconds_for_lambda_c_fit = 1000` is specified inside the parent function. *This method tends to produce smaller values.*
-        3. *TO-DO: Integral scale*
-
-3. `mfi_hr.py`: Make high-res (10Hz) magnetic field dataframe pickle (Rāpoi job)
-4. `compute_taylor.py` (Rāpoi job): Compute Taylor scale using parabolic fit at origin for 6-hour intervals of high-res dataframe 
-    - 3D ACF is calculated for 20 lags = 2s at 10Hz
-    - `num_seconds_for_lambda_t_fit = 2` is specified inside the function `compute_taylor_time_scale()`
-
-5. `electrons_6hr.py`: Make low-res (6hr) electron density dataframe pickle (Rāpoi job)
-5. Run EDA, produce plots, train ML pipelines (other Jupyter notebooks which Kevin ran in Google Colab)

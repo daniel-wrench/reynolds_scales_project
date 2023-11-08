@@ -82,10 +82,10 @@ if df.index.has_duplicates:
 
 df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0']    
 df['rhoi'] = 102*np.sqrt(df['Tp'])/df['B0']
-df["de"] = 5.31*np.sqrt(df["ne"]) # Electron inertial length
-df["di"] = 228*np.sqrt(df["ne"]) # Ion inertial length (swapped ni for ne)
-df["betae"] = 0.403*df["ne"]*df["Te"]/df["B0"]
-df["betai"] = 0.403*df["np"]*df["Tp"]/df["B0"]
+df["de"] = 5.31/np.sqrt(df["ne"]) # Electron inertial length
+df["di"] = 228/np.sqrt(df["ne"]) # Ion inertial length (swapped ni for ne)
+df["betae"] = 0.403*df["ne"]*df["Te"]/(df["B0"]**2)
+df["betai"] = 0.403*df["np"]*df["Tp"]/(df["B0"]**2)
 df["va"] = 21.8*df['B0']/np.sqrt(df["ne"]) # Alfven speed
 df["ma"] = df["V0"]/df["va"] # Alfven mach number
 df["ld"] = 0.00743*np.sqrt(df["Te"])/np.sqrt(df["ne"]) # Debye length
