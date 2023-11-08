@@ -54,7 +54,6 @@ df_wind_hr = pd.read_pickle("data/processed/" + params.mag_path + params.dt_hr +
 
 df_wind_hr = df_wind_hr.rename(
     columns={
-        params.Bwind: "Bwind",
         params.Bx: "Bx",
         params.By: "By",
         params.Bz: "Bz"})
@@ -89,7 +88,6 @@ print("\nCORE {}: FINISHED READING PICKLE FILES".format(rank))
 # Initializing lists for storing computed metrics
 timestamps = []
 
-Bwind_list = []
 B0_list = []
 dboB0_list = []
 V0_list = []
@@ -170,7 +168,6 @@ for i in np.arange(n_int).tolist():
 
     if missing_mfi > 0.1:
         # If magnetic field data is sufficiently sparse, set values that require it to missing
-        Bwind_list.append(np.nan)
         B0_list.append(np.nan)
         dboB0_list.append(np.nan)
         zp_list.append(np.nan)
@@ -244,9 +241,6 @@ for i in np.arange(n_int).tolist():
 
             # Firstly, do the calculations that we don't need proton data for
             # Then, condition on sufficient proton data and do the remainder
-
-            # Temps and densities, raw mag magnitude
-            Bwind_list.append(int_hr["Bwind"].mean())
 
             # Resampling mag field data to 3s to match velocity data cadence
             ## NB: there is also a 3s cadence version of the mfi data, e.g. as used by Podesta2010, 
@@ -454,7 +448,6 @@ df = pd.DataFrame({
     "Talpha": Talpha_list,
     "B0": B0_list,
     "dboB0": dboB0_list,
-    "Bwind": Bwind_list,
     "V0": V0_list,
     "v_r": v_r_list,
     "dv": dv_list,
