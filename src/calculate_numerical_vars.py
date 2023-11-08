@@ -486,3 +486,4 @@ comm.Barrier()
 
 if rank == 0:
     print("##################################")
+    print("ALL CORES FINISHED")

@@ -182,7 +182,7 @@ def fitpowerlaw(ax, ay, xi, xf):
     return z, xx, pwrl
 
 
-def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, di=None, velocity=None, plot=False):
+def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_kinetic, f_max_kinetic, timestamp=None, di=None, velocity=None, plot=False):
     """ Compute the autocorrelation function for a scalar or vector time series.
 
     ### Args:
@@ -190,6 +190,7 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
     - np_array: Array of shape (1,n) or (3,n)
     - dt: Cadence of measurements, or time between each sample: one sample every dt seconds
     - di: (Optional, only used for plotting) Ion inertial length in km
+    - timestamp: (Optional, only used for plotting) Timestamp of the data
     - velocity: (Optional, only used for plotting) Solar wind velocity in km/s
     - corr_scale: (Optional, only used for plotting) Correlation scale (seconds)
     - taylor_scale: (Optional, only used for plotting) Taylor scale (seconds)
@@ -272,13 +273,16 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
         ax.text(xk[0]*2, pk[0], "$k^{q_k}$")
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
 
-            # Add box with values of qi and qk
+        # Add box with values of qi and qk
         textstr = '\n'.join((
+            str(timestamp[:-3]) + "-" + "23:59", # NOTE - this is a hacky way to get the end timestamp
             r'$q_i=%.2f$' % (qi[0], ),
-            r'$q_k=%.2f$' % (qk[0], )))
+            r'$q_k=%.2f$' % (qk[0], ),
+            r'$f_b=%.2f$' % (spectral_break[0], ),
+            r'$f_{{di}}=%.2f$' % (f_di, )))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         # Place the text box. (x, y) position is in axis coordinates.
-        ax.text(0.05, 0.05, textstr, transform=ax.transAxes, fontsize=8,
+        ax.text(0.05, 0.1, textstr, transform=ax.transAxes, fontsize=8,
                 verticalalignment='bottom', bbox=props)
         
         ax.set_xlabel('$\log(k)$')

@@ -108,7 +108,8 @@ def plot_regression(ax, x, y, fit_type='linear', color='red', loc=[0.05, 0.9]):
 
 df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 
-# Correcting Re values with pre-factors
+# Correcting Re values with pre-factors 
+# SHOULD BE ABLE TO DELETE NOW AS DONE IN ANALYTICAL_VARS SCRIPT
 
 # df_l1_cleaned["Re_tb"] = df_l1_cleaned["Re_tb"]*3
 # df_l1_cleaned["Re_di"] = df_l1_cleaned["Re_di"]*3
