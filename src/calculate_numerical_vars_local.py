@@ -456,6 +456,7 @@ plt.close()
 
 
 # Create a dataframe combining all of the lists above
+# (NB: these are re-arranged again in the next step after deriving the analytical variables)
 df = pd.DataFrame({
     "Timestamp": timestamps,
     "missing_mfi": wind_df_hr_list_missing,
@@ -466,6 +467,7 @@ df = pd.DataFrame({
     "Talpha": Talpha_list,
     "B0": B0_list,
     "dboB0": dboB0_list,
+    "Bwind": Bwind_list,
     "V0": V0_list,
     "v_r": v_r_list,
     "dv": dv_list,

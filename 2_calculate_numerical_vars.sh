@@ -10,7 +10,6 @@
 #SBATCH --output            %x_%j.out
 #SBATCH --error             %x_%j.err
 
-## For running in Raapoi
 source ActivatePython.sh
 
 echo "JOB STARTED"
