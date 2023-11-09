@@ -138,7 +138,7 @@ df["zp_decay"] = (df["zp"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 df["zm_decay"] = (df["zm"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 
 # Rearrange columns
-df = df[['missing_mfi', 'missing_3dp', 'SN', 'ne', 'Te', 'np', 'Tp', 'nalpha', 'Talpha', 'B0', 'Bomni', 'dboB0', 'V0', 'v_r', 'Vomni', 'dv', 'va', 'ma', 'p', 'pomni', 'rhoe', 'rhoi', 'de', 'di', 'betae', 'betai', 'ld', 'zp', 'zm', 'zp_decay', 'zm_decay', 'sigma_c', 'sigma_r', 'ra', 'cos_a', 'qi', 'qk', 'fb', 'tb', 'tcf', 'lambda_c_fit', 'tce', 'lambda_c_e', 'tci', 'lambda_c_int', 'ttu', 'ttu_std', 'ttc', 'ttc_std', 'lambda_t_raw', 'lambda_t', 'Re_lt', 'Re_di', 'Re_tb']]
+df = df[['missing_mfi', 'missing_3dp', 'SN', 'ne', 'Te', 'np', 'Tp', 'nalpha', 'Talpha', 'B0', 'Bomni', 'db', 'db_a', 'dboB0', 'V0', 'v_r', 'Vomni', 'dv', 'va', 'ma', 'p', 'pomni', 'rhoe', 'rhoi', 'de', 'di', 'betae', 'betai', 'ld', 'zp', 'zm', 'zp_decay', 'zm_decay', 'sigma_c', 'sigma_r', 'ra', 'cos_a', 'qi', 'qk', 'fb', 'tb', 'tcf', 'lambda_c_fit', 'tce', 'lambda_c_e', 'tci', 'lambda_c_int', 'ttu', 'ttu_std', 'ttc', 'ttc_std', 'lambda_t_raw', 'lambda_t', 'Re_lt', 'Re_di', 'Re_tb']]
 
 stats = df.describe()
 print(df.info())

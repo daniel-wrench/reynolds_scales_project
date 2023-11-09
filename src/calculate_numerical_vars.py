@@ -89,6 +89,8 @@ print("\nCORE {}: FINISHED READING PICKLE FILES".format(rank))
 timestamps = []
 
 B0_list = []
+db_list = []
+db_a_list = []
 dboB0_list = []
 V0_list = []
 v_r_list = []
@@ -169,6 +171,8 @@ for i in np.arange(n_int).tolist():
     if missing_mfi > 0.1:
         # If magnetic field data is sufficiently sparse, set values that require it to missing
         B0_list.append(np.nan)
+        db_list.append(np.nan)
+        db_a_list.append(np.nan)
         dboB0_list.append(np.nan)
         zp_list.append(np.nan)
         zm_list.append(np.nan)
@@ -228,7 +232,7 @@ for i in np.arange(n_int).tolist():
             dvz = (Vz - Vz_mean)
 
             dv = np.sqrt(dvx**2+dvy**2+dvz**2)
-            dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
+            dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2)) # Magnitude of flow fluctuations
             dv_list.append(dv_rms)
 
     elif missing_mfi <= 0.1:
@@ -263,8 +267,9 @@ for i in np.arange(n_int).tolist():
             dby = By - By_mean
             dbz = Bz - Bz_mean
             db = np.sqrt(dbx**2+dby**2+dbz**2)
-            db_rms = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2))
+            db_rms = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2)) # Amplitude of magnetic field fluctuations
             
+            db_list.append(db_rms)
             dboB0_list.append(db_rms/B0)
 
             # Compute autocorrelations and power spectra
@@ -343,6 +348,7 @@ for i in np.arange(n_int).tolist():
                 V0_list.append(np.nan)
                 v_r_list.append(np.nan)
                 dv_list.append(np.nan)
+                db_a_list.append(np.nan)
                 zp_list.append(np.nan)
                 zm_list.append(np.nan)
                 sigma_c_list.append(np.nan)
@@ -388,13 +394,16 @@ for i in np.arange(n_int).tolist():
                 dv_list.append(dv_rms)
 
                 ## Convert magnetic field fluctuations to Alfvenic units
-                alfven_prefactor = 218/int_protons["np"] # Converting nT to Gauss and cm/s to km/s
+                alfven_prefactor = 21.8/np.sqrt(int_protons["np"]) # Converting nT to Gauss and cm/s to km/s
                 # note that Wang2012ApJ uses the mean density of the interval 
 
                 dbx_a = dbx*alfven_prefactor
                 dby_a = dby*alfven_prefactor
                 dbz_a = dbz*alfven_prefactor
                 db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
+
+                db_a_rms = np.sqrt(np.mean(dbx_a**2)+np.mean(dby_a**2)+np.mean(dbz_a**2))
+                db_a_list.append(db_a_rms)
 
                 # Cross-helicity 
                 Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
@@ -447,6 +456,8 @@ df = pd.DataFrame({
     "Tp": Tp_list,
     "Talpha": Talpha_list,
     "B0": B0_list,
+    "db": db_list,
+    "db_a": db_a_list,
     "dboB0": dboB0_list,
     "V0": V0_list,
     "v_r": v_r_list,
