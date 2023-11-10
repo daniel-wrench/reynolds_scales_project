@@ -14,17 +14,18 @@ Currently ingests 300GB of CDF files (data from 1995-2022) and produces a 8MB CS
 
 ## To-do
 1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday**
-2. Push analytical fixes and re-run on 4 months
-3. Check how well new values match up against existing ones and literature (time scales, slopes and electron stats should all be the same, rest will be slightly different)
-- Final dataset in this directory does not use ne in place ni
-- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar Table III
-- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6 Fig. 4 
-4. Add vars from that paper. Mag of average vs av of mag for db/b
-6. Talk to Tulasi about new numerical vars in 100 file-4 month subset, comparing with lit. averages
-7. Once confirmed, run steps 2 and 3 on two 5000 subsets
+4. Run step 1 on [:5000]
+5. Add thermal velocities
+5. Run steps 2-3 
+5. Check ni issue (see `plots/spare`)
+6. Check issue with too many missing rhoe, rhoi, beta, va SHOULD CORRELATE TO B0 MISSINGNESS, and also strange values in March 96
+6. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+- NB: Final dataset in this directory does not use ne in place of ni
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar: Table III for OMNI medians
+- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
+- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
+7. Once confirmed, run on [:5000]
 8. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-9. Check issue with too many missing rhoe, rhoi, beta, va SHOULD CORRELATE TO B0 MISSINGNESS, and also strange values in March 96
-10. Check if new ni is ok
 11. Clean, subset, and calculate new stats and plot new figures
 12. Use standard error instead of SD?
 13. Check no. of points reported; make clear subset contains ... points
