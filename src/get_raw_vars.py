@@ -114,7 +114,8 @@ for sub in file_paths:
 ####### PARALLEL STUFF #######
 
 # (Optionally) reducing the number of files for testing
-file_list = file_list[5000:]
+# NEED TO COMMENT OUT OMNI FROM BASH FILE IF STARTING PART-WAY THROUGH
+file_list = file_list[:5000]
 
 list_of_lists = np.array_split(file_list, comm.size)
 
