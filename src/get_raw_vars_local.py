@@ -36,6 +36,10 @@ from utils import *
 
 # The following values should match the variables names in params.py 
 # Vector components do not need to be specified, just the overall vector
+
+# FEEL LIKE THIS IS OVER-COMPLICATED - THE VALUES OF EACH DO NOT CHANGE
+# BETWEEN EACH COMMAND IN THE .SH FILE?
+
 sys_arg_dict = {
     # arg1
     "mag_path": params.mag_path,

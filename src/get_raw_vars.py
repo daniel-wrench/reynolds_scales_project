@@ -44,6 +44,10 @@ status = MPI.Status()
 
 # The following values should match the variables names in params.py 
 # Vector components do not need to be specified, just the overall vector
+
+# FEEL LIKE THIS IS OVER-COMPLICATED - THE VALUES OF EACH DO NOT CHANGE
+# BETWEEN EACH COMMAND IN THE .SH FILE?
+
 sys_arg_dict = {
     # arg1
     "mag_path": params.mag_path,
@@ -112,35 +116,88 @@ for sub in file_paths:
 # cdf.varget("Epoch")
 
 ####### PARALLEL STUFF #######
+# Making sure that each core across datasets is working on the same timestamps
 
 # (Optionally) reducing the number of files for testing
-file_list = file_list[5000:]
+# file_list = file_list[5000:]
 
-list_of_lists = np.array_split(file_list, comm.size)
+# list_of_lists = np.array_split(file_list, comm.size)
 
-if len(list_of_lists) != comm.size:
+def convert_path(input_path):
+    # Split the input path
+    parts = input_path.split('/')
+
+    # Extract the needed parts
+    main_folder = parts[3]  # e.g., "3dp" or "mfi"
+    sub_folder = parts[4]   # e.g., "3dp_pm", "3dp_elm2", or "mfi_h2"
+
+    # Construct the output path
+    output_path = f"data/raw/wind/{main_folder}/{sub_folder}\\{{year}}\\wi_{sub_folder.split('_')[1]}_{main_folder}_{{date}}_{{version}}.cdf"
+
+    return output_path
+
+def generate_date_strings(start_date, end_date):
+    start = datetime.datetime.strptime(start_date, "%Y%m%d")
+    end = datetime.datetime.strptime(end_date, "%Y%m%d")
+    date_list = [start + datetime.timedelta(days=x) for x in range((end-start).days + 1)]
+    return [date.strftime("%Y%m%d") for date in date_list]
+
+def split_list_among_cores(lst, num_cores):
+    for i in range(0, len(lst), num_cores):
+        yield lst[i:i + num_cores]
+
+start_date = params.start_date
+end_date = params.end_date
+num_cores = comm.size
+base_path_template = convert_path(input_dir)
+
+# Generate all date strings
+all_dates = generate_date_strings(start_date, end_date)
+
+# Split date strings among cores
+dates_for_cores = np.array_split(all_dates, num_cores)
+
+# Generate file lists for each core
+file_lists_for_cores = []
+for dates in dates_for_cores:
+    core_file_list = []
+    for date in dates:
+        year = date[:4]
+        file_path_template = base_path_template.format(year=year, date=date, version="{version}")
+        core_file_list.append(file_path_template)
+    file_lists_for_cores.append(core_file_list)
+
+# for core_id, file_list in enumerate(file_lists_for_cores):
+#     print(f"Core {core_id} processes: {file_list}")
+
+if len(file_lists_for_cores) != comm.size:
     print("Number of lists does not equal number of cores!")
 
-my_list = list_of_lists[rank]
+file_list = file_lists_for_cores[rank]
 
 ##############################
 
 dataframes = []
 
-for file in my_list:
-    try:
-        temp_df = pipeline(
-            file,
-            varlist=sys_arg_dict[sys.argv[2]],
-            thresholds=sys_arg_dict[sys.argv[3]],
-            cadence=sys_arg_dict[sys.argv[4]]
-        )
-        print("Core {0:03d} reading {1}: {2:.2f}% missing".format(
-            rank, file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
-        dataframes.append(temp_df)
+versions = ['v05', 'v02', 'v04', 'v03']
 
-    except Exception as e:
-        print(f"Error reading {file}. Error: {e}; moving to next file")
+for file_template in file_list:
+    for version in versions:
+        file = file_template.format(version=version)
+        if os.path.exists(file):
+            try:
+                temp_df = pipeline(
+                    file,
+                    varlist=sys_arg_dict[sys.argv[2]],
+                    thresholds=sys_arg_dict[sys.argv[3]],
+                    cadence=sys_arg_dict[sys.argv[4]]
+                )
+                print("Core {0:03d} reading {1}: {2:.2f}% missing".format(
+                    rank, file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
+                dataframes.append(temp_df)
+
+            except Exception as e:
+                print(f"Error reading {file}. Error: {e}; moving to next file")
 
 df = pd.concat(dataframes)
 
