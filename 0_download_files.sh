@@ -19,17 +19,17 @@
 
 echo "Downloading WIND data"
 
-wget --no-clobber --directory-prefix=data/raw/wind/3dp/3dp_elm2/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/2016/wi_elm2_3dp_201601{01..07}_v02.cdf
-wget --no-clobber --directory-prefix=data/raw/wind/3dp/3dp_pm/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/2016/wi_pm_3dp_201601{01..07}_v05.cdf
-wget --no-clobber --directory-prefix=data/raw/wind/mfi/mfi_h2/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/2016/wi_h2_mfi_201601{01..07}_v05.cdf
+#wget --no-clobber --directory-prefix=data/raw/wind/3dp/3dp_elm2/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/2016/wi_elm2_3dp_201601{01..07}_v02.cdf
+#wget --no-clobber --directory-prefix=data/raw/wind/3dp/3dp_pm/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/2016/wi_pm_3dp_201601{01..07}_v05.cdf
+#wget --no-clobber --directory-prefix=data/raw/wind/mfi/mfi_h2/2016/ https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/2016/wi_h2_mfi_201601{01..07}_v05.cdf
 
 # Download all CDF files and sub-directories from a directory, removing the first two directories from the saved filepath
 ## In Raapoi terminal: 10.7MB/s
 
-#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/
-#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/
-#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/
-#wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/
+wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/omni/omni_cdaweb/hro2_1min/
+wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_elm2/
+wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/
+wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/
 
 # We don't want data before 1995 or after 2022, do delete these directories
 # (I think this is easier than specifying it in the wget command)
