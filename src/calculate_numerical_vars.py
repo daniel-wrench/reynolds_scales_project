@@ -323,6 +323,7 @@ for i in np.arange(n_int).tolist():
                 inertial_slope_list.append(np.nan)
                 kinetic_slope_list.append(np.nan)
                 spectral_break_list.append(np.nan)
+                slope_k = None
 
             taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
                 time_lags_hr,
