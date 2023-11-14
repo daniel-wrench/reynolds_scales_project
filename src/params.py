@@ -9,8 +9,8 @@
 
 timestamp = "Epoch"
 int_size = "12H"
-start_date = "20160101"
-end_date = "20160107"
+start_date = "19950101"
+end_date = "20081231"
 
 # Not using OMNI currently
 omni_path = "omni/omni_cdaweb/hro2_1min/"
