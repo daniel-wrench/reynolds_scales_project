@@ -42,7 +42,7 @@ rank = comm.Get_rank()  # Current core
 status = MPI.Status()
 ##############################
 
-# The following values should match the variables names in params.py 
+# The following values should match the variables names in params.py
 # Vector components do not need to be specified, just the overall vector
 
 # FEEL LIKE THIS IS OVER-COMPLICATED - THE VALUES OF EACH DO NOT CHANGE
@@ -133,7 +133,7 @@ def convert_path(input_path):
     sub_folder = parts[4]   # e.g., "3dp_pm", "3dp_elm2", or "mfi_h2"
 
     # Construct the output path
-    output_path = f"data/raw/wind/{main_folder}/{sub_folder}\\{{year}}\\wi_{sub_folder.split('_')[1]}_{main_folder}_{{date}}_{{version}}.cdf"
+    output_path = f"data/raw/wind/{main_folder}/{sub_folder}/{{year}}/wi_{sub_folder.split('_')[1]}_{main_folder}_{{date}}_{{version}}.cdf"
 
     return output_path
 
@@ -196,11 +196,17 @@ for file_template in file_list:
                 print("Core {0:03d} reading {1}: {2:.2f}% missing".format(
                     rank, file, temp_df.iloc[:, 0].isna().sum()/len(temp_df)*100))
                 dataframes.append(temp_df)
-
+                # Break out of the inner loop once a file is successfully processed
+                break
             except Exception as e:
                 print(f"Error reading {file}. Error: {e}; moving to next file")
+                break
 
-df = pd.concat(dataframes)
+try:
+    df = pd.concat(dataframes)
+except Exception as e:
+    print(f"Error: {e}")
+    print("Problematic file list: {}".format(file_list))
 
 # Ensuring observations are in chronological order
 df = df.sort_index()
@@ -226,7 +232,7 @@ comm.Barrier()
 # Log statements
 if rank == 0:
     print("\nProcessed {} files of {} data at {} cadence using {} cores\n".format(
-        len(file_list),
+        len(all_dates), #could be made more accurate
         sys_arg_dict[sys.argv[1]],
         sys_arg_dict[sys.argv[4]] + second_cadence,
         comm.size))

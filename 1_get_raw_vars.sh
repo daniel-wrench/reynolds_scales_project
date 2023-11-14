@@ -2,7 +2,7 @@
 
 #SBATCH --job-name          1_get_raw_vars
 #SBATCH --partition         parallel
-#SBATCH --mem               230G
+#SBATCH --mem               210G
 #SBATCH --cpus-per-task     256
 #SBATCH --time              03:00:00
 #SBATCH --output            %x_%j.out
