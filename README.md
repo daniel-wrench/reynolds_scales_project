@@ -1,43 +1,52 @@
 # README
 Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft, with optional merging with OMNI data. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
 
-Currently ingests 300GB of CDF files (data from 1995-2022) and produces a 8MB CSV file.
+Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produces an 18MB CSV file.
 
 ## Research output
 - Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. Poster and AGU talk are available in the Comms folder. **Insert link**
 
 ## Current dataset
+- About 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
+- About 4% of magnetic field data missing " "
+- About 8% of electron data missing " "
+- Between 17,000-20,000 points available for each variable, depending on % missing
+
+**Comparing pressure and B & V magnitudes with those from OMNI (available in full raw dataset but not L1 cleaned)**
+- Typical difference of 1-3%
+- Notable differences pre-L1 for B and p
+- 6 weird small values of V0 (~70km/s) throughout
+- (See plots in `plots/supplementary/`)
+
+**Limiting to L1 dataset (June 2006-end 2022)
+- 5% of intervals (745) have qk shallower (greater than) -1.7: **these are removed in the cleaned dataset**.
+- A further 1.5% (223) have qk shallower than qi (see supplementary plot)
+- (The full dataset also has a few very small values of ttu; see discussion in Outliers below)
+- 6 values of negative tci, **these are removed in the cleaned dataset**
+-**11-12,000 points for each variable in final cleaned dataset**
+
+
+## Previous dataset
+
 - Missing some rhoe, rhoi, beta, va (should only correspond to B0 missingness)
 - Strange values in March 1996
 - **Does not use ne in place of ni; backup in data/processed does**
 
 
-df = pd.read_csv("wind_omni_dataset_95_08.csv")
-df.Timestamp = pd.to_datetime(df.Timestamp)
-df.set_index("Timestamp", inplace=True)
-df.sort_index(inplace=True)
-
-df[['ne', 'np']].plot()
-
-
 ## To-do
-1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday**
-4. Run step 1 on :2008 subset
-5. Run step 2 ""
-5. Run step 3 "" 
-6. Check missingness looks ok
-7. Run on 2008: subset **FUNNY BEHAVIOUR OF 1_ ON ELECTRONS, NEED TO RUN SEPARATELY ATM
-6. Rename and download resultant file
-5. Check ni issue (see `plots/spare`)
-6. Check issue with too many missing rhoe, rhoi, beta, va SHOULD CORRELATE TO B0 MISSINGNESS, and also strange values in March 96
-6. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript Thursday**
+7. Combine new first half with second half, running 4 and 5. Update figures and numbers, followed by discussion. (this update should only affect Re_di)
+8. Finish remainder of response.
+
+---
+
+8. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
 - NB: Final dataset in this directory does not use ne in place of ni
 - https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar: Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
 8. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
 11. Clean, subset, and calculate new stats and plot new figures
-12. Use standard error instead of SD?
 13. Check no. of points reported; make clear subset contains ... points
 
 ## Tracking dataset updates

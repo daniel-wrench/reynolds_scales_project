@@ -10,13 +10,16 @@ import statsmodels.api as sm
 plt.rcParams.update({'font.size': 9})
 plt.rc('text', usetex=True) # Set default font to Latex font
 
-df_l1_cleaned = pd.read_csv("data/processed/wind_dataset_l1_cleaned.csv")
+df_l1_cleaned = pd.read_csv("latest_results/wind_dataset_l1_cleaned.csv")
 df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
 df_l1_cleaned.set_index("Timestamp", inplace=True)
 df_l1_cleaned.sort_index(inplace=True)
 print(df_l1_cleaned.info())
 
 ### OVERLAPPING HISTOGRAMS OF CORRECTED AND UNCORRECTED TAYLOR SCALES ###
+
+# Summary statistics
+df_l1_cleaned[['lambda_t_raw', 'lambda_t']].describe()
 
 ##### New method (densities, linear scale, hatching)
 
@@ -39,10 +42,10 @@ plt.axvline(df_l1_cleaned.lambda_t_raw.mean(), c="black", ls='--', alpha = 0.5)
 plt.axvline(df_l1_cleaned.lambda_t.mean(), c="green", ls='--', alpha = 0.5)
 
 plt.text(1000, 0.00024, "$\lambda_{T}$", color="green", size = 13)
-plt.text(500, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
+plt.text(800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t.mean())), color="green")
 
 plt.text(6000, 0.00024, "$\lambda_{T}^\\mathrm{ext}$", color="black", size = 13)
-plt.text(4800, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
+plt.text(5000, 0.00048, "Mean = {:.0f}".format((df_l1_cleaned.lambda_t_raw.mean())), color="black")
 
 #plt.legend(loc="upper right")
 plt.xlim(0,9000)
@@ -105,8 +108,9 @@ def plot_regression(ax, x, y, fit_type='linear', color='red', loc=[0.05, 0.9]):
         equation_format = f"y = {slope:.2f}x{intercept_format}"
         ax.text(loc[0], loc[1], equation_format, transform=ax.transAxes, color=color)
 
-
+# Summary statistics for table
 df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
+df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].sem() # standard errors
 
 # Correcting Re values with pre-factors 
 # SHOULD BE ABLE TO DELETE NOW AS DONE IN ANALYTICAL_VARS SCRIPT
@@ -116,7 +120,7 @@ df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].describe()
 # df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*50
 
 # Subsetting data to highlight main density of points
-df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 50]
+df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 27]
 df_not_subset = df_l1_cleaned[~df_l1_cleaned.index.isin(df_subset.index)]
 
 # Alt grouping, keeping everything in one dataset
@@ -231,6 +235,10 @@ plt.show()
 
 # NOW FOR CORR SCALES
 
+# Summary statistics for table
+df_l1_cleaned[['lambda_c_fit', 'lambda_c_e', 'lambda_c_int']].describe()
+df_l1_cleaned[['lambda_c_fit', 'lambda_c_e', 'lambda_c_int']].sem() # standard errors
+
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
 grid = fig.add_gridspec(4, 3, hspace=0)
@@ -300,30 +308,30 @@ plt.show()
 # - lambda d vs. lambda c x delta b ^ -1.737
 # - lambda d vs. lambda T x delta b ^ -0.579
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+# fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
 
-sns.histplot(x=df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579, y=df_l1_cleaned["tb"], ax=axes[0])
-sns.histplot(x=df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737, y=df_l1_cleaned["tb"], ax=axes[1])
+# sns.histplot(x=df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579, y=df_l1_cleaned["tb"], ax=axes[0])
+# sns.histplot(x=df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737, y=df_l1_cleaned["tb"], ax=axes[1])
 
-axes[0].set_ylabel("$\lambda_d$ (sec)")
-axes[0].set_xlabel("$\lambda_{T} \delta b^{-0.579}$")
-axes[1].set_xlabel("$\lambda_{C} \delta b^{-1.737}$")
+# axes[0].set_ylabel("$\lambda_d$ (sec)")
+# axes[0].set_xlabel("$\lambda_{T} \delta b^{-0.579}$")
+# axes[1].set_xlabel("$\lambda_{C} \delta b^{-1.737}$")
 
-#plt.tight_layout()
-# axes[0].set_xlim(0, 2500)
-axes[1].set_xlim(0, 150000)
-axes[0].set_ylim(1e-1, 2)
-axes[1].set_ylim(1e-1, 2)
-# axes[0].tick_params(direction='in')
-# axes[1].tick_params(direction='in')
+# #plt.tight_layout()
+# # axes[0].set_xlim(0, 2500)
+# axes[1].set_xlim(0, 150000)
+# axes[0].set_ylim(1e-1, 2)
+# axes[1].set_ylim(1e-1, 2)
+# # axes[0].tick_params(direction='in')
+# # axes[1].tick_params(direction='in')
 
-plt.show()
+# plt.show()
 
-# Correlation coefficients
-x = df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737
-y = df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579
-x.corr(df_l1_cleaned["tb"], "pearson")
-y.corr(df_l1_cleaned["tb"], "pearson")
+# # Correlation coefficients
+# x = df_l1_cleaned["lambda_c_fit"]*df_l1_cleaned["db"]**-1.737
+# y = df_l1_cleaned["lambda_t"]*df_l1_cleaned["db"]**-0.579
+# x.corr(df_l1_cleaned["tb"], "pearson")
+# y.corr(df_l1_cleaned["tb"], "pearson")
 
 ###################################
 
