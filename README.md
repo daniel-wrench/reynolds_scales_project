@@ -10,13 +10,24 @@ Currently ingests 300GB of CDF files (data from 1995-2022) and produces a 8MB CS
 - Missing some rhoe, rhoi, beta, va (should only correspond to B0 missingness)
 - Strange values in March 1996
 - **Does not use ne in place of ni; backup in data/processed does**
-- **Need to update prefactors**
+
+
+df = pd.read_csv("wind_omni_dataset_95_08.csv")
+df.Timestamp = pd.to_datetime(df.Timestamp)
+df.set_index("Timestamp", inplace=True)
+df.sort_index(inplace=True)
+
+df[['ne', 'np']].plot()
+
 
 ## To-do
 1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript by Monday**
-4. Run step 1 on [:5000]
-5. Add thermal velocities
-5. Run steps 2-3 
+4. Run step 1 on :2008 subset
+5. Run step 2 ""
+5. Run step 3 "" 
+6. Check missingness looks ok
+7. Run on 2008: subset **FUNNY BEHAVIOUR OF 1_ ON ELECTRONS, NEED TO RUN SEPARATELY ATM
+6. Rename and download resultant file
 5. Check ni issue (see `plots/spare`)
 6. Check issue with too many missing rhoe, rhoi, beta, va SHOULD CORRELATE TO B0 MISSINGNESS, and also strange values in March 96
 6. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
@@ -24,7 +35,6 @@ Currently ingests 300GB of CDF files (data from 1995-2022) and produces a 8MB CS
 - https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar: Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
-7. Once confirmed, run on [:5000]
 8. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
 11. Clean, subset, and calculate new stats and plot new figures
 12. Use standard error instead of SD?
@@ -52,6 +62,9 @@ pomni vs. p
 - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
 
 ## Future statistical analysis
+- Note that for mfi data, it is more recent (2022) data that has version numbers less than 5
+- This is not the case of 3dp data, which has large numbers of v02 and v05 data. For this data, v04 stands out as having high % missing: perhaps including all those with 100% missing.
+
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
 
 - Add vector velocities to params.py script, anticipating switch to PSP data
@@ -121,7 +134,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     HPC: `sbatch 1_get_raw_vars.sh`
         
         Recommended HPC job requirements: 
-        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/230GB/3 hours. (Takes about 8min/file/core).
+        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/210GB/3 hours. (Takes about 8min/file/core).
 
     Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. Saves resultant datasets to `data/processed/*spacecraft*/`
     
@@ -138,14 +151,16 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     HPC: `sbatch 2_calculate_numerical_vars.sh`
        
         Recommended HPC job requirements: 
-        As stated in the previous step, this requires > 500GB of memory for the full dataset, so recommended to instead run twice on half the data (no change needed to the code, simply run previous step on half the data): 256 CPUS/320GB/5 hours.
+        As stated in the previous step, this requires > 500GB of memory for the full dataset, so recommended to instead run twice on half the data (no change needed to the code, simply run previous step on half the data): 256 CPUS/320GB/6 hours.
         
 
     See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
 6. **Get the analytical variables by running a sequence of calculations and output the final dataframe:**
 
-    Local and HPC: `bash 3_calculate_analytical_vars_local.sh > 3_calculate_analytical_vars_local.out` 
+    Local: `bash 3_calculate_analytical_vars_local.sh > 3_calculate_analytical_vars_local.out` 
+
+    HPC: `bash 3_calculate_analytical_vars.sh > 3_calculate_analytical_vars.out` 
 
 The figures for the paper are produced in `4_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
 

@@ -244,9 +244,9 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
                     label="Raw periodogram", color="black", alpha=0.2)
         ax.semilogy(f_periodogram, p_smooth,
                     label="Smoothed periodogram", color="black")
-        ax.semilogy(xi, pi*3, c="black", ls='--',
+        ax.semilogy(xi, pi*3, c="black", ls='--', lw=0.8,
                     label="Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(qi[0]))
-        ax.semilogy(xk, pk*3, c="black", ls='--',
+        ax.semilogy(xk, pk*3, c="black", ls='--', lw=0.8,
                     label="Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(qk[0]))
         ax.tick_params(which="both", direction='in')
         ax.semilogx()
@@ -269,24 +269,25 @@ def compute_spectral_stats(np_array, dt, f_min_inertial, f_max_inertial, f_min_k
             ax.text(f_di*1.2, 1e-5, "$f_{{di}}$")
 
         #bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.5)
-        ax.text(xi[0]*5, pi[0], "$k^{q_i}$")
-        ax.text(xk[0]*2, pk[0], "$k^{q_k}$")
+        ax.text(xi[0]*5, pi[0], "$f^{q_i}$")
+        ax.text(xk[0]*2, pk[0], "$f^{q_k}$")
         ax.text(spectral_break[0]/2, 1e-5, "$f_b$")
 
-        # Add box with values of qi and qk
-        textstr = '\n'.join((
-            str(timestamp[:-3]) + "-" + "23:59", # NOTE - this is a hacky way to get the end timestamp
-            r'$q_i=%.2f$' % (qi[0], ),
-            r'$q_k=%.2f$' % (qk[0], ),
-            r'$f_b=%.2f$' % (spectral_break[0], ),
-            r'$f_{{di}}=%.2f$' % (f_di, )))
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        # Place the text box. (x, y) position is in axis coordinates.
-        ax.text(0.05, 0.1, textstr, transform=ax.transAxes, fontsize=8,
-                verticalalignment='bottom', bbox=props)
+        if timestamp is not None:
+            # Add box with timestamp and values of qi and qk
+            textstr = '\n'.join((
+                str(timestamp[:-3]) + "-" + "23:59", # NOTE - this is a hacky way to get the end timestamp
+                r'$q_i=%.2f$' % (qi[0], ),
+                r'$q_k=%.2f$' % (qk[0], ),
+                r'$f_b=%.2f$' % (spectral_break[0], ),
+                r'$f_{{di}}=%.2f$' % (f_di, )))
+            props = dict(boxstyle='round', facecolor='gray', alpha=0.2)
+            # Place the text box. (x, y) position is in axis coordinates.
+            ax.text(0.05, 0.1, textstr, transform=ax.transAxes, fontsize=8,
+                    verticalalignment='bottom', bbox=props)
         
-        ax.set_xlabel('$\log(k)$')
-        ax.set_ylabel('$\log(E(k))$')
+        ax.set_xlabel('frequency (Hz)')
+        ax.set_ylabel('PSD (nT$^2$Hz$^{-1}$)')
         # plt.grid()
         # plt.show()
 
