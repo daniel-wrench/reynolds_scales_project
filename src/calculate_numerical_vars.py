@@ -302,20 +302,27 @@ for i in np.arange(n_int).tolist():
                 nlags=params.nlags_hr,
                 dt=float(params.dt_hr[:-1]))
 
-        # ~1min per interval due to spectrum smoothing algorithm
-            slope_i, slope_k, break_s = utils.compute_spectral_stats(
-                np.array([
-                    int_hr.Bx,
-                    int_hr.By,
-                    int_hr.Bz
-                ]),
-                dt=float(params.dt_hr[:-1]),
-                f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
-                f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
+            # ~1min per interval due to spectrum smoothing algorithm
+            try:
+                slope_i, slope_k, break_s = utils.compute_spectral_stats(
+                    np.array([
+                        int_hr.Bx,
+                        int_hr.By,
+                        int_hr.Bz
+                    ]),
+                    dt=float(params.dt_hr[:-1]),
+                    f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+                    f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
 
-            inertial_slope_list.append(slope_i)
-            kinetic_slope_list.append(slope_k)
-            spectral_break_list.append(break_s)
+                inertial_slope_list.append(slope_i)
+                kinetic_slope_list.append(slope_k)
+                spectral_break_list.append(break_s)
+
+            except Exception as e:
+                print("Error: spectral stats calculation failed: {}".format(e))
+                inertial_slope_list.append(np.nan)
+                kinetic_slope_list.append(np.nan)
+                spectral_break_list.append(np.nan)
 
             taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
                 time_lags_hr,
