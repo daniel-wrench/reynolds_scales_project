@@ -4,7 +4,7 @@
 #SBATCH --partition         parallel
 ##SBATCH --reservation	    spacejam
 ##SBATCH --nodelist          spj01
-#SBATCH --mem		    210G
+#SBATCH --mem		    330G
 #SBATCH --cpus-per-task     256	
 #SBATCH --time              3:30:00
 #SBATCH --output            %x_%j.out
