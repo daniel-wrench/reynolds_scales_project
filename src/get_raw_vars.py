@@ -180,7 +180,7 @@ file_list = file_lists_for_cores[rank]
 
 dataframes = []
 
-versions = ['v05', 'v02', 'v04', 'v03']
+versions = ['v05', 'v02', 'v04', 'v03', 'v01']
 
 for file_template in file_list:
     for version in versions:
