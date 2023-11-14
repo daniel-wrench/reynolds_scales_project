@@ -105,26 +105,26 @@ if df.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
 # Calculating analytically-derived variables
-# (may need to only use ne due to issues with wind ni data from previous proton dataset)
+# using ne in place of np due to data availability and very small np values, e.g. March-June 2012
 
 df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius    
 df['rhop'] = 102*np.sqrt(df['Tp'])/df['B0'] # Ion gyroradius
 df["de"] = 5.31/np.sqrt(df["ne"]) # Electron inertial length
-df["dp"] = 228/np.sqrt(df["np"]) # Ion inertial length
+df["dp"] = 228/np.sqrt(df["ne"]) # Ion inertial length
 df["betae"] = 0.403*df["ne"]*df["Te"]/(df["B0"]**2) # Electron plasma beta
-df["betap"] = 0.403*df["np"]*df["Tp"]/(df["B0"]**2) # Ion plasma beta
+df["betap"] = 0.403*df["ne"]*df["Tp"]/(df["B0"]**2) # Ion plasma beta
 df["vte"] = 419*np.sqrt(df["Te"]) # Electron thermal velocity
 df["vtp"] = 9.79*np.sqrt(df["Tp"]) # Ion thermal velocity
-df["va"] = 21.8*df['B0']/np.sqrt(df["np"]) # Alfven speed
+df["va"] = 21.8*df['B0']/np.sqrt(df["ne"]) # Alfven speed
 df["ma"] = df["V0"]/df["va"] # Alfven mach number
 df["ld"] = 0.00743*np.sqrt(df["Te"])/np.sqrt(df["ne"]) # Debye length
-df["p"] = (2e-6)*df["np"]*df["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
+df["p"] = (2e-6)*df["ne"]*df["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
 
 # Calculating Reynolds numbers (using pre-factors derived in paper)
 df["Re_lt"] = 27*(df["tcf"]/df["ttc"])**2
 df["Re_di"] = 2*((df["tcf"]*df["V0"])/df["dp"])**(4/3)
 df["tb"] = 1/((2*np.pi)*df["fb"])
-df["Re_tb"] =2*((df["tcf"]/df["tb"]))**(4/3)
+df["Re_tb"] = 2*((df["tcf"]/df["tb"]))**(4/3)
 
 # Converting scales from time to distance
 # (invoking Taylor's hypothesis)
