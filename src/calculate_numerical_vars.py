@@ -320,6 +320,7 @@ for i in np.arange(n_int).tolist():
 
             except Exception as e:
                 print("Error: spectral stats calculation failed: {}".format(e))
+                print("Interval timestamp: {}".format(int_start))
                 inertial_slope_list.append(np.nan)
                 kinetic_slope_list.append(np.nan)
                 spectral_break_list.append(np.nan)
@@ -451,6 +452,7 @@ for i in np.arange(n_int).tolist():
 
         except Exception as e:
             print("Error: missingness < 10% but error in computations: {}".format(e))
+            print("Interval timestamp: {}".format(int_start))
 
 
 # Create a dataframe combining all of the lists above
