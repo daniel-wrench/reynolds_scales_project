@@ -78,26 +78,29 @@ if df.index.has_duplicates:
     print("Warning! Final dataframe has duplicate values of the index")
 
 # Calculating analytically-derived variables
-# (may need to only use ne due to issues with wind ni data from previous proton dataset)
+# using ne in place of np due to data availability and very small np values, e.g. March-June 2012
 
 df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius    
 df['rhop'] = 102*np.sqrt(df['Tp'])/df['B0'] # Ion gyroradius
 df["de"] = 5.31/np.sqrt(df["ne"]) # Electron inertial length
-df["dp"] = 228/np.sqrt(df["np"]) # Ion inertial length
+df["dp"] = 228/np.sqrt(df["ne"]) # Ion inertial length
 df["betae"] = 0.403*df["ne"]*df["Te"]/(df["B0"]**2) # Electron plasma beta
-df["betap"] = 0.403*df["np"]*df["Tp"]/(df["B0"]**2) # Ion plasma beta
+df["betap"] = 0.403*df["ne"]*df["Tp"]/(df["B0"]**2) # Ion plasma beta
 df["vte"] = 419*np.sqrt(df["Te"]) # Electron thermal velocity
 df["vtp"] = 9.79*np.sqrt(df["Tp"]) # Ion thermal velocity
-df["va"] = 21.8*df['B0']/np.sqrt(df["np"]) # Alfven speed
-df["ma"] = df["V0"]/df["va"] # Alfven mach number
+df["ms"] = df["V0"]/df["vtp"] # Sonic mach number (total speed)
+df["mst"] = df["dv"]/df["vtp"] # Sonic mach number (fluctuations)
+df["va"] = 21.8*df['B0']/np.sqrt(df["ne"]) # Alfven speed
+df["ma"] = df["V0"]/df["va"] # Alfven mach number (total speed)
+df["mat"] = df["dv"]/df["va"] # Alfven mach number (fluctuations)
 df["ld"] = 0.00743*np.sqrt(df["Te"])/np.sqrt(df["ne"]) # Debye length
-df["p"] = (2e-6)*df["np"]*df["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
+df["p"] = (2e-6)*df["ne"]*df["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
 
 # Calculating Reynolds numbers (using pre-factors derived in paper)
 df["Re_lt"] = 27*(df["tcf"]/df["ttc"])**2
 df["Re_di"] = 2*((df["tcf"]*df["V0"])/df["dp"])**(4/3)
 df["tb"] = 1/((2*np.pi)*df["fb"])
-df["Re_tb"] =2*((df["tcf"]/df["tb"]))**(4/3)
+df["Re_tb"] = 2*((df["tcf"]/df["tb"]))**(4/3)
 
 # Converting scales from time to distance
 # (invoking Taylor's hypothesis)
@@ -113,7 +116,69 @@ df["zp_decay"] = (df["zp"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 df["zm_decay"] = (df["zm"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 
 # Rearrange columns
-df = df[['missing_mfi', 'missing_3dp', 'SN', 'ne', 'Te', 'np', 'Tp', 'nalpha', 'Talpha', 'B0', 'Bomni', 'db', 'db_a', 'dboB0', 'V0', 'v_r', 'Vomni', 'dv', 'va', 'ma', 'p', 'pomni', 'rhoe', 'rhop', 'de', 'dp', 'betae', 'betap', 'vte', 'vtp', 'ld', 'zp', 'zm', 'zp_decay', 'zm_decay', 'sigma_c', 'sigma_r', 'ra', 'cos_a', 'qi', 'qk', 'fb', 'tb', 'tcf', 'lambda_c_fit', 'tce', 'lambda_c_e', 'tci', 'lambda_c_int', 'ttu', 'ttu_std', 'ttc', 'ttc_std', 'lambda_t_raw', 'lambda_t', 'Re_lt', 'Re_di', 'Re_tb']]
+df = df[[
+    'missing_mfi', 
+    'missing_3dp', 
+    'SN', 
+    'ma', 
+    'mat', 
+    'ms', 
+    'mst', 
+    'betae', 
+    'betap', 
+    'sigma_c', 
+    'sigma_r', 
+    'ra', 
+    'cos_a', 
+    'qi', 
+    'qk', 
+    'Re_lt', 
+    'Re_di', 
+    'Re_tb',
+    'B0', 
+    'Bomni', 
+    'db', 
+    'dboB0',
+    'ne', 
+    'np', 
+    'nalpha', 
+    'Te', 
+    'Tp', 
+    'Talpha', 
+    'rhoe', 
+    'rhop', 
+    'de', 
+    'dp',
+    'ld', 
+    'lambda_c_fit', 
+    'lambda_c_e', 
+    'lambda_c_int',
+    'lambda_t_raw', 
+    'lambda_t',
+    'tcf', 
+    'tce', 
+    'tci', 
+    'ttu', 
+    'ttu_std', 
+    'ttc', 
+    'ttc_std', 
+    'tb', 
+    'fb',    
+    'V0', 
+    'v_r', 
+    'Vomni', 
+    'dv', 
+    'va', 
+    'db_a', 
+    'vte', 
+    'vtp', 
+    'zp', 
+    'zm', 
+    'zp_decay', 
+    'zm_decay', 
+    'p', 
+    'pomni', 
+    ]]
 
 stats = df.describe()
 print(df.info())
