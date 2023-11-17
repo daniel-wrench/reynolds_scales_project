@@ -31,11 +31,6 @@ wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dir
 wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/3dp/3dp_pm/
 wget --no-clobber --directory-prefix=data/raw/ --recursive -np -nv -nH --cut-dirs=2 --accept cdf  https://spdf.gsfc.nasa.gov/pub/data/wind/mfi/mfi_h2/
 
-# We don't want data before 1995 or after 2022, do delete these directories
-# (I think this is easier than specifying it in the wget command)
-rm -rf $(find . -type d -name "19[0-8][0-9]" -o -name "199[0-4]")
-rm -rf $(find . -type d -name "202[3-9]")
-
 echo "WIND data downloaded"
 
 echo "FINISHED"
