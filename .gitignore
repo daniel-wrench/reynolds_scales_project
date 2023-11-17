@@ -4,9 +4,11 @@ __pycache__
 /data/
 /doc/
 /plots/spare/
+/plots/supplementary
 /plots/thomas_plots/
 /spare_data/
 *.out
 *.err
 ActivatePython.sh
 /pytaylor
+*_WEEK*

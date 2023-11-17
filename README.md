@@ -7,9 +7,9 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 - Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. Poster and AGU talk are available in the Comms folder. **Insert link**
 
 ## Current dataset
-- About 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
-- About 4% of magnetic field data missing " "
-- About 8% of electron data missing " "
+- 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
+- 4% of magnetic field data missing
+- 8% of electron data missing
 - Between 17,000-20,000 points available for each variable, depending on % missing
 
 **Comparing pressure and B & V magnitudes with those from OMNI (available in full raw dataset but not L1 cleaned)**
@@ -18,7 +18,7 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 - 6 weird small values of V0 (~70km/s) throughout
 - (See plots in `plots/supplementary/`)
 
-**Limiting to L1 dataset (June 2006-end 2022)
+**Limiting to L1 dataset (June 2006-end 2022)**
 - 5% of intervals (745) have qk shallower (greater than) -1.7: **these are removed in the cleaned dataset**.
 - A further 1.5% (223) have qk shallower than qi (see supplementary plot)
 - (The full dataset also has a few very small values of ttu; see discussion in Outliers below)
@@ -26,28 +26,35 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 -**11-12,000 points for each variable in final cleaned dataset**
 
 
-## Previous dataset
-
-- Missing some rhoe, rhoi, beta, va (should only correspond to B0 missingness)
-- Strange values in March 1996
-- **Does not use ne in place of ni; backup in data/processed does**
-
-
 ## To-do
-1. **Complete response to referee (see word doc), send off to co-authors with updated manuscript Thursday**
-7. Combine new first half with second half, running 4 and 5. Update figures and numbers, followed by discussion. (this update should only affect Re_di)
-8. Finish remainder of response.
 
----
+1. Quick final proof of paper
+2. Finalise pipeline diagram, add to repo
+3. Clean repo
+4. Upload latest version to GitHub, create new release on Zenodo
+1. **Add sonic Mach no. (for next version).** Test here, then on one week in Rāpoi. Using this small submission script, talk to Brendan about the openmpi issue. Note that I have created a new virtual environment and done module purge to try and clean things up. Haven't set a env variable or edited .bashrc though. 
+    - For total speed V0/vtp (Ms)
+    - For fluctuations dv/vtp (MsT)
+    - V0/va(Ma)
+    - dv/va (MaT)
+3. Run for 12, 8 and 4h intervals
+4.
 
-8. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+4. Later: 
+    - Fix workloads in parallel pipeline (each core take list of files as we do now, but then just do all the computations on one file at a time, saving with same name as raw file, and move onto the next)
+    - Save raw and analytical values at native cadence (currently do this with just the raw vars)
+    - Talk to Brendan about Raapoi error messages
+    - Add gyrofrequencies
+
+
+5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
 - NB: Final dataset in this directory does not use ne in place of ni
 - https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar: Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
-8. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-11. Clean, subset, and calculate new stats and plot new figures
-13. Check no. of points reported; make clear subset contains ... points
+6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+7. Clean, subset, and calculate new stats and plot new figures
+8. Check no. of points reported; make clear subset contains ... points
 
 ## Tracking dataset updates
 - No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
@@ -55,6 +62,7 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 - Added new variables such as cross-helicity and elsasser decay rates
 - Calculating db/B0 slightly differently
 - Previous dataset had mistake of Bwind being retained despite high missing %
+- Added 2 more months of data (Nov and Dec 2022)
 
 -np avg =8.6, vs. 8.3
 -tp = 11.9, vs. 15.8
@@ -71,6 +79,10 @@ pomni vs. p
 - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
 
 ## Future statistical analysis
+- Interrogate lambda_T vs. dboB0 some more
+- Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
+
+
 - Note that for mfi data, it is more recent (2022) data that has version numbers less than 5
 - This is not the case of 3dp data, which has large numbers of v02 and v05 data. For this data, v04 stands out as having high % missing: perhaps including all those with 100% missing.
 

@@ -120,7 +120,7 @@ df_l1_cleaned[['Re_tb', 'Re_di', 'Re_lt']].sem() # standard errors
 # df_l1_cleaned["Re_lt"] = df_l1_cleaned["Re_lt"]*50
 
 # Subsetting data to highlight main density of points
-df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 27]
+df_subset = df_l1_cleaned[df_l1_cleaned.Re_lt/df_l1_cleaned.Re_tb < 50]
 df_not_subset = df_l1_cleaned[~df_l1_cleaned.index.isin(df_subset.index)]
 
 # Alt grouping, keeping everything in one dataset
@@ -129,6 +129,9 @@ df_l1_cleaned.loc[df_subset.index, 'Group'] = 'cleaned'
 
 # What prop are in this new subset?
 len(df_subset)/len(df_l1_cleaned)
+
+# What are the Re correlations now?
+df_subset[['Re_tb', 'Re_di', 'Re_lt']].corr(method='pearson')
 
 # Create the plot
 fig = plt.figure(figsize=(7, 3))
