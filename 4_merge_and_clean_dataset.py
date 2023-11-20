@@ -56,12 +56,27 @@ df[["Vomni_diff", "pomni_diff", "Bomni_diff"]].describe().round(2)
 
 df.drop(["Vomni_diff", "pomni_diff", "Bomni_diff"], axis=1, inplace=True)
 
-df.to_csv("latest_results/wind_dataset.csv")
+df.to_csv("wind_dataset.csv")
 # Let's keep everything in here, but then for cleaned L1 dataset remove omni values.
+
+# TEMPORARY UNTIL RUNNING ON RĀPOI
+# df = pd.read_csv("wind_dataset.csv")
+# df.Timestamp = pd.to_datetime(df.Timestamp)
+# df.set_index("Timestamp", inplace=True)
+# df.sort_index(inplace=True)
+
+# df["ms"] = df["V0"]/df["vtp"] # Sonic mach number (total speed)
+# df["mst"] = df["dv"]/df["vtp"] # Sonic mach number (fluctuations)
+# df["va"] = 21.8*df['B0']/np.sqrt(df["ne"]) # Alfven speed
+# df["ma"] = df["V0"]/df["va"] # Alfven mach number (total speed)
+# df["mat"] = df["dv"]/df["va"] # Alfven mach number (fluctuations)
+
+# df.to_csv("wind_dataset.csv")
+
 
 #####################################################
 
-df = pd.read_csv("latest_results/wind_dataset.csv")
+df = pd.read_csv("wind_dataset.csv")
 df.Timestamp = pd.to_datetime(df.Timestamp)
 df.set_index("Timestamp", inplace=True)
 df.sort_index(inplace=True)
@@ -103,14 +118,14 @@ df_l1_cleaned = df_l1[df_l1.qk < -1.7]
 df_l1_cleaned.loc[df_l1_cleaned.tci < 0, ["tci", "lambda_c_int"]] = np.nan
 
 # Saving cleaned dataset
-df_l1_cleaned.to_csv("latest_results/wind_dataset_l1_cleaned.csv", index=True)
+df_l1_cleaned.to_csv("wind_dataset_l1_cleaned.csv", index=True)
 
 # Saving correlations and summary statistics
 corr_table = df_l1_cleaned.corr()
-corr_table.to_csv("latest_results/wind_dataset_l1_cleaned_corr.csv")
+corr_table.to_csv("wind_dataset_l1_cleaned_corr.csv")
 
 stats = df_l1_cleaned.describe().round(2)
-stats.to_csv("latest_results/wind_dataset_l1_cleaned_stats.csv")
+stats.to_csv("wind_dataset_l1_cleaned_stats.csv")
 
 # Experimental analysis
 

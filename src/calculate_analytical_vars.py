@@ -143,7 +143,6 @@ df["zp_decay"] = (df["zp"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 df["zm_decay"] = (df["zm"]**3)/(df["lambda_c_fit"]) # Energy decay/cascade rate
 
 # Rearrange columns
-# Rearrange columns
 df = df[[
     'missing_mfi', 
     'missing_3dp', 
@@ -212,7 +211,7 @@ stats = df.describe()
 print(df.info())
 
 df = df.reset_index() # So that Timestamp is a normal (first) column in the CSV
-df.to_csv("wind_omni_dataset.csv", index=False) # Careful if this is not actually the entire dataset!
+df.to_csv("wind_dataset.csv", index=False) # Careful if this is not actually the entire dataset!
 stats.to_csv("wind_summary_stats.csv")
 
 print("\nChecking for missing data:")

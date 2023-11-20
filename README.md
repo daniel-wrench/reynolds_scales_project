@@ -28,17 +28,16 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 
 ## To-do
 
-1. Quick final proof of paper
-2. Finalise pipeline diagram, add to repo
-3. Clean repo
-4. Upload latest version to GitHub, create new release on Zenodo
-1. **Add sonic Mach no. (for next version).** Test here, then on one week in Rāpoi. Using this small submission script, talk to Brendan about the openmpi issue. Note that I have created a new virtual environment and done module purge to try and clean things up. Haven't set a env variable or edited .bashrc though. 
+1. **Add sonic Mach no. (for next version).** Test here, then on one week in Rāpoi. Using this small submission script, talk to Brendan about the openmpi issue. Module purge and create a new virtual environment to try and clean things up, then talk to Brendan if needed. Haven't set a env variable or edited .bashrc. 
     - For total speed V0/vtp (Ms)
     - For fluctuations dv/vtp (MsT)
     - V0/va(Ma)
     - dv/va (MaT)
+2. Finalise pipeline diagram, add to repo
+3. Clean repo
+4. Upload latest version to GitHub, create new release on Zenodo **and update text accordingly?**
+
 3. Run for 12, 8 and 4h intervals
-4.
 
 4. Later: 
     - Fix workloads in parallel pipeline (each core take list of files as we do now, but then just do all the computations on one file at a time, saving with same name as raw file, and move onto the next)
@@ -49,7 +48,7 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 
 5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
 - NB: Final dataset in this directory does not use ne in place of ni
-- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar: Table III for OMNI medians
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
 6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
@@ -103,13 +102,15 @@ pomni vs. p
 
 ### Expected correlations
 
-- **Spectral breakscale:** From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno & Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3
+- **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno & Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
 
 - **Correlation scale vs. di:** see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
 
-- **$q_k$**: compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
+- **$q_k$**: Expect to be about -8/3 (-2.67) Compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
 
 - **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
+
+
 
 ## How to run this code
 
@@ -183,7 +184,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     HPC: `bash 3_calculate_analytical_vars.sh > 3_calculate_analytical_vars.out` 
 
-The figures for the paper are produced in `4_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
+The figures for the paper are produced in `5_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
 
 You will now find two output files corresponding to the final database and its summary statistics:
 
