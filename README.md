@@ -7,12 +7,71 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 - Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. Poster and AGU talk are available in the Comms folder. **Insert link**
 
 ## Current dataset
+Averages are to 3sf. rms = root-mean-square. Angle brackets within equations also refer to 12-hour averages. Formulae are adapted from NRL formulary, converting G to nT and cm to km. $n_e$ is used in place of $n_i$ in derivations due to data issues.
+
+- $\delta b_i= B_i-\langle B_i \rangle$
+- $\delta b_{i,A}= \delta b_i(21.8/\sqrt{n_p})$
+- $\delta v_i= v_i-\langle v_i \rangle$
+- $z^{\pm}_i = \delta v_i \pm \delta b_{i,A}$
+- $e_{kinetic}=\frac{1}{2}\langle |\delta v|^2 \rangle$
+- $e_{magnetic}=\frac{1}{2}\langle |\delta b_A|^2 \rangle$
+
+Column name | Symbol | Name | Mean value | Unit | Source |
+| ------ | ------ | ---- | ---------- | ---- | ------ |
+| missing_mfi | - | Fraction of missing MFI data | 0.01 | - | Wind: MFI |
+| missing_3dp | - | Fraction of missing 3DP data | 0.11 | - | Wind: 3DP |
+| sn | - | Sunspot number | 56.3 | - | WDC-SILSO |
+| ma | $M_a$ | Alfvén Mach number | 7.36 | - | $V_0/v_a$ |
+| ms | $M_s$ | Sonic Mach number | 15.31 | - | $V_0/v_{T_p}$ |
+| betae | $\beta_e$ | Electron plasma beta | 0.82 | - | $0.403n_eT_e/B_0^2$ |
+| betap | $\beta_p$ | Proton plasma beta | 0.53 | - | $0.403n_eT_p/B_0^2$ |
+| sigma_c | $\sigma_c$ | Cross helicity | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{z,A}\rangle}{e_{kinetic}+e_{magnetic}}$ |
+| sigma_r | $\sigma_R$ | Residual energy | -0.44 | - | $\frac{e_{kinetic}-e_{magnetic}}{e_{kinetic}+e_{magnetic}}$ |
+| ra | $R_A$ | Alfv\'en ratio | 0.46 | - | $\frac{e_{kinetic}}{e_{magnetic}}$ |
+| cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | | 
+| qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method (see Sect.~\ref{sec:method}) |
+| qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method (see Sect.~\ref{sec:method}) |
+| re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
+| re_di | $Re_{d_i}$ | Reynolds number | 330,000 | - | $2(tcfV_0/{d_i})^{4/3}$ |
+| re_tb | $Re_{t_b}$ | Reynolds number | 116,000 | - | $2(tcf/tb)^{4/3}$ |
+| b0 | $B_0$ | Magnetic field magnitude | 6.01 | nT | $\sqrt{\langle B_x\rangle^2+\langle B_y\rangle^2+\langle B_z\rangle^2}$ |
+| db | $\|\delta b\|$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}\rangle^2+\langle \delta b_{y}\rangle^2+\langle \delta b_{z}\rangle^2}$ |
+| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT |
+| ne | $n_e$ | Electron density | 4.18 | cm $^{-3}$ | Wind: 3DP |
+| np | $n_p$ | Proton density | 5.47 | cm $^{-3}$ | Wind: 3DP |
+| nalpha | $n_\alpha$ | Alpha density | 0.14 | cm $^{-3}$ | Wind: 3DP |
+| te | $T_e$ | Electron temperature | 13.9 | eV | Wind: 3DP |
+| tp | $T_p$ | Proton temperature | 15.4 | eV | Wind: 3DP |
+| talpha | $T_\alpha$ | Alpha temperature | 63.8 | eV |
+| rhoe |$\rho_e$ | Electron gyroradius | 1.78 | km | $2.38\sqrt{T_e}/B_0$ |
+| rhop |$\rho_p$ | Proton gyroradius | 63.9 | km | $102\sqrt{T_p}/B_0$ |
+| de |$d_e$ | Electron inertial length | 3.12 | km | $5.31/\sqrt{n_e}$ |
+| dp | $d_p$ | Proton inertial length | 134 | km | $228/\sqrt{n_e}$ |
+| ld |$l_d$ | Debye length | 0.02 | km | $0.00743\sqrt{T_e}/\sqrt{n_e}$ |
+| lambda_c_fit | $\lambda_C^\text{fit}$ | Correlation length scale (fit method) | 899,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
+| lambda_c_exp | $\lambda_C^\text{exp}$ | Correlation length scale (1/e method) | 942,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
+| lambda_c_int | $\lambda_C^\text{int}$ | Correlation length scale (integral method) | 880,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
+| lambda_t_raw | $\lambda_T^\text{raw}$ | Taylor length scale (uncorrected) | 4,770 | km | Numerical method (see Sect.~\ref{sec:method}) |
+| lambda_t | $\lambda_T$ | Taylor length scale (corrected) | 3,220 | km | $\lambda_T^\text{raw}\times$ Chuychai correction factor |
+| v0 | $V_0$ | Velocity magnitude (rms) | 439 | km/s | $\sqrt{\langle V_x\rangle^2+\langle V_y\rangle^2+\langle V_z\rangle^2}$ |
+| vr |$V_r$ | Radial velocity | 438 | km/s | $\sqrt{\langle V_x\rangle^2}$ |
+| dv | $\|\delta v\|$ | Velocity fluctuations (rms) | 26.2 | km/s | $\sqrt{\langle \delta v_x\rangle^2+\langle \delta v_y\rangle^2+\langle \delta v_z\rangle^2}$ |
+| va | $v_A$ | Alfvén speed | 65.5 | km/s | $21.8B_0/\sqrt{n_e}$ |
+| vte | $v_{T_e}$ | Electron thermal velocity | 1490 | km/s | $419\sqrt{T_e}$ |
+| vtp | $v_{T_p}$ | Proton thermal velocity | 30.5 | km/s | $9.79\sqrt{T_p}$ |
+| db_a | $\delta b_A$ | Magnetic field fluctuations (Alfven units, rms) | 42.4 | km/s | $\sqrt{\langle \delta b_{x,A}\rangle^2+\langle \delta b_{y,A}\rangle^2+\langle \delta b_{z,A}\rangle^2}$ |
+| zp | $\|z^+\|$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle z^{+}_x\rangle^2+\langle z^{+}_y\rangle^2+\langle z^{+}_z\rangle^2}$ |
+| zm | $\|z^-\|$ | Negative Elsasser variable (rms) | 48.4 | km/s | $\sqrt{\langle z^{-}_x\rangle^2+\langle z^{-}_y\rangle^2+\langle z^{-}_z\rangle^2}$ |
+| fb |$f_b$ | Spectral break frequency | 0.27 | Hz | Numerical method (see Sect.~\ref{sec:method}) |
+| tb |$t_b$ | Spectral break time scale | 11.2 | s | $1/(2\pi f_b)$ |
+| p | $p$ | Proton ram ressure | 2.11 | nPa | $(1.6726\times10^{-27})n_eV_0^2$ |
+
 - 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
 - 4% of magnetic field data missing
 - 8% of electron data missing
 - Between 17,000-20,000 points available for each variable, depending on % missing
 
-**Comparing pressure and B & V magnitudes with those from OMNI (available in full raw dataset but not L1 cleaned)**
+**Comparing pressure and B | V magnitudes with those from OMNI (available in full raw dataset but not L1 cleaned)**
 - Typical difference of 1-3%
 - Notable differences pre-L1 for B and p
 - 6 weird small values of V0 (~70km/s) throughout
@@ -28,11 +87,6 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
 
 ## To-do
 
-1. **Add sonic Mach no. (for next version).** Test here, then on one week in Rāpoi. Using this small submission script, talk to Brendan about the openmpi issue. Module purge and create a new virtual environment to try and clean things up, then talk to Brendan if needed. Haven't set a env variable or edited .bashrc. 
-    - For total speed V0/vtp (Ms)
-    - For fluctuations dv/vtp (MsT)
-    - V0/va(Ma)
-    - dv/va (MaT)
 2. Finalise pipeline diagram, add to repo
 3. Clean repo
 4. Upload latest version to GitHub, create new release on Zenodo **and update text accordingly?**
@@ -44,7 +98,7 @@ Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produc
     - Save raw and analytical values at native cadence (currently do this with just the raw vars)
     - Talk to Brendan about Raapoi error messages
     - Add gyrofrequencies
-
+    - Add Elasser decay rates: $(z^{\pm})^3/\lambda_C^\text{fit}$ 
 
 5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
 - NB: Final dataset in this directory does not use ne in place of ni
@@ -102,7 +156,7 @@ pomni vs. p
 
 ### Expected correlations
 
-- **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno & Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
+- **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno | Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
 
 - **Correlation scale vs. di:** see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
 
