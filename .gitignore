@@ -2,13 +2,14 @@
 src/__pycache__
 __pycache__
 /data/
-/doc/
+/doc/other_stuff
 /plots/spare/
 /plots/supplementary
 /plots/thomas_plots/
 /spare_data/
 *.out
 *.err
+*.bkp
 ActivatePython.sh
 /pytaylor
 *_WEEK*

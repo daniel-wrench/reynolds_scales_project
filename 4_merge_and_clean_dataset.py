@@ -129,21 +129,27 @@ stats.to_csv("wind_dataset_l1_cleaned_stats.csv")
 
 # Experimental analysis
 
+# import pandas as pd
 # import seaborn as sns
 # import matplotlib.pyplot as plt 
 # from matplotlib.colors import LinearSegmentedColormap
 
+# df_l1_cleaned = pd.read_csv("wind_dataset_l1_cleaned.csv")
+# df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
+# df_l1_cleaned.set_index("Timestamp", inplace=True)
+# df_l1_cleaned.sort_index(inplace=True)
+
 # colors = ["red", "white", "green"]
 # cmap = LinearSegmentedColormap.from_list("custom_red_green", colors, N=256)
 
-# df_subset = df_l1_cleaned[['dboB0', 'dp', 'fb', 'lambda_t', 'lambda_c_e','Re_lt', 'Re_di', 'Re_tb']]
+# df_subset = df_l1_cleaned[['db', 'dboB0', 'dp', 'fb', 'lambda_t', 'lambda_c_e','Re_lt', 'Re_di', 'Re_tb']]
 # corr_matrix = df_subset.corr()
 # print(corr_matrix)
 
 # sns.heatmap(corr_matrix, annot=True, cmap=cmap, vmin=-1, vmax=1, center=0)
 # plt.show()
 
-# sns.histplot(data= df_l1_cleaned, y="Re_lt", x="dboB0", log_scale=True)
+# sns.histplot(data= df_l1_cleaned, y="Re_lt", x="db", log_scale=True)
 # plt.show()
 
 # sns.histplot(data= df_l1_cleaned, y="ttc", x="dboB0", log_scale=True)
