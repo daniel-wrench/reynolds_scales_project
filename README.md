@@ -4,10 +4,12 @@ Codes for constructing a database of solar wind parameters and scales as measure
 Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produces an 18MB CSV file.
 
 ## Research output
-- Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. Poster and AGU talk are available in the Comms folder. **Insert link**
+- Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. PDF of the article and a poster presented at the 2023 SHINE conference are available in the Comms folder. **Insert link**
 
 ## Current dataset
-Averages are to 3sf. rms = root-mean-square. Angle brackets within equations also refer to 12-hour averages. Formulae are adapted from NRL formulary, converting G to nT and cm to km. $n_e$ is used in place of $n_i$ in derivations due to data issues.
+ Averages are are to 3sf. rms = root-mean-square. Angle brackets within equations also refer to 12-hour averages. Formulae are adapted from NRL formulary, converting G to nT and cm to km. $n_e$ is used in place of $n_i$ in derivations due to data issues.
+
+ Intermediate variables used in calculations:
 
 - $\delta b_i= B_i-\langle B_i \rangle$
 - $\delta b_{i,A}= \delta b_i(21.8/\sqrt{n_p})$
@@ -16,24 +18,28 @@ Averages are to 3sf. rms = root-mean-square. Angle brackets within equations als
 - $e_{kinetic}=\frac{1}{2}\langle |\delta v|^2 \rangle$
 - $e_{magnetic}=\frac{1}{2}\langle |\delta b_A|^2 \rangle$
 
-Column name | Symbol | Name | Mean value | Unit | Source |
+Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | ------ | ------ | ---- | ---------- | ---- | ------ |
 | missing_mfi | - | Fraction of missing MFI data | 0.01 | - | Wind: MFI |
 | missing_3dp | - | Fraction of missing 3DP data | 0.11 | - | Wind: 3DP |
 | sn | - | Sunspot number | 56.3 | - | WDC-SILSO |
 | ma | $M_a$ | Alfvén Mach number | 7.36 | - | $V_0/v_a$ |
+| mat | $M_{a,t}$ | Alfvén Mach number of fluctuations | 0.4  | - | $\|\delta v\|/v_a$ |
 | ms | $M_s$ | Sonic Mach number | 15.31 | - | $V_0/v_{T_p}$ |
+| mst | $M_{s,t}$ | Sonic Mach number of fluctuations | 0.84 | - | $\|\delta b\|/v_{T_p}$ |
 | betae | $\beta_e$ | Electron plasma beta | 0.82 | - | $0.403n_eT_e/B_0^2$ |
 | betap | $\beta_p$ | Proton plasma beta | 0.53 | - | $0.403n_eT_p/B_0^2$ |
 | sigma_c | $\sigma_c$ | Cross helicity | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{z,A}\rangle}{e_{kinetic}+e_{magnetic}}$ |
 | sigma_r | $\sigma_R$ | Residual energy | -0.44 | - | $\frac{e_{kinetic}-e_{magnetic}}{e_{kinetic}+e_{magnetic}}$ |
 | ra | $R_A$ | Alfv\'en ratio | 0.46 | - | $\frac{e_{kinetic}}{e_{magnetic}}$ |
 | cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | | 
-| qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method (see Sect.~\ref{sec:method}) |
-| qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method (see Sect.~\ref{sec:method}) |
+| qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method  |
+| qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method  |
 | re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
 | re_di | $Re_{d_i}$ | Reynolds number | 330,000 | - | $2(tcfV_0/{d_i})^{4/3}$ |
 | re_tb | $Re_{t_b}$ | Reynolds number | 116,000 | - | $2(tcf/tb)^{4/3}$ |
+| fb |$f_b$ | Spectral break frequency | 0.27 | Hz | Numerical method  |
+| p | $p$ | Proton ram ressure | - | nPa | $(1.6726\times10^{-27})n_eV_0^2$ |
 | b0 | $B_0$ | Magnetic field magnitude | 6.01 | nT | $\sqrt{\langle B_x\rangle^2+\langle B_y\rangle^2+\langle B_z\rangle^2}$ |
 | db | $\|\delta b\|$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}\rangle^2+\langle \delta b_{y}\rangle^2+\langle \delta b_{z}\rangle^2}$ |
 | dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT |
@@ -43,16 +49,24 @@ Column name | Symbol | Name | Mean value | Unit | Source |
 | te | $T_e$ | Electron temperature | 13.9 | eV | Wind: 3DP |
 | tp | $T_p$ | Proton temperature | 15.4 | eV | Wind: 3DP |
 | talpha | $T_\alpha$ | Alpha temperature | 63.8 | eV |
+| tb |$t_b$ | Spectral break time scale | 11.2 | s | $1/(2\pi f_b)$ |
+| tcf | $\tau_C^\text{fit}$ | Correlation time scale (fit method) | 2160 | s | Numerical method  |
+| tce | $\tau_C^\text{exp}$ | Correlation time scale (1/e method) | 2260 | s | Numerical method  |
+| tci | $\tau_C^\text{int}$ | Correlation time scale (integral method) | 2090 | s | Numerical method  |
+| ttu | $\tau_{TS}^\text{ext}$ | Taylor time scale (uncorrected) | 11.4 | s | Numerical method  |
+| ttu_std | $\tau_{TS}^\text{ext}$ | Error of Taylor time scale (uncorrected) | 0.12 | s | Numerical method  |
+| ttc | $\tau_{TS}$ | Taylor time scale (corrected) | 7.44 | s | $\tau_{TS}^\text{ext}$ Chuychai correction factor |
+| ttc | $\tau_{TS}$ | Error of Taylor time scale (corrected) | 0.07 | s | $\tau_{TS}^\text{ext}$ Chuychai correction factor |
 | rhoe |$\rho_e$ | Electron gyroradius | 1.78 | km | $2.38\sqrt{T_e}/B_0$ |
 | rhop |$\rho_p$ | Proton gyroradius | 63.9 | km | $102\sqrt{T_p}/B_0$ |
 | de |$d_e$ | Electron inertial length | 3.12 | km | $5.31/\sqrt{n_e}$ |
 | dp | $d_p$ | Proton inertial length | 134 | km | $228/\sqrt{n_e}$ |
 | ld |$l_d$ | Debye length | 0.02 | km | $0.00743\sqrt{T_e}/\sqrt{n_e}$ |
-| lambda_c_fit | $\lambda_C^\text{fit}$ | Correlation length scale (fit method) | 899,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
-| lambda_c_exp | $\lambda_C^\text{exp}$ | Correlation length scale (1/e method) | 942,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
-| lambda_c_int | $\lambda_C^\text{int}$ | Correlation length scale (integral method) | 880,000 | km | Numerical method (see Sect.~\ref{sec:method}) |
-| lambda_t_raw | $\lambda_T^\text{raw}$ | Taylor length scale (uncorrected) | 4,770 | km | Numerical method (see Sect.~\ref{sec:method}) |
-| lambda_t | $\lambda_T$ | Taylor length scale (corrected) | 3,220 | km | $\lambda_T^\text{raw}\times$ Chuychai correction factor |
+| lambda_c_fit | $\lambda_C^\text{fit}$ | Correlation length scale (fit method) | 899,000 | km | $\tau_C^\text{fit}\times V_0$  |
+| lambda_c_exp | $\lambda_C^\text{exp}$ | Correlation length scale (1/e method) | 942,000 | km | $\tau_C^\text{exp}\times V_0$  |
+| lambda_c_int | $\lambda_C^\text{int}$ | Correlation length scale (integral method) | 880,000 | km | $\tau_C^\text{int}\times V_0$  |
+| lambda_t_raw | $\lambda_T^\text{ext}$ | Taylor length scale (uncorrected) | 4,770 | km | $\tau_{TS}^\text{ext}\times V_0$  |
+| lambda_t | $\lambda_T$ | Taylor length scale (corrected) | 3,220 | km | $\tau_{TS}\times V_0$ |
 | v0 | $V_0$ | Velocity magnitude (rms) | 439 | km/s | $\sqrt{\langle V_x\rangle^2+\langle V_y\rangle^2+\langle V_z\rangle^2}$ |
 | vr |$V_r$ | Radial velocity | 438 | km/s | $\sqrt{\langle V_x\rangle^2}$ |
 | dv | $\|\delta v\|$ | Velocity fluctuations (rms) | 26.2 | km/s | $\sqrt{\langle \delta v_x\rangle^2+\langle \delta v_y\rangle^2+\langle \delta v_z\rangle^2}$ |
@@ -62,9 +76,6 @@ Column name | Symbol | Name | Mean value | Unit | Source |
 | db_a | $\delta b_A$ | Magnetic field fluctuations (Alfven units, rms) | 42.4 | km/s | $\sqrt{\langle \delta b_{x,A}\rangle^2+\langle \delta b_{y,A}\rangle^2+\langle \delta b_{z,A}\rangle^2}$ |
 | zp | $\|z^+\|$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle z^{+}_x\rangle^2+\langle z^{+}_y\rangle^2+\langle z^{+}_z\rangle^2}$ |
 | zm | $\|z^-\|$ | Negative Elsasser variable (rms) | 48.4 | km/s | $\sqrt{\langle z^{-}_x\rangle^2+\langle z^{-}_y\rangle^2+\langle z^{-}_z\rangle^2}$ |
-| fb |$f_b$ | Spectral break frequency | 0.27 | Hz | Numerical method (see Sect.~\ref{sec:method}) |
-| tb |$t_b$ | Spectral break time scale | 11.2 | s | $1/(2\pi f_b)$ |
-| p | $p$ | Proton ram ressure | 2.11 | nPa | $(1.6726\times10^{-27})n_eV_0^2$ |
 
 - 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
 - 4% of magnetic field data missing
@@ -83,88 +94,6 @@ Column name | Symbol | Name | Mean value | Unit | Source |
 - (The full dataset also has a few very small values of ttu; see discussion in Outliers below)
 - 6 values of negative tci, **these are removed in the cleaned dataset**
 -**11-12,000 points for each variable in final cleaned dataset**
-
-
-## To-do
-
-2. Finalise pipeline diagram, add to repo
-3. Clean repo
-4. Upload latest version to GitHub, create new release on Zenodo **and update text accordingly?**
-
-3. Run for 12, 8 and 4h intervals
-
-4. Later: 
-    - Fix workloads in parallel pipeline (each core take list of files as we do now, but then just do all the computations on one file at a time, saving with same name as raw file, and move onto the next)
-    - Save raw and analytical values at native cadence (currently do this with just the raw vars)
-    - Talk to Brendan about Raapoi error messages
-    - Add gyrofrequencies
-    - Add Elasser decay rates: $(z^{\pm})^3/\lambda_C^\text{fit}$ 
-
-5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
-- NB: Final dataset in this directory does not use ne in place of ni
-- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
-- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
-- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
-6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-7. Clean, subset, and calculate new stats and plot new figures
-8. Check no. of points reported; make clear subset contains ... points
-
-## Tracking dataset updates
-- No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
-- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments) in order to calculate things like cross helicity
-- Added new variables such as cross-helicity and elsasser decay rates
-- Calculating db/B0 slightly differently
-- Previous dataset had mistake of Bwind being retained despite high missing %
-- Added 2 more months of data (Nov and Dec 2022)
-
--np avg =8.6, vs. 8.3
--tp = 11.9, vs. 15.8
-- CALCULATE % DIFFERENCE B0 VS B0MNI, dboB0 vs. db/Bwind (from previous dataset), V0 vs. vomni vs. v_r,
-pomni vs. p
-
-## Outliers and data cleaning
-
-- In `calculate_numerical_vars.py`, intervals with more than 10% missing data are removed completely (all values set to NA). Otherwise, any gaps are linearly interpolated. The average amount missing is 3%.
-
-**2004-22 data**
-- For 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
-
-- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
-
-## Future statistical analysis
-- Interrogate lambda_T vs. dboB0 some more
-- Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
-
-
-- Note that for mfi data, it is more recent (2022) data that has version numbers less than 5
-- This is not the case of 3dp data, which has large numbers of v02 and v05 data. For this data, v04 stands out as having high % missing: perhaps including all those with 100% missing.
-
-- Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
-
-- Add vector velocities to params.py script, anticipating switch to PSP data
-- Think about using the standard error to express variation in the means of our Re estimates.
-- More 2D histograms:
-    - Taylor scale, breakscale vs. delta b/b
-    - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
-    - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
-
-## References
-
-- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
-- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
-- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
-
-### Expected correlations
-
-- **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno | Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
-
-- **Correlation scale vs. di:** see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
-
-- **$q_k$**: Expect to be about -8/3 (-2.67) Compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
-
-- **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
-
-
 
 ## How to run this code
 
@@ -242,8 +171,78 @@ The figures for the paper are produced in `5_plot_figures.py` and `demo_numerica
 
 You will now find two output files corresponding to the final database and its summary statistics:
 
-- `data/processed/wind_database.csv`
+- `data/processed/wind_dataset.csv`
 - `data/processed/wind_summary_stats.csv`
+
+
+## To-do
+
+3. Run for 12, 8 and 4h intervals
+
+4. Later: 
+    - Fix workloads in parallel pipeline (each core take list of files as we do now, but then just do all the computations on one file at a time, saving with same name as raw file, and move onto the next)
+    - Save raw and analytical values at native cadence (currently do this with just the raw vars)
+    - Talk to Brendan about Raapoi error messages
+    - Add gyrofrequencies
+    - Add abs(cross-helicity)
+    - Add omni vars to table
+    - Fix pressure
+    - Add Elasser decay rates: $(z^{\pm})^3/\lambda_C^\text{fit}$ 
+
+5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+- NB: Final dataset in this directory does not use ne in place of ni
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
+- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
+- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
+6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+7. Clean, subset, and calculate new stats and plot new figures
+8. Check no. of points reported; make clear subset contains ... points
+
+## Tracking dataset updates
+- No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
+- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments) in order to calculate things like cross helicity
+
+## Outliers and data cleaning
+
+- In `calculate_numerical_vars.py`, intervals with more than 10% missing data are removed completely (all values set to NA). Otherwise, any gaps are linearly interpolated. The average amount missing is 3%.
+
+**2004-22 data**
+- For 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
+
+- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
+
+## Future statistical analysis
+- Interrogate lambda_T vs. dboB0 some more
+- Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
+
+
+- Note that for mfi data, it is more recent (2022) data that has version numbers less than 5
+- This is not the case of 3dp data, which has large numbers of v02 and v05 data. For this data, v04 stands out as having high % missing: perhaps including all those with 100% missing.
+
+- Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
+
+- Add vector velocities to params.py script, anticipating switch to PSP data
+- Think about using the standard error to express variation in the means of our Re estimates.
+- More 2D histograms:
+    - Taylor scale, breakscale vs. delta b/b
+    - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
+    - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
+
+## References
+
+- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
+- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
+
+### Expected correlations
+
+- **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno | Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
+
+- **Correlation scale vs. di:** see Cuesta2022 Fig. 2 and 3, note different variances of pdfs
+
+- **$q_k$**: Expect to be about -8/3 (-2.67) Compare with delta b/b: Larger fluctuations causes larger decay rate, steeper slope q_k?, and temperature: Also, Leamon1998 describe correlation between temperature and the slopes of both the inertial and dissipation ranges. In general the temperature is of particular interest in correlating with other variables.
+
+- **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
 
 ## Background
 
