@@ -1,27 +1,36 @@
 # README
-Codes for constructing a database of solar wind parameters and scales as measured by the *Wind* spacecraft, with optional merging with OMNI data. It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
-
-Currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produces an 18MB CSV file.
+This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. An explanation of both can be found below, including instructions for running the code yourself.
 
 ## Research output
-- Paper submitted to ApJ, entitled *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* Looks at multiple ways of calculating the Reynolds number for a large solar wind dataset. PDF of the article and a poster presented at the 2023 SHINE conference are available in the Comms folder. **Insert link**
+Paper published in The Astrophysical Journal: *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference are available in the `doc/` folder. **Insert link**
 
-## Current dataset
- Averages are are to 3sf. rms = root-mean-square. Angle brackets within equations also refer to 12-hour averages. Formulae are adapted from NRL formulary, converting G to nT and cm to km. $n_e$ is used in place of $n_i$ in derivations due to data issues.
+Future work is planned to pursue data mining, examining trends and correlations between a variety of quantities. Some expected relationships are given below under the heading *References*.
 
- Intermediate variables used in calculations:
+## Data dictionary
+The repository contains two datasets: 
+- `wind_dataset.csv`, containing the full 28 years of data (1995-01-01 to 2022-12-31), and 
+- `wind_dataset_l1_cleaned.csv`, a subset of the above, containing 18 years of data (2004-06-01 to 2022-12-31), during which the Wind spacecraft was situated at L1 (and therefore was not situated in the solar wind permanently rather than travelling in and out of the magnetosphere). **This dataset has also been cleaned of outliers.**
+
+The table below gives a description of the variables found in both datasets. 
+- Averages are are to 3sf
+- rms = root-mean-square
+- Angle brackets within equations also refer to 12-hour averages. 
+- Formulae are adapted from NRL formulary, converting G to nT and cm to km. 
+- $n_e$ is used in place of $n_i$ in derivations due to data issues.
+
+Intermediate variables used in calculations:
 
 - $\delta b_i= B_i-\langle B_i \rangle$
 - $\delta b_{i,A}= \delta b_i(21.8/\sqrt{n_p})$
 - $\delta v_i= v_i-\langle v_i \rangle$
-- $z^{\pm}_i = \delta v_i \pm \delta b_{i,A}$
+- $z^{\pm}\_i = \delta v_i \pm \delta b_{i,A}$
 - $e_{kinetic}=\frac{1}{2}\langle |\delta v|^2 \rangle$
 - $e_{magnetic}=\frac{1}{2}\langle |\delta b_A|^2 \rangle$
 
 Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | ------ | ------ | ---- | ---------- | ---- | ------ |
-| missing_mfi | - | Fraction of missing MFI data | 0.01 | - | Wind: MFI |
-| missing_3dp | - | Fraction of missing 3DP data | 0.11 | - | Wind: 3DP |
+| missing_mfi | - | Fraction of missing MFI data | 0.01 | - | Wind: MFI H2 |
+| missing_3dp | - | Fraction of missing 3DP data | 0.11 | - | Wind: 3DP PM |
 | sn | - | Sunspot number | 56.3 | - | WDC-SILSO |
 | ma | $M_a$ | Alfvén Mach number | 7.36 | - | $V_0/v_a$ |
 | mat | $M_{a,t}$ | Alfvén Mach number of fluctuations | 0.4  | - | $\|\delta v\|/v_a$ |
@@ -42,21 +51,21 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | p | $p$ | Proton ram ressure | - | nPa | $(1.6726\times10^{-27})n_eV_0^2$ |
 | b0 | $B_0$ | Magnetic field magnitude | 6.01 | nT | $\sqrt{\langle B_x\rangle^2+\langle B_y\rangle^2+\langle B_z\rangle^2}$ |
 | db | $\|\delta b\|$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}\rangle^2+\langle \delta b_{y}\rangle^2+\langle \delta b_{z}\rangle^2}$ |
-| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT |
-| ne | $n_e$ | Electron density | 4.18 | cm $^{-3}$ | Wind: 3DP |
-| np | $n_p$ | Proton density | 5.47 | cm $^{-3}$ | Wind: 3DP |
-| nalpha | $n_\alpha$ | Alpha density | 0.14 | cm $^{-3}$ | Wind: 3DP |
-| te | $T_e$ | Electron temperature | 13.9 | eV | Wind: 3DP |
-| tp | $T_p$ | Proton temperature | 15.4 | eV | Wind: 3DP |
-| talpha | $T_\alpha$ | Alpha temperature | 63.8 | eV |
+| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT | $\delta b/B_0$ |
+| ne | $n_e$ | Electron density | 4.18 | cm $^{-3}$ | Wind: 3DP ELM2 |
+| np | $n_p$ | Proton density | 5.47 | cm $^{-3}$ | Wind: 3DP PM |
+| nalpha | $n_\alpha$ | Alpha density | 0.14 | cm $^{-3}$ | Wind: 3DP PM |
+| te | $T_e$ | Electron temperature | 13.9 | eV | Wind: 3DP ELM2 |
+| tp | $T_p$ | Proton temperature | 15.4 | eV | Wind: 3DP PM |
+| talpha | $T_\alpha$ | Alpha temperature | 63.8 | eV | Wind: 3DP PM |
 | tb |$t_b$ | Spectral break time scale | 11.2 | s | $1/(2\pi f_b)$ |
 | tcf | $\tau_C^\text{fit}$ | Correlation time scale (fit method) | 2160 | s | Numerical method  |
 | tce | $\tau_C^\text{exp}$ | Correlation time scale (1/e method) | 2260 | s | Numerical method  |
 | tci | $\tau_C^\text{int}$ | Correlation time scale (integral method) | 2090 | s | Numerical method  |
 | ttu | $\tau_{TS}^\text{ext}$ | Taylor time scale (uncorrected) | 11.4 | s | Numerical method  |
 | ttu_std | $\tau_{TS}^\text{ext}$ | Error of Taylor time scale (uncorrected) | 0.12 | s | Numerical method  |
-| ttc | $\tau_{TS}$ | Taylor time scale (corrected) | 7.44 | s | $\tau_{TS}^\text{ext}$ Chuychai correction factor |
-| ttc | $\tau_{TS}$ | Error of Taylor time scale (corrected) | 0.07 | s | $\tau_{TS}^\text{ext}$ Chuychai correction factor |
+| ttc | $\tau_{TS}$ | Taylor time scale (corrected) | 7.44 | s | $\tau_{TS}^\text{ext}\times$ Chuychai correction factor |
+| ttc | $\tau_{TS}$ | Error of Taylor time scale (corrected) | 0.07 | s | $\tau_{TS}^\text{ext}\times$ Chuychai correction factor |
 | rhoe |$\rho_e$ | Electron gyroradius | 1.78 | km | $2.38\sqrt{T_e}/B_0$ |
 | rhop |$\rho_p$ | Proton gyroradius | 63.9 | km | $102\sqrt{T_p}/B_0$ |
 | de |$d_e$ | Electron inertial length | 3.12 | km | $5.31/\sqrt{n_e}$ |
@@ -77,25 +86,48 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | zp | $\|z^+\|$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle z^{+}_x\rangle^2+\langle z^{+}_y\rangle^2+\langle z^{+}_z\rangle^2}$ |
 | zm | $\|z^-\|$ | Negative Elsasser variable (rms) | 48.4 | km/s | $\sqrt{\langle z^{-}_x\rangle^2+\langle z^{-}_y\rangle^2+\langle z^{-}_z\rangle^2}$ |
 
-- 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use *np* in place of *ni* in `src/calculate_analytical_vars.py`*
+### Data sources
+Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.
+- Wind: NASA spacecraft launched in 1994 to study plasma processes in the near-Earth solar wind
+    - 3DP: 3D plasma instument
+        - ELM2: Electron moments, with raw cadence of 3s
+        - PM: Proton and alpha particle moments, with raw cadence of 3s
+    - MFI: Magnetic field instrument
+        - H2: Magnetic field vector measurements, with raw cadence of 0.092s
+- OMNI: Plasma parameters at L1, collated from multiple NASA spacecraft. Used to compare with some of our values.
+- WDC-SILSO: World Data Center repository of sunspot number dataset.
+
+### Missing data
+If there is more than 10% missing data for any of the consitutent time series for a given interval, the value for that interval is set to missing. Gaps smaller than 10% are handled with linear interpolation. Overall, we find
+
+- 15% of proton data missing (and therefore in any derived vars). *Because of this and some anomalously small values, we use $n_e$ in place of $n_p$, as noted in the derivations above*
 - 4% of magnetic field data missing
 - 8% of electron data missing
 - Between 17,000-20,000 points available for each variable, depending on % missing
 
-**Comparing pressure and B | V magnitudes with those from OMNI (available in full raw dataset but not L1 cleaned)**
-- Typical difference of 1-3%
+### Comments
+
+- Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
 - Notable differences pre-L1 for B and p
 - 6 weird small values of V0 (~70km/s) throughout
+- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
+- A few very small values of ttu - waves? Potential for tangential study.
 - (See plots in `plots/supplementary/`)
 
 **Limiting to L1 dataset (June 2006-end 2022)**
-- 5% of intervals (745) have qk shallower (greater than) -1.7: **these are removed in the cleaned dataset**.
-- A further 1.5% (223) have qk shallower than qi (see supplementary plot)
-- (The full dataset also has a few very small values of ttu; see discussion in Outliers below)
+- 5% of intervals (745) have qk shallower (greater than) -1.7. This leads to strange, very small values of ttc **these are removed in the cleaned dataset**.
+- A further 1.5% (223) have qk shallower than qi (see supplementary plot). 
+- (The full dataset also has )
 - 6 values of negative tci, **these are removed in the cleaned dataset**
 -**11-12,000 points for each variable in final cleaned dataset**
 
+
+
 ## How to run this code
+
+It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
+
+The HPC version of the code currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produces an 18MB CSV file.
 
 In order to create the full, 25-year dataset, an HPC cluster will be required. However, for the purposes of testing, a version of the pipeline is available that can be run locally on your machine with minimal computing requirements: note some Local/HPC differences in the instructions below.
 
@@ -194,6 +226,7 @@ You will now find two output files corresponding to the final database and its s
 - https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
+- Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
 6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
 7. Clean, subset, and calculate new stats and plot new figures
 8. Check no. of points reported; make clear subset contains ... points
@@ -201,15 +234,6 @@ You will now find two output files corresponding to the final database and its s
 ## Tracking dataset updates
 - No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
 - Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments) in order to calculate things like cross helicity
-
-## Outliers and data cleaning
-
-- In `calculate_numerical_vars.py`, intervals with more than 10% missing data are removed completely (all values set to NA). Otherwise, any gaps are linearly interpolated. The average amount missing is 3%.
-
-**2004-22 data**
-- For 0.7% of timestamps, the slope of the inertial range is steeper than that of the kinetic range, which leads to strange, very small corrected values of the Taylor scale, and in turn very large values of Re_lt. There is also a value of very small uncorrected Taylor scales (waves? - potential for tangential study). I have made plots of these situations.
-
-- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
 
 ## Future statistical analysis
 - Interrogate lambda_T vs. dboB0 some more
@@ -249,19 +273,3 @@ You will now find two output files corresponding to the final database and its s
 Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale** (see Figures 5.17 and 5.18 on page 57 of his thesis, *Mining Solar Wind Data for Turbulence Microscales*).                                                                 
 
 We are now more rigorously estimating the Taylor scale to confirm or deny this correlation, which would have significant implications of a constant Reynolds number in the solar wind. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
-
-## Data
-Time series of physical parameters of the solar wind.
-
-### Raw variables
-From Wind spacecraft, where original cadence ~ 0.092S :
-- Magnetic field strength (MFI H2)
-- Proton density and temperature: (3DP PLSP)  
-- Electron density and temperature (3DP ELM2)
-
-From OMNI CDAWEB dataset, where original cadence = 1min:
-- Flowspeed
-- Pressure
-- Magnetic field
-
-See `doc/wind_database_metadata.xlsx` for more details, including description of the secondary variables such as ion inertial length and turbulence scales.
