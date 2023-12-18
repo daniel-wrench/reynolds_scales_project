@@ -258,19 +258,18 @@ for i in np.arange(n_int).tolist():
             By_mean = By.mean()
             Bz_mean = Bz.mean()
 
-            # Calculate rms magnetic field
-            B0 = np.sqrt(np.mean(Bx**2)+np.mean(By**2)+np.mean(Bz**2))
+            # Calculate rms magnetic field B0
+            B0 = np.sqrt(Bx_mean**2+By_mean**2+Bz_mean**2)
             B0_list.append(B0)
 
-            # Add magnetic field fluctuations, db
+            # Calculate rms magnetic field fluctuations, db
             dbx = Bx - Bx_mean
             dby = By - By_mean
             dbz = Bz - Bz_mean
-            db = np.sqrt(dbx**2+dby**2+dbz**2)
-            db_rms = np.sqrt(np.mean(dbx**2)+np.mean(dby**2)+np.mean(dbz**2)) # Amplitude of magnetic field fluctuations
-            
-            db_list.append(db_rms)
-            dboB0_list.append(db_rms/B0)
+            db = np.sqrt(np.mean(dbx**2+dby**2+dbz**2))
+            db_list.append(db)
+
+            dboB0_list.append(db/B0)
 
             # Compute autocorrelations and power spectra
             time_lags_lr, acf_lr = utils.compute_nd_acf(
@@ -410,7 +409,6 @@ for i in np.arange(n_int).tolist():
                 dby_a = dby*alfven_prefactor
                 dbz_a = dbz*alfven_prefactor
                 db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
-
                 db_a_rms = np.sqrt(np.mean(dbx_a**2)+np.mean(dby_a**2)+np.mean(dbz_a**2))
                 db_a_list.append(db_a_rms)
 
