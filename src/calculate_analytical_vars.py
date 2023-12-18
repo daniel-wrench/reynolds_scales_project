@@ -121,7 +121,9 @@ df["va"] = 21.8*df['B0']/np.sqrt(df["ne"]) # Alfven speed
 df["ma"] = df["V0"]/df["va"] # Alfven mach number (total speed)
 df["mat"] = df["dv"]/df["va"] # Alfven mach number (fluctuations)
 df["ld"] = 0.00743*np.sqrt(df["Te"])/np.sqrt(df["ne"]) # Debye length
-df["p"] = (2e-6)*df["ne"]*df["V0"]**2 # Dynamic pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
+df["p"] = (2e-6)*df["ne"]*df["V0"]**2 # Proton ram pressure in nPa, from https://omniweb.gsfc.nasa.gov/ftpbrowser/bow_derivation.html
+df["fce"] = 28*df["B0"] # Electron gyrofrequency
+df["fci"] = 0.0152*df["B0"] # Ion gyrofrequency
 
 # Calculating Reynolds numbers (using pre-factors derived in paper)
 df["Re_lt"] = 27*(df["tcf"]/df["ttc"])**2
@@ -154,6 +156,7 @@ df = df[[
     'betae', 
     'betap', 
     'sigma_c', 
+    'sigma_c_abs',
     'sigma_r', 
     'ra', 
     'cos_a', 
@@ -184,6 +187,7 @@ df = df[[
     'lambda_t',
     'tcf', 
     'tce', 
+    'tce_velocity',
     'tci', 
     'ttu', 
     'ttu_std', 
@@ -191,6 +195,8 @@ df = df[[
     'ttc_std', 
     'tb', 
     'fb',    
+    'fce',
+    'fci',
     'V0', 
     'v_r', 
     'Vomni', 

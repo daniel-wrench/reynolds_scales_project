@@ -91,6 +91,7 @@ dv_list = []
 zp_list = []
 zm_list = []
 sigma_c_list = []
+sigma_c_abs_list = []
 sigma_r_list = []
 ra_list = []
 cos_a_list = []
@@ -104,6 +105,7 @@ kinetic_slope_list = []
 spectral_break_list = []
 corr_scale_exp_fit_list = []
 corr_scale_exp_trick_list = []
+velocity_corr_scale_exp_trick_list = []
 corr_scale_int_list = []
 taylor_scale_u_list = []
 taylor_scale_u_std_list = []
@@ -115,6 +117,7 @@ wind_df_protons_list_missing = []
 
 # For plotting ACFs (so only run on small number of intervals)
 acf_hr_list = []
+velocity_acf_lr_list = []
 acf_lr_list = []
 
 # Splitting entire dataframe into a list of intervals (each themselves a dataframe)
@@ -136,7 +139,6 @@ n_int = np.round((df_wind_lr.index[-1]-df_wind_lr.index[0]) / pd.to_timedelta(pa
 print("\nLOOPING OVER EACH INTERVAL")
 
 for i in np.arange(n_int).tolist():
-
     int_start = starttime + i*pd.to_timedelta(params.int_size)
     int_end = (endtime + i*pd.to_timedelta(params.int_size))
 
@@ -145,6 +147,7 @@ for i in np.arange(n_int).tolist():
     int_lr = df_wind_lr[int_start:int_end]
     int_hr = df_wind_hr[int_start:int_end]
     int_protons = df_protons[int_start:int_end]
+    int_protons_lr = int_protons.resample(params.dt_lr).mean()
 
     # Record amount of missing data in each dataset in each interval
     if int_hr.empty:
@@ -174,6 +177,7 @@ for i in np.arange(n_int).tolist():
         zp_list.append(np.nan)
         zm_list.append(np.nan)
         sigma_c_list.append(np.nan)
+        sigma_c_abs_list.append(np.nan)
         sigma_r_list.append(np.nan)
         ra_list.append(np.nan)
         cos_a_list.append(np.nan)
@@ -198,10 +202,12 @@ for i in np.arange(n_int).tolist():
             V0_list.append(np.nan)
             v_r_list.append(np.nan)
             dv_list.append(np.nan)
+            velocity_corr_scale_exp_trick_list.append(np.nan)
 
         elif missing_3dp <= 0.1:
             # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
             int_protons = int_protons.interpolate(method="linear").ffill().bfill()
+            int_protons_lr = int_protons_lr.interpolate(method="linear").ffill().bfill()
 
             np_list.append(int_protons["np"].mean())
             nalpha_list.append(int_protons["nalpha"].mean())
@@ -219,18 +225,30 @@ for i in np.arange(n_int).tolist():
             # Save mean radial velocity (should dominate velocity mag)
             v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
 
-            # Velocity magnitude
-            V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
+            # Calculate velocity magnitude V0
+            V0 = np.sqrt(Vx_mean**2+Vy_mean**2+Vz_mean**2)
             V0_list.append(V0)
 
-            # Velocity fluctuations
-            dvx = (Vx - Vx_mean)
-            dvy = (Vy - Vy_mean)
-            dvz = (Vz - Vz_mean)
+            # Calculate rms velocity fluctuations, dv
+            dvx = Vx - Vx_mean
+            dvy = Vy - Vy_mean
+            dvz = Vz - Vz_mean
+            dv = np.sqrt(np.mean(dvx**2+dvy**2+dvz**2))
+            dv_list.append(dv)
 
-            dv = np.sqrt(dvx**2+dvy**2+dvz**2)
-            dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2)) # Magnitude of flow fluctuations
-            dv_list.append(dv_rms)
+            # Compute proton velocity correlation length
+            velocity_time_lags_lr, velocity_acf_lr = utils.compute_nd_acf(
+                np.array([
+                    int_protons_lr.Vx,
+                    int_protons_lr.Vy,
+                    int_protons_lr.Vz
+                ]),
+                nlags=params.nlags_lr,
+                dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
+
+            velocity_acf_lr_list.append(velocity_acf_lr) #LOCAL ONLY
+            velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(velocity_time_lags_lr, velocity_acf_lr)
+            velocity_corr_scale_exp_trick_list.append(velocity_corr_scale_exp_trick)
 
     elif missing_mfi <= 0.1:
 
@@ -255,7 +273,7 @@ for i in np.arange(n_int).tolist():
             By_mean = By.mean()
             Bz_mean = Bz.mean()
 
-            # Calculate rms magnetic field B0
+            # Calculate magnetic field magnitude B0
             B0 = np.sqrt(Bx_mean**2+By_mean**2+Bz_mean**2)
             B0_list.append(B0)
 
@@ -278,8 +296,6 @@ for i in np.arange(n_int).tolist():
                 nlags=params.nlags_lr,
                 dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
 
-            acf_lr_list.append(acf_lr)
-
             corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
             corr_scale_exp_trick_list.append(corr_scale_exp_trick)
 
@@ -300,9 +316,9 @@ for i in np.arange(n_int).tolist():
                 nlags=params.nlags_hr,
                 dt=float(params.dt_hr[:-1]))
 
-            acf_hr_list.append(acf_hr)
+            acf_hr_list.append(acf_hr) # LOCAL ONLY
 
-        # ~1min per interval due to spectrum smoothing algorithm
+            # ~1min per interval due to spectrum smoothing algorithm
             slope_i, slope_k, break_s = utils.compute_spectral_stats(
                 np.array([
                     int_hr.Bx,
@@ -359,12 +375,13 @@ for i in np.arange(n_int).tolist():
             elif missing_3dp <= 0.1:
                 # Interpolate missing data, then fill any remaining gaps at start or end with nearest value
                 int_protons = int_protons.interpolate(method="linear").ffill().bfill()
+                int_protons_lr = int_protons_lr.interpolate(method="linear").ffill().bfill()
 
                 np_list.append(int_protons["np"].mean())
                 nalpha_list.append(int_protons["nalpha"].mean())
                 Tp_list.append(int_protons["Tp"].mean())
                 Talpha_list.append(int_protons["Talpha"].mean())
-            
+
                 ## Calculating magnetic field fluctuations, db/B0
                 ## (Same as previous, except now calculating full db/B0 at this step, not just the fluctuations)
                 ## Fluctuations are calculated relative to the mean of the specific dataset read in, however large that may b
@@ -381,17 +398,31 @@ for i in np.arange(n_int).tolist():
                 # Save mean radial velocity (should dominate velocity mag)
                 v_r_list.append(np.abs(Vx_mean)) # abs() because all vals negative (away from Sun)
 
-                # Calculate velocity magnitude
-                V0 = np.sqrt(np.mean(Vx**2)+np.mean(Vy**2)+np.mean(Vz**2))
+                # Calculate velocity magnitude V0
+                V0 = np.sqrt(Vx_mean**2+Vy_mean**2+Vz_mean**2)
                 V0_list.append(V0)
 
-                dvx = (Vx - Vx_mean)
-                dvy = (Vy - Vy_mean)
-                dvz = (Vz - Vz_mean)
+                # Calculate rms velocity fluctuations, dv
+                dvx = Vx - Vx_mean
+                dvy = Vy - Vy_mean
+                dvz = Vz - Vz_mean
+                dv = np.sqrt(np.mean(dvx**2+dvy**2+dvz**2))
+                dv_list.append(dv)
 
-                dv = np.sqrt(dvx**2+dvy**2+dvz**2)
-                dv_rms = np.sqrt(np.mean(dvx**2)+np.mean(dvy**2)+np.mean(dvz**2))
-                dv_list.append(dv_rms)
+                # Compute proton velocity correlation length
+                velocity_time_lags_lr, velocity_acf_lr = utils.compute_nd_acf(
+                    np.array([
+                        int_protons_lr.Vx,
+                        int_protons_lr.Vy,
+                        int_protons_lr.Vz
+                    ]),
+                    nlags=params.nlags_lr,
+                    dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
+
+                velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(velocity_time_lags_lr, velocity_acf_lr)
+                velocity_corr_scale_exp_trick_list.append(velocity_corr_scale_exp_trick)
+
+                velocity_acf_lr_list.append(velocity_acf_lr) # LOCAL ONLY
 
                 ## Convert magnetic field fluctuations to Alfvenic units
                 alfven_prefactor = 21.8/np.sqrt(int_protons["np"]) # Converting nT to Gauss and cm/s to km/s
@@ -401,7 +432,7 @@ for i in np.arange(n_int).tolist():
                 dby_a = dby*alfven_prefactor
                 dbz_a = dbz*alfven_prefactor
                 db_a = np.sqrt(dbx_a**2+dby_a**2+dbz_a**2)
-                db_a_rms = np.sqrt(np.mean(dbx_a**2)+np.mean(dby_a**2)+np.mean(dbz_a**2))
+                db_a_rms = np.sqrt(np.mean(dbx_a**2+dby_a**2+dbz_a**2))
                 db_a_list.append(db_a_rms)
 
                 # Cross-helicity 
@@ -414,6 +445,7 @@ for i in np.arange(n_int).tolist():
 
                 sigma_c = 2*Hc/(e_kinetic+e_magnetic)
                 sigma_c_list.append(sigma_c)
+                sigma_c_abs_list.append(np.abs(sigma_c))
 
                 # Normalized residual energy
                 sigma_r = (e_kinetic-e_magnetic)/(e_kinetic+e_magnetic)
@@ -431,13 +463,13 @@ for i in np.arange(n_int).tolist():
                 zpx = dvx + dbx_a
                 zpy = dvy + dby_a
                 zpz = dvz + dbz_a
-                zp = np.sqrt(np.mean(zpx**2)+np.mean(zpy**2)+np.mean(zpz**2))
+                zp = np.sqrt(np.mean(zpx**2+zpy**2+zpz**2))
                 zp_list.append(zp)
 
                 zmx = dvx - dbx_a
                 zmy = dvy - dby_a
                 zmz = dvz - dbz_a
-                zm = np.sqrt(np.mean(zmx**2)+np.mean(zmy**2)+np.mean(zmz**2))
+                zm = np.sqrt(np.mean(zmx**2+zmy**2+zmz**2))
                 zm_list.append(zm)
 
         except Exception as e:
@@ -449,11 +481,15 @@ for acf in acf_lr_list:
 plt.savefig("data/processed/all_acfs_lr.png")
 plt.close()
 
+for acf in velocity_acf_lr_list:
+    plt.plot(acf)
+plt.savefig("data/processed/all_proton_acfs_lr.png")
+plt.close()
+
 for acf in acf_hr_list:
     plt.plot(acf)
 plt.savefig("data/processed/all_acfs_hr.png")
 plt.close()
-
 
 # Create a dataframe combining all of the lists above
 # (NB: these are re-arranged again in the next step after deriving the analytical variables)
@@ -475,6 +511,7 @@ df = pd.DataFrame({
     "zp": zp_list,
     "zm": zm_list,
     "sigma_c": sigma_c_list,
+    "sigma_c_abs": sigma_c_abs_list,
     "sigma_r": sigma_r_list,
     "ra": ra_list,
     "cos_a": cos_a_list,
@@ -483,6 +520,7 @@ df = pd.DataFrame({
     "fb": spectral_break_list,
     "tcf": corr_scale_exp_fit_list,
     "tce": corr_scale_exp_trick_list,
+    "tce_velocity": velocity_corr_scale_exp_trick_list,
     "tci": corr_scale_int_list,
     "ttu": taylor_scale_u_list,
     "ttu_std": taylor_scale_u_std_list,
