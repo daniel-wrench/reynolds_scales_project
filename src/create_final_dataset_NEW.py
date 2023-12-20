@@ -22,12 +22,10 @@ df_ss = df_ss['SN']
 # Limit to only the range of other data
 df_ss = df_ss[merged_dataframe.index.min():merged_dataframe.index.max()+pd.Timedelta("12H")]
 df_ss = df_ss.resample("12H").agg("ffill")[:-1] # Up-sampling to twice daily; removing surplus final row
-df_ss
 
 merged_dataframe = utils.join_dataframes_on_timestamp(merged_dataframe, df_ss)
 
-
-# Rearrange columns
+# Rearrange columns (based on units)
 merged_dataframe = merged_dataframe[[
     'missing_mfi', 
     'missing_3dp', 

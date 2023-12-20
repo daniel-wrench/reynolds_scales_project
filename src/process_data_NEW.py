@@ -3,18 +3,36 @@ import datetime
 import glob
 import numpy as np
 import pandas as pd
-import src.utils as utils
-import src.params as params
-
-# BRING ACROSS ACTUAL PARALLEL STUFF, acf plotting locally
-# TEST ON RĀPOI
+import utils
+import params
 
 start_date = "20160101"
-end_date = "20160114"
-num_cores = 2
-rank = 0
+end_date = "20160102"
 
-#################################################################################
+try:
+    from mpi4py import MPI
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    status = MPI.Status()
+
+except ImportError:
+    # Set default single-process values if MPI is not available
+    print("MPI not available, running in single-process mode.")
+    class DummyComm:
+        def Get_size(self):
+            return 1
+        def Get_rank(self):
+            return 0
+        def Barrier(self):
+            pass
+
+    comm = DummyComm()
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    status = None
+
 
 def get_subfolders(path):
     return sorted(glob.glob(path + "/*"))
@@ -45,8 +63,8 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
     if not matched_files:
         raise ValueError(f"No files found for date {date}")
     elif len(matched_files) > 1:
-        raise ValueError(f"Multiple files found for date {date}")
         print(matched_files)
+        raise ValueError(f"Multiple files found for date {date}")
     else:
         # Read in file
         try:
@@ -56,10 +74,10 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
                 thresholds=thresholds,
                 cadence=cadence
             )
-            print("\nCore {0:03d} finished reading {1}: {2:.2f}% missing".format(
+            print("Core {0:03d} finished reading {1}: {2:.2f}% missing".format(
                 rank, matched_files[0], df.iloc[:, 0].isna().sum()/len(df)*100))
             df = df.rename(columns=newvarnames)
-            print(df.head())
+            # print(df.head())
             return df
 
         except Exception as e:
@@ -67,18 +85,28 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
             pass
 
 
-mfi_file_list = get_file_list("data/raw/wind/mfi/mfi_h2/")
-proton_file_list = get_file_list("data/raw/wind/3dp/3dp_pm/")
-electron_file_list = get_file_list("data/raw/wind/3dp/3dp_elm2/")
+if rank == 0:
+    print("#######################################")
+    print("PROCESSING DATA FOR SOLAR WIND DATABASE")
+    print("#######################################")
 
-# Generate all date strings
-all_dates = generate_date_strings(start_date, end_date)
+    mfi_file_list = get_file_list("data/raw/wind/mfi/mfi_h2/")
+    proton_file_list = get_file_list("data/raw/wind/3dp/3dp_pm/")
+    electron_file_list = get_file_list("data/raw/wind/3dp/3dp_elm2/")
 
-# Split date strings among cores
-dates_for_cores = np.array_split(all_dates, num_cores)
+    # Generate all date strings
+    all_dates = generate_date_strings(start_date, end_date)
 
-# For each core, read in files for each date
+    # Split date strings among cores
+    dates_for_cores = np.array_split(all_dates, size)
+
+comm.Barrier()
+
+
+# For each core, read in files for each date it has been assigned
 for date in dates_for_cores[rank]:
+
+    print("\nCORE {0:03d} READING CDF FILES FOR {1}\n".format(rank, date))
 
     # MFI
     mfi_df_hr = read_dated_file(date, 
@@ -125,6 +153,11 @@ for date in dates_for_cores[rank]:
     # NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
     # missing dataframes. We can identify these with df.empty = True (or missing)
 
+    # LOCAL: for plotting ACFs to check (so only run on small number of intervals locally)
+    acf_hr_list = []
+    velocity_acf_lr_list = []
+    acf_lr_list = []
+
     df = pd.DataFrame({
         "Timestamp": [np.nan]*n_int,
         "missing_mfi": [np.nan]*n_int,
@@ -160,7 +193,7 @@ for date in dates_for_cores[rank]:
         "ttc_std": [np.nan]*n_int
     })
 
-    print("\nCALCULATING STATISTICS FOR EACH INTERVAL")
+    print(f"\nCALCULATING STATISTICS FOR EACH {params.int_size} INTERVAL")
 
     for i in np.arange(n_int).tolist():
         int_start = starttime + i*pd.to_timedelta(params.int_size)
@@ -283,6 +316,8 @@ for date in dates_for_cores[rank]:
                     ]),
                     nlags=params.nlags_lr,
                     dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
+                
+                # acf_lr_list.append(acf_lr) #LOCAL ONLY
 
                 corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
                 df.at[i, "tce"] = corr_scale_exp_trick
@@ -303,6 +338,8 @@ for date in dates_for_cores[rank]:
                     ]),
                     nlags=params.nlags_hr,
                     dt=float(params.dt_hr[:-1]))
+
+                # acf_hr_list.append(acf_hr) #LOCAL ONLY
 
                 # ~1min per interval due to spectrum smoothing algorithm
                 slope_i, slope_k, break_s = utils.compute_spectral_stats(
@@ -442,7 +479,7 @@ for date in dates_for_cores[rank]:
     print(df.head())
     df.to_pickle("data/processed/" + date + ".pkl")
 
-    # Plotting all ACFs to check calculations
+    # LOCAL: Plotting all ACFs to check calculations
     # for acf in acf_lr_list:
     #     plt.plot(acf)
     # plt.savefig("data/processed/all_acfs_lr.png")
@@ -457,3 +494,10 @@ for date in dates_for_cores[rank]:
     #     plt.plot(acf)
     # plt.savefig("data/processed/all_acfs_hr.png")
     # plt.close()
+
+# wait until all parallel processes are finished
+comm.Barrier()
+
+if rank == 0:
+    print("\n##################################")
+    print("ALL CORES FINISHED")
