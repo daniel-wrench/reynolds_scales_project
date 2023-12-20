@@ -6,7 +6,7 @@ import pandas as pd
 import src.utils as utils
 import src.params as params
 
-# BRING ACROSS ACTUAL PARALLEL STUFF
+# BRING ACROSS ACTUAL PARALLEL STUFF, acf plotting locally
 # TEST ON RĀPOI
 
 start_date = "20160101"
