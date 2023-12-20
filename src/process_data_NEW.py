@@ -7,7 +7,7 @@ import utils
 import params
 
 start_date = "20160101"
-end_date = "20160102"
+end_date = "20160107"
 
 try:
     from mpi4py import MPI
@@ -49,7 +49,7 @@ def get_file_list(input_dir):
     file_list = []
     for sub in file_paths:
         for cdf_file_name in sub:
-            file_list.append(cdf_file_name)        
+            file_list.append(cdf_file_name)
     return file_list
 
 
@@ -87,7 +87,10 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
             pass
 
 
-# Initialize the date list to be broadcasted to all cores
+# Initialize the file lists to be broadcasted to all cores
+mfi_file_list = None
+proton_file_list = None
+electron_file_list = None
 dates_for_cores = None
 
 if rank == 0:
@@ -105,10 +108,11 @@ if rank == 0:
     # Split date strings among cores
     dates_for_cores = np.array_split(all_dates, size)
 
-# Broadcast the file lists to all cores
+# Broadcast the file and date lists to all cores
+mfi_file_list = comm.bcast(mfi_file_list, root=0)
+proton_file_list = comm.bcast(proton_file_list, root=0)
+electron_file_list = comm.bcast(electron_file_list, root=0)
 dates_for_cores = comm.bcast(dates_for_cores, root=0)
-
-comm.Barrier()
 
 # For each core, read in files for each date it has been assigned
 for date in dates_for_cores[rank]:
@@ -200,7 +204,7 @@ for date in dates_for_cores[rank]:
         "ttc_std": [np.nan]*n_int
     })
 
-    print(f"\nCALCULATING STATISTICS FOR EACH {params.int_size} INTERVAL")
+    print("\nCORE {0:03d} CALCULATING STATISTICS FOR EACH {1} INTERVAL".format(rank, params.int_size))
 
     for i in np.arange(n_int).tolist():
         int_start = starttime + i*pd.to_timedelta(params.int_size)
