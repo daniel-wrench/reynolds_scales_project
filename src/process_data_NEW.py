@@ -18,7 +18,7 @@ try:
     status = MPI.Status()
 
 except ImportError:
-    # Set default single-process values if MPI is not available
+    # Set default/empty single-process values if MPI is not available
     print("MPI not available, running in single-process mode.")
     class DummyComm:
         def Get_size(self):
@@ -27,6 +27,8 @@ except ImportError:
             return 0
         def Barrier(self):
             pass
+        def bcast(self, data, root=0):
+            return data
 
     comm = DummyComm()
     size = comm.Get_size()
@@ -85,6 +87,9 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
             pass
 
 
+# Initialize the date list to be broadcasted to all cores
+dates_for_cores = None
+
 if rank == 0:
     print("#######################################")
     print("PROCESSING DATA FOR SOLAR WIND DATABASE")
@@ -100,8 +105,10 @@ if rank == 0:
     # Split date strings among cores
     dates_for_cores = np.array_split(all_dates, size)
 
-comm.Barrier()
+# Broadcast the file lists to all cores
+dates_for_cores = comm.bcast(dates_for_cores, root=0)
 
+comm.Barrier()
 
 # For each core, read in files for each date it has been assigned
 for date in dates_for_cores[rank]:
