@@ -145,6 +145,14 @@ dates_for_cores = comm.bcast(dates_for_cores, root=0)
 # For each core, read in files for each date it has been assigned
 for date in dates_for_cores[rank]:
 
+    # Check if date.pkl already exists, if so, skip
+    try:
+        df = pd.read_pickle("data/processed/" + date + ".pkl")
+        print("CORE {0:03d} ALREADY PROCESSED {1}".format(rank, date))
+        continue
+    except FileNotFoundError:
+        pass
+
     print("CORE {0:03d} READING CDF FILES FOR {1}".format(rank, date))
 
     # MFI
