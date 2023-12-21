@@ -3,11 +3,9 @@ import datetime
 import glob
 import numpy as np
 import pandas as pd
-import utils
-import params
 
-start_date = "20160101"
-end_date = "20160107"
+import utils # add src. prefix if running interactively
+import params # add src. prefix if running interactively
 
 try:
     from mpi4py import MPI
@@ -79,7 +77,7 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
             print("Core {0:03d} finished reading {1}: {2:.2f}% missing".format(
                 rank, matched_files[0], df.iloc[:, 0].isna().sum()/len(df)*100))
             df = df.rename(columns=newvarnames)
-            # print(df.head())
+            print(df.head())
             return df
 
         except Exception as e:
@@ -103,7 +101,7 @@ if rank == 0:
     electron_file_list = get_file_list("data/raw/wind/3dp/3dp_elm2/")
 
     # Generate all date strings
-    all_dates = generate_date_strings(start_date, end_date)
+    all_dates = generate_date_strings(params.start_date, params.end_date)
 
     # Split date strings among cores
     dates_for_cores = np.array_split(all_dates, size)
@@ -120,11 +118,11 @@ for date in dates_for_cores[rank]:
     print("\nCORE {0:03d} READING CDF FILES FOR {1}\n".format(rank, date))
 
     # MFI
-    mfi_df_hr = read_dated_file(date, 
-                    mfi_file_list, 
-                    [params.timestamp, params.Bwind, params.Bwind_vec], 
+    mfi_df_hr = read_dated_file(date,
+                    mfi_file_list,
+                    [params.timestamp, params.Bwind, params.Bwind_vec],
                     {params.Bx: "Bx", params.By: "By", params.Bz: "Bz"},
-                    params.dt_hr, 
+                    params.dt_hr,
                     params.mag_thresh
                     )
 
@@ -142,7 +140,7 @@ for date in dates_for_cores[rank]:
                      params.dt_protons,
                      params.proton_thresh
                      )
-    
+
     df_electrons = read_dated_file(date,
                     electron_file_list,
                     [params.timestamp, params.ne, params.Te],
@@ -160,7 +158,7 @@ for date in dates_for_cores[rank]:
 
     # Number of intervals in the dataset
     n_int = np.round(pd.to_timedelta('24H') / pd.to_timedelta(params.int_size)).astype(int)
-
+    print(f"No. intervals = {n_int}")
     # NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
     # missing dataframes. We can identify these with df.empty = True (or missing)
 
@@ -207,8 +205,14 @@ for date in dates_for_cores[rank]:
     print("\nCORE {0:03d} CALCULATING STATISTICS FOR EACH {1} INTERVAL".format(rank, params.int_size))
 
     for i in np.arange(n_int).tolist():
+
+        print(i)
+        print(starttime)
+
         int_start = starttime + i*pd.to_timedelta(params.int_size)
         int_end = (endtime + i*pd.to_timedelta(params.int_size))
+
+        print(int_start)
 
         df.at[i, "Timestamp"] = int_start
 
@@ -216,6 +220,12 @@ for date in dates_for_cores[rank]:
         int_lr = int_hr.resample(params.dt_lr).mean()
         int_protons = df_protons[int_start:int_end]
         int_protons_lr = int_protons.resample(params.dt_lr).mean()
+
+        print(int_start)
+        print(int_hr.head())
+        print(int_lr.head())
+        print(int_protons.head())
+        print(int_protons_lr.head())
 
         # Record amount of missing data in each dataset in each interval
         if int_hr.empty:
@@ -282,6 +292,8 @@ for date in dates_for_cores[rank]:
                 # velocity_acf_lr_list.append(velocity_acf_lr) #LOCAL ONLY
                 velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(velocity_time_lags_lr, velocity_acf_lr)
                 df.at[i, "tce_velocity"] = velocity_corr_scale_exp_trick
+
+            print(f"core {rank} finished calculating velocity stats")
 
             if missing_mfi <= 0.1:
 
@@ -351,6 +363,7 @@ for date in dates_for_cores[rank]:
                     dt=float(params.dt_hr[:-1]))
 
                 # acf_hr_list.append(acf_hr) #LOCAL ONLY
+                print(f"core {rank} about to calculate smoothed spectrum")  
 
                 # ~1min per interval due to spectrum smoothing algorithm
                 slope_i, slope_k, break_s = utils.compute_spectral_stats(
@@ -387,12 +400,14 @@ for date in dates_for_cores[rank]:
                 df.at[i, "ttc"] = taylor_scale_c
                 df.at[i, "ttc_std"] = taylor_scale_c_std
 
+            print(f"core {rank} finished calculating mag stats")
+
             if missing_3dp <= 0.1 and missing_mfi <= 0.1:
                 # Already interpolated data, shouldn't need to do again
 
                 ## Convert magnetic field fluctuations to Alfvenic units
                 alfven_prefactor = 21.8/np.sqrt(int_protons["np"]) # Converting nT to Gauss and cm/s to km/s
-                # note that Wang2012ApJ uses the mean density of the interval 
+                # note that Wang2012ApJ uses the mean density of the interval
 
                 dbx_a = dbx*alfven_prefactor
                 dby_a = dby*alfven_prefactor
@@ -401,7 +416,7 @@ for date in dates_for_cores[rank]:
                 db_a_rms = np.sqrt(np.mean(dbx_a**2+dby_a**2+dbz_a**2))
                 df.at[i, "db_a"] = db_a_rms
 
-                # Cross-helicity 
+                # Cross-helicity
                 Hc = np.mean(dvx*dbx_a + dvy*dby_a + dvz*dbz_a)
 
                 # Normalize by energy (should then range between -1 and 1, like a normal correlation coefficient)
@@ -437,6 +452,8 @@ for date in dates_for_cores[rank]:
                 zm = np.sqrt(np.mean(zmx**2+zmy**2+zmz**2))
                 df.at[i, "zm"] = zm
 
+            print(f"core {rank} finished calculating combined stats")
+
         except Exception as e:
             print("Error: missingness < 10% but error in computations: {}".format(e))
 
@@ -446,8 +463,10 @@ for date in dates_for_cores[rank]:
     # Merge electron data
     df = df.merge(df_electrons, how="left", left_index=True, right_index=True)
 
+    print(f"core {rank} about to calculate analytical vars")
+
     # Calculating analytical, 12hr variables
-    df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius    
+    df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius
     df['rhop'] = 102*np.sqrt(df['Tp'])/df['B0'] # Ion gyroradius
     df["de"] = 5.31/np.sqrt(df["ne"]) # Electron inertial length
     df["dp"] = 228/np.sqrt(df["ne"]) # Ion inertial length
