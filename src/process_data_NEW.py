@@ -389,7 +389,7 @@ for date in dates_for_cores[rank]:
                 # Already interpolated data, shouldn't need to do again
 
                 ## Convert magnetic field fluctuations to Alfvenic units
-                alfven_prefactor = 21.8/np.sqrt(int_protons["np"]) # Converting nT to Gauss and cm/s to km/s
+                alfven_prefactor = 21.8/np.sqrt(int_protons["ne"]) # Converting nT to Gauss and cm/s to km/s, ne in place of np
                 # note that Wang2012ApJ uses the mean density of the interval
 
                 dbx_a = dbx*alfven_prefactor
