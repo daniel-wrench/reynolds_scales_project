@@ -7,10 +7,11 @@
 # See also accessing Wind data with HelioPy:
 # https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf 
 
+start_date = "20160101"
+end_date = "20160102"
+
 timestamp = "Epoch"
 int_size = "12H"
-start_date = "20100101"
-end_date = "20100103"
 
 # Not using OMNI currently
 omni_path = "omni/omni_cdaweb/hro2_1min/"

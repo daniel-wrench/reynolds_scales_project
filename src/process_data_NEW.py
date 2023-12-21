@@ -77,7 +77,7 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
             print("Core {0:03d} finished reading {1}: {2:.2f}% missing".format(
                 rank, matched_files[0], df.iloc[:, 0].isna().sum()/len(df)*100))
             df = df.rename(columns=newvarnames)
-            print(df.head())
+            # print(df.head())
             return df
 
         except Exception as e:
@@ -158,7 +158,6 @@ for date in dates_for_cores[rank]:
 
     # Number of intervals in the dataset
     n_int = np.round(pd.to_timedelta('24H') / pd.to_timedelta(params.int_size)).astype(int)
-    print(f"No. intervals = {n_int}")
     # NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
     # missing dataframes. We can identify these with df.empty = True (or missing)
 
@@ -206,13 +205,8 @@ for date in dates_for_cores[rank]:
 
     for i in np.arange(n_int).tolist():
 
-        print(i)
-        print(starttime)
-
         int_start = starttime + i*pd.to_timedelta(params.int_size)
         int_end = (endtime + i*pd.to_timedelta(params.int_size))
-
-        print(int_start)
 
         df.at[i, "Timestamp"] = int_start
 
@@ -220,12 +214,6 @@ for date in dates_for_cores[rank]:
         int_lr = int_hr.resample(params.dt_lr).mean()
         int_protons = df_protons[int_start:int_end]
         int_protons_lr = int_protons.resample(params.dt_lr).mean()
-
-        print(int_start)
-        print(int_hr.head())
-        print(int_lr.head())
-        print(int_protons.head())
-        print(int_protons_lr.head())
 
         # Record amount of missing data in each dataset in each interval
         if int_hr.empty:
@@ -292,8 +280,6 @@ for date in dates_for_cores[rank]:
                 # velocity_acf_lr_list.append(velocity_acf_lr) #LOCAL ONLY
                 velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(velocity_time_lags_lr, velocity_acf_lr)
                 df.at[i, "tce_velocity"] = velocity_corr_scale_exp_trick
-
-            print(f"core {rank} finished calculating velocity stats")
 
             if missing_mfi <= 0.1:
 
@@ -363,22 +349,21 @@ for date in dates_for_cores[rank]:
                     dt=float(params.dt_hr[:-1]))
 
                 # acf_hr_list.append(acf_hr) #LOCAL ONLY
-                print(f"core {rank} about to calculate smoothed spectrum")  
 
                 # ~1min per interval due to spectrum smoothing algorithm
-                slope_i, slope_k, break_s = utils.compute_spectral_stats(
-                    np.array([
-                        int_hr.Bx,
-                        int_hr.By,
-                        int_hr.Bz
-                    ]),
-                    dt=float(params.dt_hr[:-1]),
-                    f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
-                    f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
+                # slope_i, slope_k, break_s = utils.compute_spectral_stats(
+                #     np.array([
+                #         int_hr.Bx,
+                #         int_hr.By,
+                #         int_hr.Bz
+                #     ]),
+                #     dt=float(params.dt_hr[:-1]),
+                #     f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+                #     f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
 
-                df.at[i, "qi"] = slope_i
-                df.at[i, "qk"] = slope_k
-                df.at[i, "fb"] = break_s
+                # df.at[i, "qi"] = slope_i
+                # df.at[i, "qk"] = slope_k
+                # df.at[i, "fb"] = break_s
 
                 taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
                     time_lags_hr,
@@ -389,18 +374,15 @@ for date in dates_for_cores[rank]:
                 df.at[i, "ttu"] = taylor_scale_u
                 df.at[i, "ttu_std"] = taylor_scale_u_std
 
+                # taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
+                #     time_lags_hr,
+                #     acf_hr,
+                #     tau_min=params.tau_min,
+                #     tau_max=params.tau_max,
+                #     q=slope_k)
 
-                taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
-                    time_lags_hr,
-                    acf_hr,
-                    tau_min=params.tau_min,
-                    tau_max=params.tau_max,
-                    q=slope_k)
-
-                df.at[i, "ttc"] = taylor_scale_c
-                df.at[i, "ttc_std"] = taylor_scale_c_std
-
-            print(f"core {rank} finished calculating mag stats")
+                # df.at[i, "ttc"] = taylor_scale_c
+                # df.at[i, "ttc_std"] = taylor_scale_c_std
 
             if missing_3dp <= 0.1 and missing_mfi <= 0.1:
                 # Already interpolated data, shouldn't need to do again
@@ -452,8 +434,6 @@ for date in dates_for_cores[rank]:
                 zm = np.sqrt(np.mean(zmx**2+zmy**2+zmz**2))
                 df.at[i, "zm"] = zm
 
-            print(f"core {rank} finished calculating combined stats")
-
         except Exception as e:
             print("Error: missingness < 10% but error in computations: {}".format(e))
 
@@ -462,8 +442,6 @@ for date in dates_for_cores[rank]:
 
     # Merge electron data
     df = df.merge(df_electrons, how="left", left_index=True, right_index=True)
-
-    print(f"core {rank} about to calculate analytical vars")
 
     # Calculating analytical, 12hr variables
     df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius
