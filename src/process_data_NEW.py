@@ -75,7 +75,7 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
                 cadence=cadence
             )
             print("Core {0:03d} finished reading {1}: {2:.2f}% missing".format(
-                rank, matched_files[0], df.iloc[:, 0].isna().sum()/len(df)*100))
+                rank, matched_files[0], df.iloc[:, -1].isna().sum()/len(df)*100))
             df = df.rename(columns=newvarnames)
             # print(df.head())
             return df
@@ -219,12 +219,12 @@ for date in dates_for_cores[rank]:
         if int_hr.empty:
             missing_mfi = 1
         else:
-            missing_mfi = int_hr.iloc[:, 0].isna().sum()/len(int_hr)
+            missing_mfi = int_hr["Bx"].isna().sum()/len(int_hr)
 
         if int_protons.empty:
             missing_3dp = 1
         else:
-            missing_3dp = int_protons.iloc[:, 0].isna().sum()/len(int_protons)
+            missing_3dp = int_protons["Vx"].isna().sum()/len(int_protons)
 
         # Save these values to their respective lists, to become columns in the final dataframe
         df.at[i, "missing_mfi"] = missing_mfi
@@ -240,6 +240,7 @@ for date in dates_for_cores[rank]:
                 int_protons = int_protons.interpolate(method="linear").ffill().bfill()
                 int_protons_lr = int_protons_lr.interpolate(method="linear").ffill().bfill()
 
+                # If any of the values are nan, nan will be returned OK
                 df.at[i, "np"] = int_protons["np"].mean()
                 df.at[i, "nalpha"] = int_protons["nalpha"].mean()
                 df.at[i, "Tp"] = int_protons["Tp"].mean()

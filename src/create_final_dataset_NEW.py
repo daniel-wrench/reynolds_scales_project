@@ -1,7 +1,7 @@
 
 import os
 import pandas as pd
-import src.utils as utils
+import utils
 
 # Specify the folder path containing the pickle files
 folder_path = 'data/processed'  # Replace with your folder path
