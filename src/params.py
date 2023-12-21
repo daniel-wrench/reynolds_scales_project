@@ -5,7 +5,7 @@
 # https://cdaweb.gsfc.nasa.gov/misc/NotesW.html
 
 # See also accessing Wind data with HelioPy:
-# https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf 
+# https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf
 
 start_date = "19950101"
 end_date = "20221231"
@@ -23,7 +23,7 @@ electron_thresh = {
 }
 
 
-# Metadata: 
+# Metadata:
 # https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0SKELTABLES/wi_pm_3dp_00000000_v01.skt
 # https://hpde.io/NASA/NumericalData/Wind/3DP/PM/PT03S
 
