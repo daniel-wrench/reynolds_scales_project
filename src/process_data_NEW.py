@@ -94,7 +94,7 @@ dates_for_cores = None
 if rank == 0:
     print("#######################################")
     print("PROCESSING DATA FOR SOLAR WIND DATABASE")
-    print("#######################################")
+    print("#######################################\n")
 
     mfi_file_list = get_file_list("data/raw/wind/mfi/mfi_h2/")
     proton_file_list = get_file_list("data/raw/wind/3dp/3dp_pm/")
@@ -115,7 +115,7 @@ dates_for_cores = comm.bcast(dates_for_cores, root=0)
 # For each core, read in files for each date it has been assigned
 for date in dates_for_cores[rank]:
 
-    print("\nCORE {0:03d} READING CDF FILES FOR {1}\n".format(rank, date))
+    print("CORE {0:03d} READING CDF FILES FOR {1}".format(rank, date))
 
     # MFI
     mfi_df_hr = read_dated_file(date,
@@ -201,7 +201,7 @@ for date in dates_for_cores[rank]:
         "ttc_std": [np.nan]*n_int
     })
 
-    print("\nCORE {0:03d} CALCULATING STATISTICS FOR EACH {1} INTERVAL".format(rank, params.int_size))
+    print("CORE {0:03d} CALCULATING STATISTICS FOR EACH {1} INTERVAL".format(rank, params.int_size))
 
     for i in np.arange(n_int).tolist():
 
@@ -232,7 +232,7 @@ for date in dates_for_cores[rank]:
 
         # What follows are nested if-else statements dealing with each combination of missing data between
         # the magnetic field and proton datasets, interpolating and calculating variables where possible
-        # and setting them to missing where not 
+        # and setting them to missing where not
 
         try: # try statement for error handling; see except statement at end of loop
             if missing_3dp <= 0.1:
@@ -325,7 +325,7 @@ for date in dates_for_cores[rank]:
                     ]),
                     nlags=params.nlags_lr,
                     dt=float(params.dt_lr[:-1]))  # Removing "S" from end of dt string
-                
+
                 # acf_lr_list.append(acf_lr) #LOCAL ONLY
 
                 corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(time_lags_lr, acf_lr)
@@ -351,19 +351,19 @@ for date in dates_for_cores[rank]:
                 # acf_hr_list.append(acf_hr) #LOCAL ONLY
 
                 # ~1min per interval due to spectrum smoothing algorithm
-                # slope_i, slope_k, break_s = utils.compute_spectral_stats(
-                #     np.array([
-                #         int_hr.Bx,
-                #         int_hr.By,
-                #         int_hr.Bz
-                #     ]),
-                #     dt=float(params.dt_hr[:-1]),
-                #     f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
-                #     f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
+                slope_i, slope_k, break_s = utils.compute_spectral_stats(
+                    np.array([
+                        int_hr.Bx,
+                        int_hr.By,
+                        int_hr.Bz
+                    ]),
+                    dt=float(params.dt_hr[:-1]),
+                    f_min_inertial=params.f_min_inertial, f_max_inertial=params.f_max_inertial,
+                    f_min_kinetic=params.f_min_kinetic, f_max_kinetic=params.f_max_kinetic)
 
-                # df.at[i, "qi"] = slope_i
-                # df.at[i, "qk"] = slope_k
-                # df.at[i, "fb"] = break_s
+                df.at[i, "qi"] = slope_i
+                df.at[i, "qk"] = slope_k
+                df.at[i, "fb"] = break_s
 
                 taylor_scale_u, taylor_scale_u_std = utils.compute_taylor_chuychai(
                     time_lags_hr,
@@ -374,15 +374,15 @@ for date in dates_for_cores[rank]:
                 df.at[i, "ttu"] = taylor_scale_u
                 df.at[i, "ttu_std"] = taylor_scale_u_std
 
-                # taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
-                #     time_lags_hr,
-                #     acf_hr,
-                #     tau_min=params.tau_min,
-                #     tau_max=params.tau_max,
-                #     q=slope_k)
+                taylor_scale_c, taylor_scale_c_std = utils.compute_taylor_chuychai(
+                    time_lags_hr,
+                    acf_hr,
+                    tau_min=params.tau_min,
+                    tau_max=params.tau_max,
+                    q=slope_k)
 
-                # df.at[i, "ttc"] = taylor_scale_c
-                # df.at[i, "ttc_std"] = taylor_scale_c_std
+                df.at[i, "ttc"] = taylor_scale_c
+                df.at[i, "ttc_std"] = taylor_scale_c_std
 
             if missing_3dp <= 0.1 and missing_mfi <= 0.1:
                 # Already interpolated data, shouldn't need to do again
@@ -483,9 +483,10 @@ for date in dates_for_cores[rank]:
 
     #################################################################################
 
-    print("\nFINAL DATAFRAME:\n")
-    print(df.head())
+#    print("\nFINAL DATAFRAME:\n")
+#    print(df.head())
     df.to_pickle("data/processed/" + date + ".pkl")
+    print("CORE {0:03d} SAVED STATISTICS FOR {1}".format(rank, date))
 
     # LOCAL: Plotting all ACFs to check calculations
     # for acf in acf_lr_list:
