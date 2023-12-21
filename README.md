@@ -1,6 +1,31 @@
 # README
 This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. An explanation of both can be found below, including instructions for running the code yourself.
 
+## To-do
+
+1. Clean repo, names, outlier cleaning
+2. Run on 3 years of data, note times for full 256 cores
+3. Run on 12h, 8h, 4h, for full dataset
+3. Talk through pipeline with Tulasi 
+    - combine with master_stats fn in time series repo?
+    - spectral smoothing bottleneck?
+    - omni vars?
+    - save raw and analytical values at native cadence? (currently do this with just the raw vars)
+5. Update instructions here (copy docstring), pipeline diagram?
+4. Merge with master branch
+6. Publish new version of repo
+
+---
+
+5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
+- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
+- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
+- Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
+6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
+7. Clean, subset, and calculate new stats and plot new figures
+8. Check no. of points reported; make clear subset contains ... points
+
 ## Research output
 Paper published in The Astrophysical Journal: *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference are available in the `doc/` folder. **Insert link**
 
@@ -16,14 +41,14 @@ The table below gives a description of the variables found in both datasets.
 - rms = root-mean-square
 - Angle brackets within equations also refer to 12-hour averages. 
 - Formulae are adapted from NRL formulary, converting G to nT and cm to km. 
-- $n_e$ is used in place of $n_i$ in derivations due to data issues.
+- $n_e$ is used in place of $n_p$ in derivations due to data issues.
 
 Intermediate variables used in calculations:
 
 - $\delta b_i= B_i-\langle B_i \rangle$
 - $\delta b_{i,A}= \delta b_i(21.8/\sqrt{n_p})$
 - $\delta v_i= v_i-\langle v_i \rangle$
-- $z^{\pm}\_i = \delta v_i \pm \delta b_{i,A}$
+- $z^{\pm}_i = \delta v_i \pm \delta b_{i,A}$
 - $e_{kinetic}=\frac{1}{2}\langle |\delta v|^2 \rangle$
 - $e_{magnetic}=\frac{1}{2}\langle |\delta b_A|^2 \rangle$
 
@@ -39,6 +64,7 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | betae | $\beta_e$ | Electron plasma beta | 0.82 | - | $0.403n_eT_e/B_0^2$ |
 | betap | $\beta_p$ | Proton plasma beta | 0.53 | - | $0.403n_eT_p/B_0^2$ |
 | sigma_c | $\sigma_c$ | Cross helicity | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{z,A}\rangle}{e_{kinetic}+e_{magnetic}}$ |
+| sigma_c_abs | $\|\sigma_c\|$ | Cross helicity (absolute value) | - | - | $\|\sigma_c\|$ |
 | sigma_r | $\sigma_R$ | Residual energy | -0.44 | - | $\frac{e_{kinetic}-e_{magnetic}}{e_{kinetic}+e_{magnetic}}$ |
 | ra | $R_A$ | Alfv\'en ratio | 0.46 | - | $\frac{e_{kinetic}}{e_{magnetic}}$ |
 | cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | | 
@@ -48,9 +74,11 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | re_di | $Re_{d_i}$ | Reynolds number | 330,000 | - | $2(tcfV_0/{d_i})^{4/3}$ |
 | re_tb | $Re_{t_b}$ | Reynolds number | 116,000 | - | $2(tcf/tb)^{4/3}$ |
 | fb |$f_b$ | Spectral break frequency | 0.27 | Hz | Numerical method  |
-| p | $p$ | Proton ram ressure | - | nPa | $(1.6726\times10^{-27})n_eV_0^2$ |
+| fce | $f_{ce}$ | Electron gyrofrequency | - | Hz |  $28 \times B_0$ |
+| fci | $f_{ci}$ | Ion gyrofrequency | - | Hz |  $0.0152 \times B_0$ |
+| p | $p$ | Proton ram ressure | - | nPa | $(2e-6)n_eV_0^2$ |
 | b0 | $B_0$ | Magnetic field magnitude | 6.01 | nT | $\sqrt{\langle B_x\rangle^2+\langle B_y\rangle^2+\langle B_z\rangle^2}$ |
-| db | $\|\delta b\|$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}\rangle^2+\langle \delta b_{y}\rangle^2+\langle \delta b_{z}\rangle^2}$ |
+| db | $\delta b$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}^2+\delta b_{y}^2+\delta b_{z}^2\rangle}$ |
 | dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT | $\delta b/B_0$ |
 | ne | $n_e$ | Electron density | 4.18 | cm $^{-3}$ | Wind: 3DP ELM2 |
 | np | $n_p$ | Proton density | 5.47 | cm $^{-3}$ | Wind: 3DP PM |
@@ -62,6 +90,7 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | tcf | $\tau_C^\text{fit}$ | Correlation time scale (fit method) | 2160 | s | Numerical method  |
 | tce | $\tau_C^\text{exp}$ | Correlation time scale (1/e method) | 2260 | s | Numerical method  |
 | tci | $\tau_C^\text{int}$ | Correlation time scale (integral method) | 2090 | s | Numerical method  |
+| tce_velocity | $\tau_{C,v}^\text{exp}$ | Correlation time scale (1/e method) for velocity |  | s | Numerical method  |
 | ttu | $\tau_{TS}^\text{ext}$ | Taylor time scale (uncorrected) | 11.4 | s | Numerical method  |
 | ttu_std | $\tau_{TS}^\text{ext}$ | Error of Taylor time scale (uncorrected) | 0.12 | s | Numerical method  |
 | ttc | $\tau_{TS}$ | Taylor time scale (corrected) | 7.44 | s | $\tau_{TS}^\text{ext}\times$ Chuychai correction factor |
@@ -77,14 +106,16 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | lambda_t_raw | $\lambda_T^\text{ext}$ | Taylor length scale (uncorrected) | 4,770 | km | $\tau_{TS}^\text{ext}\times V_0$  |
 | lambda_t | $\lambda_T$ | Taylor length scale (corrected) | 3,220 | km | $\tau_{TS}\times V_0$ |
 | v0 | $V_0$ | Velocity magnitude (rms) | 439 | km/s | $\sqrt{\langle V_x\rangle^2+\langle V_y\rangle^2+\langle V_z\rangle^2}$ |
-| vr |$V_r$ | Radial velocity | 438 | km/s | $\sqrt{\langle V_x\rangle^2}$ |
-| dv | $\|\delta v\|$ | Velocity fluctuations (rms) | 26.2 | km/s | $\sqrt{\langle \delta v_x\rangle^2+\langle \delta v_y\rangle^2+\langle \delta v_z\rangle^2}$ |
+| vr |$V_r$ | Radial velocity | 438 | km/s | $\|V_x\|$ |
+| dv | $\delta v$ | Velocity fluctuations (rms) | 26.2 | km/s | $\sqrt{\langle \delta v_x^2+\delta v_y^2+\delta v_z^2\rangle}$ |
 | va | $v_A$ | Alfvén speed | 65.5 | km/s | $21.8B_0/\sqrt{n_e}$ |
 | vte | $v_{T_e}$ | Electron thermal velocity | 1490 | km/s | $419\sqrt{T_e}$ |
 | vtp | $v_{T_p}$ | Proton thermal velocity | 30.5 | km/s | $9.79\sqrt{T_p}$ |
-| db_a | $\delta b_A$ | Magnetic field fluctuations (Alfven units, rms) | 42.4 | km/s | $\sqrt{\langle \delta b_{x,A}\rangle^2+\langle \delta b_{y,A}\rangle^2+\langle \delta b_{z,A}\rangle^2}$ |
-| zp | $\|z^+\|$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle z^{+}_x\rangle^2+\langle z^{+}_y\rangle^2+\langle z^{+}_z\rangle^2}$ |
-| zm | $\|z^-\|$ | Negative Elsasser variable (rms) | 48.4 | km/s | $\sqrt{\langle z^{-}_x\rangle^2+\langle z^{-}_y\rangle^2+\langle z^{-}_z\rangle^2}$ |
+| db_a | $\delta b_A$ | Magnetic field fluctuations (Alfven units, rms) | 42.4 | km/s | $\sqrt{\langle \delta b_{x,A}^2+\delta b_{y,A}^2+\delta b_{z,A}^2\rangle}$ |
+| zp | $z^{+}$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle {z^{+}_x}^2+{z^{+}_y}^2+{z^{+}_z}^2\rangle}$ |
+| zm | $z^{-}$ | Negative Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle {z^{-}_x}^2+{z^{-}_y}^2+{z^{-}_z}^2\rangle}$ |
+| zp_decay | | Positive Elsasser variable decay rate | - | m^2/s^3 | ${z^{+}}**3/\lambda_C^\text{fit}$ |
+| zm_decay | | Negative Elsasser variable decay rate | - | m^2/s^3 | ${z^{-}}**3/\lambda_C^\text{fit}$ |
 
 ### Data sources
 Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.
@@ -93,9 +124,8 @@ Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). T
         - ELM2: Electron moments, with raw cadence of 3s
         - PM: Proton and alpha particle moments, with raw cadence of 3s
     - MFI: Magnetic field instrument
-        - H2: Magnetic field vector measurements, with raw cadence of 0.092s
-- OMNI: Plasma parameters at L1, collated from multiple NASA spacecraft. Used to compare with some of our values.
-- WDC-SILSO: World Data Center repository of sunspot number dataset.
+        - H2: Magnetic field vector measurements, with raw cadence of 0.092s $B_x,B_y,B_z$
+clark- WDC-SILSO: World Data Center repository of sunspot number dataset.
 
 ### Missing data
 If there is more than 10% missing data for any of the consitutent time series for a given interval, the value for that interval is set to missing. Gaps smaller than 10% are handled with linear interpolation. Overall, we find
@@ -205,31 +235,6 @@ You will now find two output files corresponding to the final database and its s
 
 - `data/processed/wind_dataset.csv`
 - `data/processed/wind_summary_stats.csv`
-
-
-## To-do
-
-3. Run for 12, 8 and 4h intervals
-
-4. Later: 
-    - Fix workloads in parallel pipeline (each core take list of files as we do now, but then just do all the computations on one file at a time, saving with same name as raw file, and move onto the next)
-    - Save raw and analytical values at native cadence (currently do this with just the raw vars)
-    - Talk to Brendan about Raapoi error messages
-    - Add gyrofrequencies
-    - Add abs(cross-helicity)
-    - Add omni vars to table
-    - Fix pressure
-    - Add Elasser decay rates: $(z^{\pm})^3/\lambda_C^\text{fit}$ 
-
-5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
-- NB: Final dataset in this directory does not use ne in place of ni
-- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
-- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
-- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
-- Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
-6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-7. Clean, subset, and calculate new stats and plot new figures
-8. Check no. of points reported; make clear subset contains ... points
 
 ## Tracking dataset updates
 - No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)

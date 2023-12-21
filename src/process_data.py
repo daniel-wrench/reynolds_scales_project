@@ -1,9 +1,39 @@
+"""
+process_data.py
+
+This script processes magnetic field and velocity data measured in the solar wind by spacecraft
+to compute various metrics related to turbulent fluctuations and their statistical properties.
+
+Custom modules:
+    - params: Module containing parameter settings and constants.
+    - utils: Utility functions for operations like merging dataframes based on timestamps.
+
+Pipeline:
+    1. Read variables (specified in params.py) from CDF files downloaded from the NASA repository.
+       In parallel mode, each core reads a subset of files, each corresponding to one day of measurements.
+       The code can also run locally/in serial without requiring changes.
+    2. Resample to desired cadences for specific calculations, e.g., highest resolution of 0.092s for 
+       Taylor scale calculation.
+    3. Split data into intervals as defined in params.int_size (default 12 hours). These intervals form 
+       the rows of the final dataframes.
+    4. Loop over each interval to calculate various quantities. 
+        - Some calculations use magnetic field (mfi) data, some use velocity (proton) data, and others use both. 
+        - Methods include numerical fits for correlation scales and spectral slopes, and analytical calculations 
+        for plasma beta and cross-helicity. 
+        - Missing data is interpolated if gaps are less than 10%, otherwise, statistics for that interval are 
+       marked as missing. 
+        - The Reynolds number of the solar wind is computed for each interval using three different approximations.
+    5. Save the processed dataframes, corresponding to each input daily dataset, as pickle files in the directory 
+       data/processed/.
+    6. (Use the next script, 2_create_final_dataset, to merge the daily dataframes into a single dataframe.)
+"""
 
 import datetime
 import glob
 import numpy as np
 import pandas as pd
 
+# Custom modules
 import utils # add src. prefix if running interactively
 import params # add src. prefix if running interactively
 
@@ -510,4 +540,3 @@ comm.Barrier()
 
 if rank == 0:
     print("\n##################################")
-    print("ALL CORES FINISHED")

@@ -10,7 +10,7 @@ import statsmodels.api as sm
 plt.rcParams.update({'font.size': 9})
 plt.rc('text', usetex=True) # Set default font to Latex font
 
-df_l1_cleaned = pd.read_csv("latest_results/wind_dataset_l1_cleaned.csv")
+df_l1_cleaned = pd.read_csv("wind_dataset_l1_cleaned.csv")
 df_l1_cleaned.Timestamp = pd.to_datetime(df_l1_cleaned.Timestamp)
 df_l1_cleaned.set_index("Timestamp", inplace=True)
 df_l1_cleaned.sort_index(inplace=True)
