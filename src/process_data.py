@@ -91,10 +91,11 @@ def generate_date_strings(start_date, end_date):
 def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
     matched_files = [file for file in file_list if date in file]
     if not matched_files:
-        raise ValueError(f"No files found for date {date}")
+        print("CORE {0:03d} skipping {1} file for {2}: not found".format(rank, varlist[1], date))
+        return None
     elif len(matched_files) > 1:
-        print(matched_files)
-        raise ValueError(f"Multiple files found for date {date}")
+        print(f"Skipping date: multiple files with {varlist[1]} found for {date}: {matched_files}")
+        return None
     else:
         # Read in file
         try:
@@ -104,7 +105,7 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
                 thresholds=thresholds,
                 cadence=cadence
             )
-            print("Core {0:03d} finished reading {1}: {2:.2f}% missing".format(
+            print("CORE {0:03d} finished reading {1}: {2:.2f}% missing".format(
                 rank, matched_files[0], df.iloc[:, -1].isna().sum()/len(df)*100))
             df = df.rename(columns=newvarnames)
             # print(df.head())
@@ -148,7 +149,7 @@ for date in dates_for_cores[rank]:
     # Check if date.pkl already exists, if so, skip
     try:
         df = pd.read_pickle("data/processed/" + date + ".pkl")
-        print("CORE {0:03d} ALREADY PROCESSED {1}".format(rank, date))
+        print("CORE {0:03d} SKIPPING {1}: ALREADY PROCESSED".format(rank, date))
         continue
     except FileNotFoundError:
         pass
@@ -178,7 +179,8 @@ for date in dates_for_cores[rank]:
                      params.dt_protons,
                      params.proton_thresh
                      )
-
+    
+    # ELECTRONS
     df_electrons = read_dated_file(date,
                     electron_file_list,
                     [params.timestamp, params.ne, params.Te],
@@ -200,9 +202,9 @@ for date in dates_for_cores[rank]:
     # missing dataframes. We can identify these with df.empty = True (or missing)
 
     # LOCAL: for plotting ACFs to check (so only run on small number of intervals locally)
-    acf_hr_list = []
-    velocity_acf_lr_list = []
-    acf_lr_list = []
+    # acf_hr_list = []
+    # velocity_acf_lr_list = []
+    # acf_lr_list = []
 
     df = pd.DataFrame({
         "Timestamp": [np.nan]*n_int,
@@ -248,29 +250,26 @@ for date in dates_for_cores[rank]:
 
         df.at[i, "Timestamp"] = int_start
 
-        int_hr = mfi_df_hr[int_start:int_end]
-        int_lr = int_hr.resample(params.dt_lr).mean()
-        int_protons = df_protons[int_start:int_end]
-        int_protons_lr = int_protons.resample(params.dt_lr).mean()
+        # Check if dataframes exist before slicing
+        if mfi_df_hr is not None:
+            int_hr = mfi_df_hr[int_start:int_end]
+            int_lr = int_hr.resample(params.dt_lr).mean()
+        else:
+            int_hr = pd.DataFrame()  # Create an empty DataFrame
+
+        if df_protons is not None:
+            int_protons = df_protons[int_start:int_end]
+            int_protons_lr = int_protons.resample(params.dt_lr).mean()
+        else:
+            int_protons = pd.DataFrame()  # Create an empty DataFrame
 
         # Record amount of missing data in each dataset in each interval
-        if int_hr.empty:
-            missing_mfi = 1
-        else:
-            missing_mfi = int_hr["Bx"].isna().sum()/len(int_hr)
-
-        if int_protons.empty:
-            missing_3dp = 1
-        else:
-            missing_3dp = int_protons["Vx"].isna().sum()/len(int_protons)
+        missing_mfi = 1 if int_hr.empty else int_hr["Bx"].isna().sum() / len(int_hr)
+        missing_3dp = 1 if int_protons.empty else int_protons["Vx"].isna().sum() / len(int_protons)
 
         # Save these values to their respective lists, to become columns in the final dataframe
         df.at[i, "missing_mfi"] = missing_mfi
         df.at[i, "missing_3dp"] = missing_3dp
-
-        # What follows are nested if-else statements dealing with each combination of missing data between
-        # the magnetic field and proton datasets, interpolating and calculating variables where possible
-        # and setting them to missing where not
 
         try: # try statement for error handling; see except statement at end of loop
             if missing_3dp <= 0.1:
@@ -481,7 +480,11 @@ for date in dates_for_cores[rank]:
     df = df.sort_index()
 
     # Merge electron data
-    df = df.merge(df_electrons, how="left", left_index=True, right_index=True)
+    if df_electrons is not None:
+        df = df.merge(df_electrons, how="left", left_index=True, right_index=True)
+    else:
+        df["ne"] = np.nan
+        df["Te"] = np.nan
 
     # Calculating analytical, 12hr variables
     df["rhoe"] = 2.38*np.sqrt(df['Te'])/df['B0'] # Electron gyroradius
