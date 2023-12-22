@@ -2,13 +2,14 @@
 import os
 import pandas as pd
 import numpy as np
-import src.utils as utils
+import utils
+import params
 
 # Specify the folder path containing the pickle files
 folder_path = 'data/processed'  # Replace with your folder path
 
 # List all pickle files in the folder
-pickle_files = [file for file in os.listdir(folder_path) if file.endswith('.pkl')]
+pickle_files = [file for file in os.listdir(folder_path) if file.endswith(params.int_size + '.pkl')]
 
 # Import and concatenate all the dataframes
 dataframes = [pd.read_pickle(os.path.join(folder_path, file)) for file in pickle_files]
@@ -97,7 +98,7 @@ print(merged_dataframe.info())
 print(merged_dataframe.head())
 
 # Output the merged dataframe as a CSV file
-output_csv_path = 'wind_dataset.csv'
+output_csv_path = 'wind_dataset_' + params.int_size + '.csv'
 merged_dataframe.to_csv(output_csv_path, index=True)
 print(f'Merged DataFrame saved as CSV at: {output_csv_path}')
 

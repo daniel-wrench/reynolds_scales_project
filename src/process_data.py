@@ -528,7 +528,7 @@ for date in dates_for_cores[rank]:
 
 #    print("\nFINAL DATAFRAME:\n")
 #    print(df.head())
-    df.to_pickle("data/processed/" + date + ".pkl")
+    df.to_pickle("data/processed/" + date + "_" + params.int_size + ".pkl")
     print("CORE {0:03d} SAVED STATISTICS FOR {1}".format(rank, date))
 
     # LOCAL: Plotting all ACFs to check calculations
