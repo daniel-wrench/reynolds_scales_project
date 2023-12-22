@@ -2,8 +2,8 @@
 import os
 import pandas as pd
 import numpy as np
-import utils
-import params
+import src.utils as utils
+import src.params as params
 
 # Specify the folder path containing the pickle files
 folder_path = 'data/processed'  # Replace with your folder path
@@ -23,7 +23,7 @@ df_ss.set_index("Timestamp", inplace=True)
 df_ss = df_ss['SN']
 # Limit to only the range of other data
 df_ss = df_ss[merged_dataframe.index.min():merged_dataframe.index.max()+pd.Timedelta("12H")]
-df_ss = df_ss.resample("12H").agg("ffill")[:-1] # Up-sampling to twice daily; removing surplus final row
+df_ss = df_ss.resample(params.int_size).agg("ffill")[:-1] # Up-sampling to twice daily; removing surplus final row
 
 merged_dataframe = utils.join_dataframes_on_timestamp(merged_dataframe, df_ss)
 
@@ -103,10 +103,10 @@ merged_dataframe.to_csv(output_csv_path, index=True)
 print(f'Merged DataFrame saved as CSV at: {output_csv_path}')
 
 stats = merged_dataframe.describe().round(2)
-stats.to_csv("wind_dataset_stats.csv")
+stats.to_csv("wind_dataset_stats_" + params.int_size + ".csv")
 
 corr_matrix = merged_dataframe.corr()
-corr_matrix.to_csv("wind_dataset_l1_cleaned_corr_matrix.csv")
+corr_matrix.to_csv("wind_dataset_" + params.int_size + "_corr_matrix.csv")
 
 
 #####################################################
@@ -120,7 +120,7 @@ corr_matrix.to_csv("wind_dataset_l1_cleaned_corr_matrix.csv")
 
 #### DATA CLEANING (subsetting and dealing with outliers)
 
-df_l1 = merged_dataframe["2004-06-01":] 
+df_l1 = merged_dataframe["2004-06-01":].copy()
 # Wind has been at L1 continuously since June 2004: https://wind.nasa.gov/orbit.php 
 
 # Few timestamps (0.1%) have ttc < 0 
@@ -155,11 +155,11 @@ df_l1_cleaned = df_l1[df_l1.qk < -1.7]
 df_l1_cleaned.loc[df_l1_cleaned.tci < 0, ["tci", "lambda_c_int"]] = np.nan
 
 # Saving cleaned dataset
-df_l1_cleaned.to_csv("wind_dataset_l1_cleaned.csv", index=True)
+df_l1_cleaned.to_csv("wind_dataset_l1_" + params.int_size + "_cleaned.csv", index=True)
 
 # Saving correlations and summary statistics
 corr_table = df_l1_cleaned.corr()
-corr_table.to_csv("wind_dataset_l1_cleaned_corr.csv")
+corr_table.to_csv("wind_dataset_" + params.int_size + "_l1_cleaned_corr.csv")
 
 stats = df_l1_cleaned.describe().round(2)
-stats.to_csv("wind_dataset_l1_cleaned_stats.csv")
+stats.to_csv("wind_dataset_" + params.int_size + "_l1_cleaned_stats.csv")

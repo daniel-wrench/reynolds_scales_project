@@ -34,9 +34,10 @@ import numpy as np
 import pandas as pd
 
 # Custom modules
-import utils # add src. prefix if running interactively
-import params # add src. prefix if running interactively
+import utils # add src. prefix and as ... suffix if running interactively
+import params # add src. prefix and as ... suffix if running interactively
 
+# Setting up parallel processing (or not, if running locally)
 try:
     from mpi4py import MPI
 
@@ -201,11 +202,13 @@ for date in dates_for_cores[rank]:
     # NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
     # missing dataframes. We can identify these with df.empty = True (or missing)
 
-    # LOCAL: for plotting ACFs to check (so only run on small number of intervals locally)
+    # LOCAL TESTING: plot the ACFs for each interval
+
     # acf_hr_list = []
     # velocity_acf_lr_list = []
     # acf_lr_list = []
 
+    # Initialise dataframe
     df = pd.DataFrame({
         "Timestamp": [np.nan]*n_int,
         "missing_mfi": [np.nan]*n_int,
@@ -475,6 +478,7 @@ for date in dates_for_cores[rank]:
 
         except Exception as e:
             print("Error: missingness < 10% but error in computations: {}".format(e))
+            # Any warnings (e.g. RunTimeWarning, OptimizeWarning) are instead returned in the error output file
 
     df = df.set_index("Timestamp")
     df = df.sort_index()
