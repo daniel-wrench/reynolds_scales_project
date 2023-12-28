@@ -3,14 +3,21 @@ This repository contains a dataset of solar wind parameters and turbulence scale
 
 ## To-do
 
-1. Clean repo, names, outlier cleaning
-2. Run on 3 years of data, note times for full 256 cores
-3. Run on 12h, 8h, 4h, for full dataset
-3. Talk through pipeline with Tulasi 
-    - combine with master_stats fn in time series repo?
+JOB REQS: 
+    - 7-9min/file/core = up to 7 hour for full 28-year dataset, using all 256 cores and a total of 130GB (but may need to request at least 1GB per core; could change this later to reduce mem request)
+
+1. Separate merging and cleaning in code
+1. Re-run plots and stats to check against final results
+1. Go through proof
+    - fix db/B0 units (should be dimensionless)
+    - change title
+    - submit
+1. Talk through pipeline with Tulasi 
+    - combine with master_stats fn in time series repo, also using flipbook codes?
     - spectral smoothing bottleneck?
-    - omni vars?
-    - save raw and analytical values at native cadence? (currently do this with just the raw vars)
+    - using np for alfven speed?
+    - remove omni vars
+3. (Run on 8h, 4h, for full dataset again)
 5. Update instructions here (copy docstring), pipeline diagram?
 4. Merge with master branch
 6. Publish new version of repo
@@ -121,11 +128,11 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.
 - Wind: NASA spacecraft launched in 1994 to study plasma processes in the near-Earth solar wind
     - 3DP: 3D plasma instument
-        - ELM2: Electron moments, with raw cadence of 3s
-        - PM: Proton and alpha particle moments, with raw cadence of 3s
+        - ELM2: Electron moments, with raw cadence of 99s
+        - PM: Proton and alpha particle moments, including velocity vector measurements, with raw cadence of 3s
     - MFI: Magnetic field instrument
         - H2: Magnetic field vector measurements, with raw cadence of 0.092s $B_x,B_y,B_z$
-clark- WDC-SILSO: World Data Center repository of sunspot number dataset.
+- WDC-SILSO: World Data Center repository of sunspot number dataset, with raw cadence of daily
 
 ### Missing data
 If there is more than 10% missing data for any of the consitutent time series for a given interval, the value for that interval is set to missing. Gaps smaller than 10% are handled with linear interpolation. Overall, we find
@@ -150,8 +157,6 @@ If there is more than 10% missing data for any of the consitutent time series fo
 - (The full dataset also has )
 - 6 values of negative tci, **these are removed in the cleaned dataset**
 -**11-12,000 points for each variable in final cleaned dataset**
-
-
 
 ## How to run this code
 
