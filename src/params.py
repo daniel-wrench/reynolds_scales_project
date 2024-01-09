@@ -13,17 +13,6 @@ end_date = "20090603"
 timestamp = "Epoch"
 int_size = "12H"
 
-# Not using OMNI currently
-omni_path = "omni/omni_cdaweb/hro2_1min/"
-vsw = "flow_speed"
-p = "Pressure"
-Bomni = "F"
-omni_thresh = {
-    "flow_speed": [0, 1000],
-    "Pressure": [0, 200],
-    "F": [0, 50]
-}
-
 electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
 Te = "AVGTEMP"
