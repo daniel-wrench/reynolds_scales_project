@@ -3,35 +3,19 @@ This repository contains a dataset of solar wind parameters and turbulence scale
 
 ## To-do
 
-JOB REQS: 
-    - 7-9min/file/core = up to 7 hour for full 28-year dataset, using all 256 cores and a total of 130GB (but may need to request at least 1GB per core; could change this later to reduce mem request)
-
-1. Separate merging and cleaning in code
-1. Re-run plots and stats to check against final results
-1. Go through proof
-    - fix db/B0 units (should be dimensionless)
-    - change title
-    - submit
-1. Talk through pipeline with Tulasi 
-    - combine with master_stats fn in time series repo, also using flipbook codes?
-    - spectral smoothing bottleneck?
-    - using np for alfven speed?
-    - remove omni vars
-3. (Run on 8h, 4h, for full dataset again)
-5. Update instructions here (copy docstring), pipeline diagram?
+1. Update instructions here (copy docstring), pipeline diagram?
 4. Merge with master branch
+1. Create master_stats fn based of version in time series repo and Tulasi's flipbook codes
+3. Run on 12h, 8h, 4h, for full dataset again; commit these files
 6. Publish new version of repo
 
 ---
 
-5. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
+6. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
 - https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
 - https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
 - https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
 - Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
-6. Merge and perform checks in demo notebook with data from 1996, 2009, and 2021, compare with database
-7. Clean, subset, and calculate new stats and plot new figures
-8. Check no. of points reported; make clear subset contains ... points
 
 ## Research output
 Paper published in The Astrophysical Journal: *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference are available in the `doc/` folder. **Insert link**
@@ -129,7 +113,7 @@ Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). T
 - Wind: NASA spacecraft launched in 1994 to study plasma processes in the near-Earth solar wind
     - 3DP: 3D plasma instument
         - ELM2: Electron moments, with raw cadence of 99s
-        - PM: Proton and alpha particle moments, including velocity vector measurements, with raw cadence of 3s
+        - PM: Proton and alpha particle  (science-quality), including velocity vector measurements, with raw cadence of 3s
     - MFI: Magnetic field instrument
         - H2: Magnetic field vector measurements, with raw cadence of 0.092s $B_x,B_y,B_z$
 - WDC-SILSO: World Data Center repository of sunspot number dataset, with raw cadence of daily
@@ -160,11 +144,11 @@ If there is more than 10% missing data for any of the consitutent time series fo
 
 ## How to run this code
 
-It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the src/params.py parameter file.
+(It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the `src/params.py` parameter file.)
 
 The HPC version of the code currently ingests 300GB across 10,000 CDF files (data from 1995-2022) and produces an 18MB CSV file.
 
-In order to create the full, 25-year dataset, an HPC cluster will be required. However, for the purposes of testing, a version of the pipeline is available that can be run locally on your machine with minimal computing requirements: note some Local/HPC differences in the instructions below.
+In order to create the full, multi-year dataset, an HPC cluster is required. However, for the purposes of testing, minor adjustments can be made to the pipeline so that it can be run locally on your machine with a small subset of the data: note some local/HPC differences in the instructions below. This local version has been run on a **Windows OS**. Both the HPC and local versions use **Python 3.10.4**.
 
 **Google Colab** is a highly recommended way to run the code for beginners on a Windows computer. 
 You will need to prefix the commands below with `!`, use `%cd` to move into the project folder, and can safely ignore step 2.
@@ -173,15 +157,18 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     - Using a terminal: `git clone https://github.com/daniel-wrench/reynolds_scales_project`
 
-    - [Using VS Code](https://learn.microsoft.com/en-us/azure/developer/javascript/how-to/with-visual-studio-code/clone-github-repository?tabs=create-repo-command-palette%2Cinitialize-repo-activity-bar%2Ccreate-branch-command-palette%2Ccommit-changes-command-palette%2Cpush-command-palette#clone-repository)
+    - Using VS Code: [see here for instructions](https://learn.microsoft.com/en-us/azure/developer/javascript/how-to/with-visual-studio-code/clone-github-repository?tabs=create-repo-command-palette%2Cinitialize-repo-activity-bar%2Ccreate-branch-command-palette%2Ccommit-changes-command-palette%2Cpush-command-palette#clone-repository)
 
-2. **Create and activate a virtual environment**: 
+2. **Create a virtual environment**: 
 
-    (For HPCs, start with `module load python/3.9.5`. You may also need to use `python3` instead of `python`.)
+    Local: 
+    - `python -m venv venv`
+    - `venv\Scripts\activate`
 
-    `python -m venv venv`
-
-    `venv\Scripts\activate` (For HPCs, use `source venv/bin/activate`)
+    HPC:
+    - `module load Python/3.10.4`
+    - `python -m venv venv`
+    - `source venv/bin/activate`
 
 2. **Install the required packages:**
 
@@ -192,69 +179,34 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     Local: `bash 0_download_files.sh`
 
     HPC: 
+        Using tmux to be able to do other tasks while the files are downloading. There are approximately 10,000 files for each of the three daily datasets. **This results in a requirement of 300GB of disk space**.
+    
     - (`tmux new`)
     - `srun --pty --cpus-per-task=2 --mem=1G --time=02:00:00 --partition=quicktest bash`
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
-    There are approximately 10,000 files for each of the daily datasets (MFI, 3DP:PLSP and 3DP:ELM2), and 330 for the monthly datasets (OMNI). **Requries 300GB of disk space**.
+4. **Process the data**
 
-4. **Get the raw variables by processing the CDF files:**
+    Local: `python process_data.py`
 
-    Local: `bash 1_get_raw_vars_local.sh`
-
-    HPC: `sbatch 1_get_raw_vars.sh`
-        
-        Recommended HPC job requirements: 
-        This job can run on all the input files (1995-2022) with 256 CPUs/300GB/285min, but the following step cannot and uses all the data from this step, so recommended to instead run twice on half the data (:5000 and 5000:), with the line of code provided in the .py file, and use the following specifications: 256 CPUs/210GB/3 hours. (Takes about 8min/file/core).
-
-    Process the raw CDF files, getting the desired variables at the desired cadences as specified in `params.py`. Saves resultant datasets to `data/processed/*spacecraft*/`
+    HPC: `sbatch 1_process_data.sh`
+        Recommended HPC job requirements: 7-9min/file/core = up to **7 hours** for full 28-year dataset, using all **256 cores** and a total of **130GB** (but may need to request at least 1GB per core; could change this later to reduce mem request)
     
-    If more than 40% of values in any column are missing, skips that data file. Note that it is processing the mfi data that takes up the vast majority of the time for this step.
-
-    NB: Missing data is not reported if you do not resample to the desired frequency first. It is important that we do note the amount of missing data in each interval, even if we do interpolate over it.
-
-    For the non-mfi datasets, we only get a missing value for a 12-hour average if there is no data for that period. Otherwise, we simply get an average of the available data for each period. 
-
-5. **Get the numerical variables by running a sequence of calculations:**
-
-    Local: `bash 2_calculate_numerical_vars_local.sh` 
-
-    HPC: `sbatch 2_calculate_numerical_vars.sh`
-       
-        Recommended HPC job requirements: 
-        As stated in the previous step, this requires > 500GB of memory for the full dataset, so recommended to instead run twice on half the data (no change needed to the code, simply run previous step on half the data): 256 CPUS/320GB/6 hours.
+    This script processes magnetic field and velocity data measured in the solar wind by spacecraft to compute various metrics related to turbulent fluctuations and their statistical properties. It outputs the processed data for each input file into `data/processed/`.
         
+    See the notebook **demo_scale_funcs.ipynb** for more on the numerical fitting. Fitting parameters, including the interval length, are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
-    See the notebook **demo_scale_funcs.ipynb** for more on these calculations. Fitting parameters are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+6. **Merge
 
-6. **Get the analytical variables by running a sequence of calculations and output the final dataframe:**
-
-    Local: `bash 3_calculate_analytical_vars_local.sh > 3_calculate_analytical_vars_local.out` 
-
-    HPC: `bash 3_calculate_analytical_vars.sh > 3_calculate_analytical_vars.out` 
-
-The figures for the paper are produced in `5_plot_figures.py` and `demo_numerical_w_figs.ipynb`.
-
-You will now find two output files corresponding to the final database and its summary statistics:
-
-- `data/processed/wind_dataset.csv`
-- `data/processed/wind_summary_stats.csv`
-
-## Tracking dataset updates
-- No longer using OMNI: deriving all variables from Wind data (but keeping them in temporarily for testing)
-- Using 3DP/PM (science-quality 3s proton moments) instead of 3DP/PLSP (24s moments) in order to calculate things like cross helicity
+    Output files:
+    
+    The figures for the paper are produced in `demo_numerical_w_figs.ipynb` (demonstrations of methods) and `4_plot_figures.py` (results).
 
 ## Future statistical analysis
 - Interrogate lambda_T vs. dboB0 some more
 - Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
-
-
-- Note that for mfi data, it is more recent (2022) data that has version numbers less than 5
-- This is not the case of 3dp data, which has large numbers of v02 and v05 data. For this data, v04 stands out as having high % missing: perhaps including all those with 100% missing.
-
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
-
 - Add vector velocities to params.py script, anticipating switch to PSP data
 - Think about using the standard error to express variation in the means of our Re estimates.
 - More 2D histograms:

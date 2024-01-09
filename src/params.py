@@ -7,8 +7,8 @@
 # See also accessing Wind data with HelioPy:
 # https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf 
 
-start_date = "20090601"
-end_date = "20090603"
+start_date = "19950101"
+end_date = "20221231"
 
 timestamp = "Epoch"
 int_size = "12H"
