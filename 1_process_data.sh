@@ -21,6 +21,6 @@ date
 echo -e "NB: Input files will appear out of order due to parallel processing. Output files will be in chronological order.\n"
 
 # python src/process_sunspot_data.py
-mpirun --oversubscribe -n 3 python src/process_data.py
+mpirun --oversubscribe -n 256 python src/process_data.py
 
 echo "FINISHED"
