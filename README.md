@@ -1,5 +1,7 @@
 # README
-This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. An explanation of both can be found below, including instructions for running the code yourself.
+This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. Given below are a description of the dataset and instructions for running the code yourself.
+
+Please feel free to download the dataset and perform your own analysis or adapt it for your needs. Any comments or questions, either use the GitHub functionality or email daniel.wrench@vuw.ac.nz
 
 ## To-do
 
@@ -7,20 +9,12 @@ This repository contains a dataset of solar wind parameters and turbulence scale
 4. Merge with master branch
 1. Create master_stats fn based of version in time series repo and Tulasi's flipbook codes
 3. Run on 12h, 8h, 4h, for full dataset again; commit these files
-6. Publish new version of repo
-
----
-
-6. Check how well new values match up against existing ones and literature, talk about with Tulasi (time scales, slopes and electron stats should all be the same, rest will be slightly different)
-- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
-- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
-- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
-- Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
+6. Publish new version of repo, note no changes to results from v2 which was used and cited for the paper
 
 ## Research output
-Paper published in The Astrophysical Journal: *Statistics of Turbulence in the Solar Wind. I. What is the Reynolds Number of the Solar Wind?* This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference are available in the `doc/` folder. **Insert link**
+Paper accepted by The Astrophysical Journal: *What is the Reynolds Number of the Solar Wind?* ([ArXiv version](https://arxiv.org/abs/2312.06863)) This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference of an earlier version of this work are available in the `doc/` folder.
 
-Future work is planned to pursue data mining, examining trends and correlations between a variety of quantities. Some expected relationships are given below under the heading *References*.
+Future work is planned to pursue data mining, examining trends and correlations between a variety of quantities; this is discussed later under the heading *Future analysis*.
 
 ## Data dictionary
 The repository contains two datasets: 
@@ -58,7 +52,8 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | sigma_c_abs | $\|\sigma_c\|$ | Cross helicity (absolute value) | - | - | $\|\sigma_c\|$ |
 | sigma_r | $\sigma_R$ | Residual energy | -0.44 | - | $\frac{e_{kinetic}-e_{magnetic}}{e_{kinetic}+e_{magnetic}}$ |
 | ra | $R_A$ | Alfv\'en ratio | 0.46 | - | $\frac{e_{kinetic}}{e_{magnetic}}$ |
-| cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | | 
+| cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | |
+| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | - | $\delta b/B_0$ | 
 | qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method  |
 | qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method  |
 | re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
@@ -70,7 +65,6 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | p | $p$ | Proton ram ressure | - | nPa | $(2e-6)n_eV_0^2$ |
 | b0 | $B_0$ | Magnetic field magnitude | 6.01 | nT | $\sqrt{\langle B_x\rangle^2+\langle B_y\rangle^2+\langle B_z\rangle^2}$ |
 | db | $\delta b$ | Magnetic field fluctuations (rms) | 3.83 | nT | $\sqrt{\langle \delta b_{x}^2+\delta b_{y}^2+\delta b_{z}^2\rangle}$ |
-| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | nT | $\delta b/B_0$ |
 | ne | $n_e$ | Electron density | 4.18 | cm $^{-3}$ | Wind: 3DP ELM2 |
 | np | $n_p$ | Proton density | 5.47 | cm $^{-3}$ | Wind: 3DP PM |
 | nalpha | $n_\alpha$ | Alpha density | 0.14 | cm $^{-3}$ | Wind: 3DP PM |
@@ -126,22 +120,6 @@ If there is more than 10% missing data for any of the consitutent time series fo
 - 8% of electron data missing
 - Between 17,000-20,000 points available for each variable, depending on % missing
 
-### Comments
-
-- Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
-- Notable differences pre-L1 for B and p
-- 6 weird small values of V0 (~70km/s) throughout
-- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
-- A few very small values of ttu - waves? Potential for tangential study.
-- (See plots in `plots/supplementary/`)
-
-**Limiting to L1 dataset (June 2006-end 2022)**
-- 5% of intervals (745) have qk shallower (greater than) -1.7. This leads to strange, very small values of ttc **these are removed in the cleaned dataset**.
-- A further 1.5% (223) have qk shallower than qi (see supplementary plot). 
-- (The full dataset also has )
-- 6 values of negative tci, **these are removed in the cleaned dataset**
--**11-12,000 points for each variable in final cleaned dataset**
-
 ## How to run this code
 
 (It should be relatively easy to adjust to use CDF files from other spacecraft as well, mainly via editing the `src/params.py` parameter file.)
@@ -153,13 +131,13 @@ In order to create the full, multi-year dataset, an HPC cluster is required. How
 **Google Colab** is a highly recommended way to run the code for beginners on a Windows computer. 
 You will need to prefix the commands below with `!`, use `%cd` to move into the project folder, and can safely ignore step 2.
 
-1. **Clone the repository to your local machine:**
+1. **Clone the repository to your local machine**
 
     - Using a terminal: `git clone https://github.com/daniel-wrench/reynolds_scales_project`
 
     - Using VS Code: [see here for instructions](https://learn.microsoft.com/en-us/azure/developer/javascript/how-to/with-visual-studio-code/clone-github-repository?tabs=create-repo-command-palette%2Cinitialize-repo-activity-bar%2Ccreate-branch-command-palette%2Ccommit-changes-command-palette%2Cpush-command-palette#clone-repository)
 
-2. **Create a virtual environment**: 
+2. **Create a virtual environment** 
 
     Local: 
     - `python -m venv venv`
@@ -170,18 +148,18 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     - `python -m venv venv`
     - `source venv/bin/activate`
 
-2. **Install the required packages:**
+2. **Install the required packages**
 
     `pip install -r requirements.txt`
 
-3. **Download the raw CDF files using a set of recursive `wget` commands:**
+3. **Download the raw CDF files using a set of recursive `wget` commands**
 
     Local: `bash 0_download_files.sh`
 
     HPC: 
-        Using tmux to be able to do other tasks while the files are downloading. There are approximately 10,000 files for each of the three daily datasets. **This results in a requirement of 300GB of disk space**.
+         There are approximately 10,000 files for each of the three daily datasets. **This results in a requirement of 300GB of disk space**.
     
-    - (`tmux new`)
+    - (`tmux new`) (this allows you to work in another session while the files are downloading)
     - `srun --pty --cpus-per-task=2 --mem=1G --time=02:00:00 --partition=quicktest bash`
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
@@ -191,19 +169,43 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     Local: `python process_data.py`
 
     HPC: `sbatch 1_process_data.sh`
-        Recommended HPC job requirements: 7-9min/file/core = up to **7 hours** for full 28-year dataset, using all **256 cores** and a total of **130GB** (but may need to request at least 1GB per core; could change this later to reduce mem request)
+        
+    - Recommended HPC job requirements: 7-9min/file/core = up to **7 hours** for full 28-year dataset, using all **256 cores** and a total of **130GB** (but may need to request at least 1GB per core; could change this later to reduce mem request)
     
     This script processes magnetic field and velocity data measured in the solar wind by spacecraft to compute various metrics related to turbulent fluctuations and their statistical properties. It outputs the processed data for each input file into `data/processed/`.
         
     See the notebook **demo_scale_funcs.ipynb** for more on the numerical fitting. Fitting parameters, including the interval length, are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
 
-6. **Merge
+6. **Merge the processed data into a single dataset**
 
-    Output files:
-    
-    The figures for the paper are produced in `demo_numerical_w_figs.ipynb` (demonstrations of methods) and `4_plot_figures.py` (results).
+    Local and HPC: `python 2_create_dataset.py`
 
-## Future statistical analysis
+    At this stage, it is advised to download the dataset from the HPC using `sftp` and then doing the cleaning and plotting below locally for convenience.
+
+7. **Subset the data and remove outliers:** `python 3_clean_dataset.py`
+    For the analysis in the paper, we limit to June 2006 onwards from when the spacecraft was situated at L1.
+
+    **Limiting to L1 dataset (June 2006-end 2022)**
+    - 5% of intervals (745) have qk shallower (greater than) -1.7. This leads to strange, very small values of ttc **these are removed in the cleaned dataset**.
+    - A further 1.5% (223) have qk shallower than qi (see supplementary plot). 
+    - (The full dataset also has )
+    - 6 values of negative tci, **these are removed in the cleaned dataset**
+    -**11-12,000 points for each variable in final cleaned dataset**
+
+8. **Plot figures for Results section of the paper:** `python 4_plot_figures.py`
+
+    Figures for the Method section of the paper are produced in `demo_numerical_w_figs.ipynb`, which also steps through the numerical fitting process with code, output, and explanations.
+
+## Future analysis
+Investigate the following
+
+- Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
+- Notable differences pre-L1 for B and p
+- 6 weird small values of V0 (~70km/s) throughout
+- Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
+- A few very small values of ttu - waves? Potential for tangential study.
+- (See plots in `plots/supplementary/`)
+
 - Interrogate lambda_T vs. dboB0 some more
 - Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
@@ -214,13 +216,14 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     - qk vs. delta b/b -> removing shallow qk likely removes small delta b/b due to ion lions: *larger fluctuations = more energy goes to ions (lions) = less energy for electrons (hyenas) = less power at electron (subion) scales = steeper slope*
     - Tb vs. ion inertial timescale vs. Taylor scale. Cf. expectations reported in **Results** below
 
-## References
+### Expected averages and correlations
+The literature on Taylor scales, correlation scales and Reynolds numbers at 1 au is described in detail in the paper.
 
-- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
-- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
-- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
-
-### Expected correlations
+#### Other reported averages
+- https://pubs.aip.org/aip/pop/article/13/5/056505/1032771/Eddy-viscosity-and-flow-properties-of-the-solar : Table III for OMNI medians
+- https://iopscience.iop.org/article/10.3847/1538-4365/ab64e6: Fig. 4 for PSP cos(theta), cross-helicity, residual energy
+- https://iopscience.iop.org/article/10.1088/0004-637X/741/2/75/meta for ACE cos(theta) and cross-helicity
+- Alfven mach number $\approx$ order 10, plasma beta $\approx$ 1
 
 - **Spectral breakscale:** Should be around 0.4-0.5Hz, corresponding to distances of 600-1000km (Weygand 2007) (our frequency is a bit low). Roberts2022 says 10s. From Bandy2020: *For example, Leamon et al. (2000, Fig. 4) and Wang et al. (2018) argued that the ion-inertial scale controls the spectral break and onset of strong dissipation, while Bruno | Trenchi (2014) suggested the break frequency is associated with the resonance condition for a parallel propagating Alfvén wave. Another possibility is that the largest of the proton kinetic scales terminates the inertial range and controls the spectral break (Chen et al. 2014).* See also Matthaeus2008, Fig. 3; Vech2018. Leamon et al. 
 
@@ -230,8 +233,12 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
 - **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
 
-## Background
+## Other related work
 
-Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale** (see Figures 5.17 and 5.18 on page 57 of his thesis, *Mining Solar Wind Data for Turbulence Microscales*).                                                                 
+- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
+- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
+- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
+- Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale** (see Figures 5.17 and 5.18 on page 57 of his thesis, *Mining Solar Wind Data for Turbulence Microscales*).                                                                 
 
 We are now more rigorously estimating the Taylor scale to confirm or deny this correlation, which would have significant implications of a constant Reynolds number in the solar wind. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
+
