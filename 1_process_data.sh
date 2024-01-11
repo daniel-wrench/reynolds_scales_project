@@ -2,7 +2,7 @@
 
 #SBATCH --job-name          1_process_data
 #SBATCH --partition         parallel
-#SBATCH --mem               300G
+#SBATCH --mem               150G
 #SBATCH --cpus-per-task     256
 #SBATCH --time              07:00:00
 #SBATCH --output            %x_%j_12H.out
