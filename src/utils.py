@@ -6,9 +6,73 @@ import cdflib
 import statsmodels.api as sm
 from pprint import pprint
 from scipy.optimize import curve_fit
+import random
 
 plt.rcParams.update({"font.size": 9})
 plt.rc("text", usetex=True)
+
+
+# Get MSE between two curves
+def calc_mse(curve1, curve2):
+    mse = np.sum((curve1 - curve2) ** 2) / len(curve1)
+    if mse == np.inf:
+        mse = np.nan
+    return mse
+
+
+# Get MAPE between two curves
+def calc_mape(curve1, curve2):
+    curve1 = curve1 + 0.000001  # Have to add this so there is no division by 0
+    mape = np.sum(np.abs((curve1 - curve2) / curve1)) / len(curve1)
+    if mape == np.inf:
+        mape = np.nan
+    return mape
+
+
+def remove_data(array, proportion, chunks=None, sigma=0.1):
+    num_obs = proportion * len(array)
+
+    if chunks is None:
+        remove_idx = random.sample(range(len(array)), int(num_obs))
+
+    else:
+        mean_obs = num_obs / chunks
+        std = sigma * 0.341 * 2 * mean_obs
+        remove_idx = []
+
+        for i in range(chunks):
+            num_obs = round(random.gauss(mu=mean_obs, sigma=std))
+            # Comment out the line above and replace num_obs below with mean_obs to revert to equal sized chunks
+            if num_obs < 0:
+                raise Exception("sigma too high, got negative obs")
+            start = random.randrange(
+                start=1, stop=len(array) - num_obs
+            )  # Starting point for each removal should be far enough from the start and end of the series
+            remove = np.arange(start, start + num_obs)
+
+            remove_idx.extend(remove)
+
+        prop_missing = len(np.unique(remove_idx)) / len(array)
+
+        while prop_missing < proportion:
+            start = random.randrange(
+                start=1, stop=len(array) - num_obs
+            )  # Starting point for each removal should be far enough from the start and end of the series
+            remove = np.arange(start, start + num_obs)
+            remove_idx.extend(remove)
+
+            prop_missing = len(np.unique(remove_idx)) / len(array)
+
+    remove_idx = [int(x) for x in remove_idx]  # Converting decimals to integers
+    array_bad = array.copy()
+    array_bad[remove_idx] = np.nan
+
+    # Will be somewhat different from value specified if removed in chunks
+    prop_removed = np.sum(pd.isna(array_bad)) / len(array)
+    idx = np.arange(len(array))
+    array_bad_idx = np.delete(idx, remove_idx)
+
+    return array_bad, array_bad_idx, prop_removed
 
 
 def read_cdf(cdf_file_path: str) -> cdflib.cdfread.CDF:
@@ -212,75 +276,119 @@ def fitpowerlaw(ax, ay, xi, xf):
 
 
 def compute_spectral_stats(
-    np_array,
-    dt,
-    f_min_inertial,
-    f_max_inertial,
-    f_min_kinetic,
-    f_max_kinetic,
+    time_series,
+    f_min_inertial=None,
+    f_max_inertial=None,
+    f_min_kinetic=None,
+    f_max_kinetic=None,
     timestamp=None,
     di=None,
     velocity=None,
     plot=False,
 ):
-    """Compute the autocorrelation function for a scalar or vector time series.
+    """Computes the power spectrum for a scalar or vector time series.
+    Also computes the power-law fit in the inertial and kinetic ranges,
+    and the spectral break between the two ranges, if specified.
 
     ### Args:
 
-    - np_array: Array of shape (1,n) or (3,n)
-    - dt: Cadence of measurements, or time between each sample: one sample every dt seconds
-    - di: (Optional, only used for plotting) Ion inertial length in km
+    - time_series: list of 1 (scalar) or 3 (vector) pd.Series. The function automatically detects
+    the cadence if timestamped index, otherwise dt = 1s
+    - f_min_inertial: (Optional) Minimum frequency for the power-law fit in the inertial range
+    - f_max_inertial: (Optional) Maximum frequency for the power-law fit in the inertial range
+    - f_min_kinetic: (Optional) Minimum frequency for the power-law fit in the kinetic range
+    - f_max_kinetic: (Optional) Maximum frequency for the power-law fit in the kinetic range
     - timestamp: (Optional, only used for plotting) Timestamp of the data
+    - di: (Optional, only used for plotting) Ion inertial length in km
     - velocity: (Optional, only used for plotting) Solar wind velocity in km/s
-    - corr_scale: (Optional, only used for plotting) Correlation scale (seconds)
-    - taylor_scale: (Optional, only used for plotting) Taylor scale (seconds)
+    - plot: (Optional) Whether to plot the PSD
+
     ### Returns:
 
     - z_i: Slope in the inertial range
     - z_k: Slope in the kinetic range
     - spectral_break: Frequency of the spectral break between the two ranges
+    - f_periodogram: Frequency array of the periodogram
+    - power_periodogram: Power array of the periodogram
+    - p_smooth: Smoothed power array of the periodogram
+    - xi: Frequency array of the power-law fit in the inertial range
+    - xk: Frequency array of the power-law fit in the kinetic range
+    - pi: Power array of the power-law fit in the inertial range
+    - pk: Power array of the power-law fit in the kinetic range
+
 
     """
+
+    # Check if the data has a timestamp index
+    if isinstance(time_series[0].index, pd.DatetimeIndex):
+        # Get the cadence of the data
+        dt = time_series[0].index[1] - time_series[0].index[0]
+        dt = dt.total_seconds()
+    else:
+        # If not, assume 1 second cadence
+        dt = 1
+
     x_freq = 1 / dt
 
-    f_periodogram, power_periodogram_0 = signal.periodogram(
-        np_array[0], fs=x_freq, window="boxcar", scaling="density"
-    )
-    power_periodogram_0 = (x_freq / 2) * power_periodogram_0
+    # Convert the time series into a numpy array
+    np_array = np.array(time_series)
 
-    f_periodogram, power_periodogram_1 = signal.periodogram(
-        np_array[1], fs=x_freq, window="boxcar", scaling="density"
-    )
-    power_periodogram_1 = (x_freq / 2) * power_periodogram_1
+    if np_array.shape[0] == 3:  # If the input is a vector
+        f_periodogram, power_periodogram_0 = signal.periodogram(
+            np_array[0], fs=x_freq, window="boxcar", scaling="density"
+        )
+        power_periodogram_0 = (x_freq / 2) * power_periodogram_0
 
-    f_periodogram, power_periodogram_2 = signal.periodogram(
-        np_array[2], fs=x_freq, window="boxcar", scaling="density"
-    )
-    power_periodogram_2 = (x_freq / 2) * power_periodogram_2
+        f_periodogram, power_periodogram_1 = signal.periodogram(
+            np_array[1], fs=x_freq, window="boxcar", scaling="density"
+        )
+        power_periodogram_1 = (x_freq / 2) * power_periodogram_1
 
-    power_periodogram = (
-        power_periodogram_0 + power_periodogram_1 + power_periodogram_2
-    ) / 3
+        f_periodogram, power_periodogram_2 = signal.periodogram(
+            np_array[2], fs=x_freq, window="boxcar", scaling="density"
+        )
+        power_periodogram_2 = (x_freq / 2) * power_periodogram_2
+
+        power_periodogram = (
+            power_periodogram_0 + power_periodogram_1 + power_periodogram_2
+        ) / 3
+
+    elif np_array.shape[0] == 1:  # If the input is a scalar
+        f_periodogram, power_periodogram = signal.periodogram(
+            np_array[0], fs=x_freq, window="boxcar", scaling="density"
+        )
+        power_periodogram = (x_freq / 2) * power_periodogram
 
     # Slowest part of this function - takes ~ 10 seconds
     p_smooth = SmoothySpec(power_periodogram)
 
-    qk, xk, pk = fitpowerlaw(
-        f_periodogram, p_smooth, f_min_kinetic, f_max_kinetic
-    )  # Kinetic range
-    qi, xi, pi = fitpowerlaw(
-        f_periodogram, p_smooth, f_min_inertial, f_max_inertial
-    )  # Inertial range
+    # If the user has specified a range for the power-law fits
+    if f_min_inertial is not None:
+        qk, xk, pk = fitpowerlaw(
+            f_periodogram, p_smooth, f_min_kinetic, f_max_kinetic
+        )  # Kinetic range
+        qi, xi, pi = fitpowerlaw(
+            f_periodogram, p_smooth, f_min_inertial, f_max_inertial
+        )  # Inertial range
 
-    try:
-        powerlaw_intersection = np.roots(qk - qi)
-        spectral_break = np.exp(powerlaw_intersection)
-    except Exception as e:
-        print("could not compute power-law intersection: {}".format(e))
-        spectral_break = [np.nan]
+        try:
+            powerlaw_intersection = np.roots(qk - qi)
+            spectral_break = np.exp(powerlaw_intersection)
+        except Exception as e:
+            print("could not compute power-law intersection: {}".format(e))
+            spectral_break = [np.nan]
 
-    if round(spectral_break[0], 4) == 0 or spectral_break[0] > 1:
+        if round(spectral_break[0], 4) == 0 or spectral_break[0] > 1:
+            spectral_break = [np.nan]
+
+    else:
+        qi = [np.nan]
+        qk = [np.nan]
         spectral_break = [np.nan]
+        xi = [np.nan]
+        xk = [np.nan]
+        pi = [np.nan]
+        pk = [np.nan]
 
     if plot is True:
         fig, ax = plt.subplots(figsize=(3.3, 2), constrained_layout=True)
@@ -296,22 +404,30 @@ def compute_spectral_stats(
         ax.semilogy(
             f_periodogram, p_smooth, label="Smoothed periodogram", color="black"
         )
-        ax.semilogy(
-            xi,
-            pi * 3,
-            c="black",
-            ls="--",
-            lw=0.8,
-            label="Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(qi[0]),
-        )
-        ax.semilogy(
-            xk,
-            pk * 3,
-            c="black",
-            ls="--",
-            lw=0.8,
-            label="Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(qk[0]),
-        )
+
+        # If the power-law fits have succeeded, plot them
+        if not np.isnan(qi[0]):
+            ax.semilogy(
+                xi,
+                pi * 3,
+                c="black",
+                ls="--",
+                lw=0.8,
+                label="Inertial range power-law fit: $\\alpha_i$ = {0:.2f}".format(
+                    qi[0]
+                ),
+            )
+            ax.semilogy(
+                xk,
+                pk * 3,
+                c="black",
+                ls="--",
+                lw=0.8,
+                label="Kinetic range power-law fit: $\\alpha_k$ = {0:.2f}".format(
+                    qk[0]
+                ),
+            )
+
         ax.tick_params(which="both", direction="in")
         ax.semilogx()
 
@@ -369,19 +485,31 @@ def compute_spectral_stats(
         # plt.grid()
         # plt.show()
 
-        return qi[0], qk[0], spectral_break[0], fig, ax, f_periodogram, p_smooth
+        return qi[0], qk[0], spectral_break[0], f_periodogram, p_smooth, fig, ax
     else:
-        return qi[0], qk[0], spectral_break[0]
+        return (
+            qi[0],
+            qk[0],
+            spectral_break[0],
+            f_periodogram,
+            power_periodogram,
+            p_smooth,
+            xi,
+            xk,
+            pi,
+            pk,
+        )
 
 
-def compute_nd_acf(np_array, nlags, dt, plot=False):
+def compute_nd_acf(time_series, nlags, plot=False):
     """Compute the autocorrelation function for a scalar or vector time series.
 
     Args:
 
-    - np_array: Array of shape (1,n) or (3,n)
+    - time_series: list of 1 (scalar) or 3 (vector) pd.Series. The function automatically detects
+    the cadence if timestamped index, otherwise dt = 1s.
     - nlags: The number of lags to calculate the ACF up to
-    - dt: Cadence of measurements, or time between each sample: one sample every dt seconds
+    - plot: Whether to plot the ACF
 
     Returns:
 
@@ -390,12 +518,15 @@ def compute_nd_acf(np_array, nlags, dt, plot=False):
 
     """
 
-    # Previously Kevin had fft=False - this was far slower
+    # Convert the time series into a numpy array
+    np_array = np.array(time_series)
+
     if np_array.shape[0] == 3:
         acf = (
-            sm.tsa.acf(np_array[0], fft=True, nlags=nlags)
-            + sm.tsa.acf(np_array[1], fft=True, nlags=nlags)
-            + sm.tsa.acf(np_array[2], fft=True, nlags=nlags)
+            # missing="conservative" ignores NaNs when computing the ACF
+            sm.tsa.acf(np_array[0], fft=True, nlags=nlags, missing="conservative")
+            + sm.tsa.acf(np_array[1], fft=True, nlags=nlags, missing="conservative")
+            + sm.tsa.acf(np_array[2], fft=True, nlags=nlags, missing="conservative")
         )
         acf /= 3
 
@@ -406,6 +537,15 @@ def compute_nd_acf(np_array, nlags, dt, plot=False):
         raise ValueError(
             "Array is not 3D or 1D. If after a 1D acf, try putting square brackets around the pandas series in np.array()"
         )
+
+    # Check if the data has a timestamp index
+    if isinstance(time_series[0].index, pd.DatetimeIndex):
+        # Get the cadence of the data
+        dt = time_series[0].index[1] - time_series[0].index[0]
+        dt = dt.total_seconds()
+    else:
+        # If not, assume 1 second cadence
+        dt = 1
 
     time_lags = np.arange(0, nlags + 1) * dt
 
@@ -440,9 +580,6 @@ def compute_nd_acf(np_array, nlags, dt, plot=False):
         plt.show()
 
     return time_lags, acf
-
-
-# previous version called estimate_correlation_scale()
 
 
 def compute_outer_scale_exp_trick(

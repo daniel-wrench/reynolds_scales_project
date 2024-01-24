@@ -354,8 +354,7 @@ for date in dates_for_cores[rank]:
                 velocity_time_lags_lr, velocity_acf_lr = utils.compute_nd_acf(
                     [int_protons_lr.Vx, int_protons_lr.Vy, int_protons_lr.Vz],
                     nlags=params.nlags_lr,
-                    dt=float(params.dt_lr[:-1]),
-                )  # Removing "S" from end of dt string
+                )
 
                 # velocity_acf_lr_list.append(velocity_acf_lr) #LOCAL ONLY
                 velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
@@ -399,10 +398,9 @@ for date in dates_for_cores[rank]:
 
                 # Compute autocorrelations and power spectra
                 time_lags_lr, acf_lr = utils.compute_nd_acf(
-                    np.array([int_lr.Bx, int_lr.By, int_lr.Bz]),
+                    [int_lr.Bx, int_lr.By, int_lr.Bz],
                     nlags=params.nlags_lr,
-                    dt=float(params.dt_lr[:-1]),
-                )  # Removing "S" from end of dt string
+                )
 
                 # acf_lr_list.append(acf_lr) #LOCAL ONLY
 
@@ -423,17 +421,26 @@ for date in dates_for_cores[rank]:
                 df.at[i, "tci"] = corr_scale_int
 
                 time_lags_hr, acf_hr = utils.compute_nd_acf(
-                    np.array([int_hr.Bx, int_hr.By, int_hr.Bz]),
+                    [int_hr.Bx, int_hr.By, int_hr.Bz],
                     nlags=params.nlags_hr,
-                    dt=float(params.dt_hr[:-1]),
                 )
 
                 # acf_hr_list.append(acf_hr) #LOCAL ONLY
 
                 # ~1min per interval due to spectrum smoothing algorithm
-                slope_i, slope_k, break_s = utils.compute_spectral_stats(
-                    np.array([int_hr.Bx, int_hr.By, int_hr.Bz]),
-                    dt=float(params.dt_hr[:-1]),
+                (
+                    slope_i,
+                    slope_k,
+                    break_s,
+                    f_periodogram,
+                    power_periodogram,
+                    p_smooth,
+                    xi,
+                    xk,
+                    pi,
+                    pk,
+                ) = utils.compute_spectral_stats(
+                    [int_hr.Bx, int_hr.By, int_hr.Bz],
                     f_min_inertial=params.f_min_inertial,
                     f_max_inertial=params.f_max_inertial,
                     f_min_kinetic=params.f_min_kinetic,

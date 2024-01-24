@@ -5,10 +5,9 @@ Please feel free to download the dataset and perform your own analysis or adapt 
 
 ## To-do
 
-1. Update instructions here (copy docstring), pipeline diagram?
-4. Merge with master branch
-1. Create master_stats fn based of version in time series repo and Tulasi's flipbook codes
+1. Create master_stats fn based on version in time series repo and Tulasi's flipbook codes
 3. Run on 12h, 8h, 4h, for full dataset again; commit these files
+4. Merge with master branch
 6. Publish new version of repo, note no changes to results from v2 which was used and cited for the paper
 
 ## Research output
@@ -141,7 +140,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     Local: 
     - `python -m venv venv`
-    - `venv\Scripts\activate`
+    - `venv/Scripts/activate`
 
     HPC:
     - `module load Python/3.10.4`
@@ -166,11 +165,11 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
 4. **Process the data**
 
-    Local: `python process_data.py`
+    Local: `python src/process_data.py`
 
     HPC: `sbatch 1_process_data.sh`
         
-    - Recommended HPC job requirements: 7-9min/file/core = up to **7 hours** for full 28-year dataset, using all **256 cores** and a total of **130GB** (but may need to request at least 1GB per core; could change this later to reduce mem request)
+    - Recommended HPC job requirements: 256 cores/150 GB/7 hours (7-9min/file/core) for full 28-year dataset (works for 12, 8 and 4H interval lengths)
     
     This script processes magnetic field and velocity data measured in the solar wind by spacecraft to compute various metrics related to turbulent fluctuations and their statistical properties. It outputs the processed data for each input file into `data/processed/`.
         
@@ -183,21 +182,20 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     At this stage, it is advised to download the dataset from the HPC using `sftp` and then doing the cleaning and plotting below locally for convenience.
 
 7. **Subset the data and remove outliers:** `python 3_clean_dataset.py`
-    For the analysis in the paper, we limit to June 2006 onwards from when the spacecraft was situated at L1.
 
-    **Limiting to L1 dataset (June 2006-end 2022)**
-    - 5% of intervals (745) have qk shallower (greater than) -1.7. This leads to strange, very small values of ttc **these are removed in the cleaned dataset**.
+    For the analysis in the paper, we limit to June 2006 onwards from when the spacecraft was situated at L1. From this subset, we perform the following cleaning:
+    - 5% of intervals (745) have qk shallower (greater than) -1.7. This leads to strange, very small values of ttc; **these are removed in the cleaned dataset**.
     - A further 1.5% (223) have qk shallower than qi (see supplementary plot). 
     - (The full dataset also has )
-    - 6 values of negative tci, **these are removed in the cleaned dataset**
-    -**11-12,000 points for each variable in final cleaned dataset**
+    - 6 values of negative tci; **these are removed in the cleaned dataset**
+    - = **11-12,000 points for each variable in final cleaned dataset**
 
 8. **Plot figures for Results section of the paper:** `python 4_plot_figures.py`
 
     Figures for the Method section of the paper are produced in `demo_numerical_w_figs.ipynb`, which also steps through the numerical fitting process with code, output, and explanations.
 
 ## Future analysis
-Investigate the following
+Investigate the following, noting the expected values discussed below:
 
 - Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
 - Notable differences pre-L1 for B and p
@@ -205,9 +203,8 @@ Investigate the following
 - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
 - A few very small values of ttu - waves? Potential for tangential study.
 - (See plots in `plots/supplementary/`)
-
-- Interrogate lambda_T vs. dboB0 some more
-- Comment on lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
+- lambda_T vs. dboB0
+- Lack of small (<2000km) uncorrected Taylor scale values, compared with SmithEA2006? (See Bill's comments) 
 - Thorough outlier and error analysis for both scales and the final Re estimate. Investigate anomalous slopes $q_k$. Check Excel and sort by these values to get problem timestamps. 
 - Add vector velocities to params.py script, anticipating switch to PSP data
 - Think about using the standard error to express variation in the means of our Re estimates.
