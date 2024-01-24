@@ -275,14 +275,14 @@ def compute_spectral_stats(
     try:
         powerlaw_intersection = np.roots(qk - qi)
         spectral_break = np.exp(powerlaw_intersection)
-    except:
-        print("could not compute power-law intersection")
+    except Exception as e:
+        print("could not compute power-law intersection: {}".format(e))
         spectral_break = [np.nan]
 
     if round(spectral_break[0], 4) == 0 or spectral_break[0] > 1:
         spectral_break = [np.nan]
 
-    if plot == True:
+    if plot is True:
         fig, ax = plt.subplots(figsize=(3.3, 2), constrained_layout=True)
         ax.set_ylim(1e-6, 1e6)
 
@@ -544,7 +544,7 @@ def compute_outer_scale_exp_fit(
     lambda_c = c_opt[0]
 
     # Optional plotting
-    if plot == True:
+    if plot is True:
         if fig is not None and ax is not None:
             fig = fig
             ax = ax
