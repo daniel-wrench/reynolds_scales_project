@@ -14,9 +14,9 @@ df.sort_index(inplace=True)
 #### DATA CLEANING (subsetting and dealing with outliers)
 
 df_l1 = df["2004-06-01":].copy()
-# Wind has been at L1 continuously since June 2004: https://wind.nasa.gov/orbit.php 
+# Wind has been at L1 continuously since June 2004: https://wind.nasa.gov/orbit.php
 
-# Few timestamps (0.1%) have ttc < 0 
+# Few timestamps (0.1%) have ttc < 0
 # All of these have unusually large values for qk. Total of 5% have qk > -1.7
 # 3 values also have ttu < 1
 
@@ -27,7 +27,7 @@ df_l1 = df["2004-06-01":].copy()
 # It still leaves around 2% of rows where qk > qi
 
 # Counting outliers using outlier flag columns
-df_l1.loc[:, "small_ttu"] = 0 
+df_l1.loc[:, "small_ttu"] = 0
 df_l1.loc[:, "qk > -1.7"] = 0
 df_l1.loc[:, "qk > qi"] = 0
 
@@ -36,7 +36,9 @@ df_l1.loc[df_l1["qk"] > -1.7, "qk > -1.7"] = 1
 df_l1.loc[df_l1["qk"] > df_l1["qi"], "qk > qi"] = 1
 
 df_l1[["small_ttu", "qk > -1.7", "qk > qi"]].mean()
-df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[["small_ttu", "qk > -1.7", "qk > qi"]].value_counts()
+df_l1.groupby(["qk > -1.7", "qk > qi", "small_ttu"])[
+    ["small_ttu", "qk > -1.7", "qk > qi"]
+].value_counts()
 
 df_l1.drop(["small_ttu", "qk > -1.7", "qk > qi"], axis=1, inplace=True)
 

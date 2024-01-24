@@ -7,8 +7,8 @@
 # See also accessing Wind data with HelioPy:
 # https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf
 
-start_date = "19950101"
-end_date = "20221231"
+start_date = "20160101"
+end_date = "20160107"
 
 timestamp = "Epoch"
 int_size = "12H"
@@ -17,10 +17,7 @@ electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
 Te = "AVGTEMP"
 
-electron_thresh = {
-    "DENSITY": [0, 200],
-    "AVGTEMP": [0, 1000]
-}
+electron_thresh = {"DENSITY": [0, 200], "AVGTEMP": [0, 1000]}
 
 
 # Metadata:
@@ -28,11 +25,11 @@ electron_thresh = {
 # https://hpde.io/NASA/NumericalData/Wind/3DP/PM/PT03S
 
 proton_path = "wind/3dp/3dp_pm/"
-np = "P_DENS" # density in #/cm3
-nalpha = "A_DENS" # alpha particle density in #/cm3
+np = "P_DENS"  # density in #/cm3
+nalpha = "A_DENS"  # alpha particle density in #/cm3
 Talpha = "A_TEMP"
-Tp = "P_TEMP" # temperature in eV
-V_vec = "P_VELS" # velocity in km/s
+Tp = "P_TEMP"  # temperature in eV
+V_vec = "P_VELS"  # velocity in km/s
 Vx = "P_VELS_0"
 Vy = "P_VELS_1"
 Vz = "P_VELS_2"
@@ -40,11 +37,11 @@ proton_thresh = {
     "P_DENS": [0, 1000],
     "P_TEMP": [0, 500],
     "A_DENS": [0, 1000],
-    "A_TEMP": [0, 500]
+    "A_TEMP": [0, 500],
 }
 
 mag_path = "wind/mfi/mfi_h2/"
-Bwind = "BF1" # not using currently
+Bwind = "BF1"  # not using currently
 Bwind_vec = "BGSE"
 Bx = "BGSE_0"
 By = "BGSE_1"
