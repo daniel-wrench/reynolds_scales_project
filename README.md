@@ -1,5 +1,5 @@
 # README
-This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. Given below are a description of the dataset and instructions for running the code yourself.
+This repository contains a dataset of solar wind parameters and turbulence scales as measured by NASA's *Wind* spacecraft, as well as the software pipeline used to produce it. Given below are a description of the dataset and instructions for running the code yourself. More information can be found in the paper published from this work, given below under the heading *Research output*.
 
 Please feel free to download the dataset and perform your own analysis or adapt it for your needs. Any comments or questions, either use the GitHub functionality or email daniel.wrench@vuw.ac.nz
 
@@ -11,7 +11,7 @@ Please feel free to download the dataset and perform your own analysis or adapt 
 6. Publish new version of repo, note no changes to results from v2 which was used and cited for the paper
 
 ## Research output
-Paper accepted by The Astrophysical Journal: *What is the Reynolds Number of the Solar Wind?* ([ArXiv version](https://arxiv.org/abs/2312.06863)) This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference of an earlier version of this work are available in the `doc/` folder.
+Paper published in The Astrophysical Journal: *[What is the Reynolds Number of the Solar Wind?](https://iopscience.iop.org/article/10.3847/1538-4357/ad118e)*. This work examines multiple ways of calculating an effective Reynolds number of the solar wind, using a portion of the data from this dataset. A PDF of the article and a poster presented at the 2023 SHINE conference of an earlier version of this work are available in the `doc/` folder.
 
 Future work is planned to pursue data mining, examining trends and correlations between a variety of quantities; this is discussed later under the heading *Future analysis*.
 
@@ -102,7 +102,7 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | zm_decay | | Negative Elsasser variable decay rate | - | m^2/s^3 | ${z^{-}}**3/\lambda_C^\text{fit}$ |
 
 ### Data sources
-Wind data is downloaded from NASA/GSFC’s Space Physics Data Facility (SPDF). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.
+Wind data is downloaded from [NASA/GSFC’s Space Physics Data Facility (SPDF)](https://spdf.gsfc.nasa.gov/). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.
 - Wind: NASA spacecraft launched in 1994 to study plasma processes in the near-Earth solar wind
     - 3DP: 3D plasma instument
         - ELM2: Electron moments, with raw cadence of 99s
@@ -232,10 +232,7 @@ The literature on Taylor scales, correlation scales and Reynolds numbers at 1 au
 
 ## Other related work
 
-- Three-part ApJ/ApJSS article on data product for studying *Electron Energy Partition across Interplanetary Shocks*. 
-- Fordin2023: represents a cool use of using a very large Wind dataset for machine learning (classification) purposes.
-- Podesta2010 used a large Wind dataset, mostly for calculating a range of different power spectra, including of cross-helicity
-- Previously, **Kevin de Lange** created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. *He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale*. Specifically, he found a **correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale** (see Figures 5.17 and 5.18 on page 57 of his thesis, *Mining Solar Wind Data for Turbulence Microscales*).                                                                 
-
-We are now more rigorously estimating the Taylor scale to confirm or deny this correlation, which would have significant implications of a constant Reynolds number in the solar wind. At the same time, we are creating a database of many more years of data that also includes other parameters of interest such as plasma beta, gyroradii, etc.
-
+- [Three-part ApJ/ApJSS article on data product for studying Energy Partition across Interplanetary Shocks](https://iopscience.iop.org/article/10.3847/1538-4365/ab22bd/meta). 
+- [Cool use of using a very large Wind dataset for machine learning (classification) purposes.](https://iopscience.iop.org/article/10.3847/1538-4357/acc8d5/meta)
+- [Another large Wind dataset for calculating a range of different power spectra and cross-helicity](https://pubs.aip.org/aip/pop/article/17/11/112905/108565)
+- Previously, Master's student Kevin de Lange created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale. Specifically, he found a correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale (see Figures 5.17 and 5.18 on page 57 of his VUW thesis, *Mining Solar Wind Data for Turbulence Microscales*). The present work was motivated by validating this correlation with more data and refined techniques for estimating the Taylor scale (and we did not find the same tight relationship).                                                                
