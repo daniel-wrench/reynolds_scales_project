@@ -104,12 +104,20 @@ print(merged_dataframe.info())
 print(merged_dataframe.head())
 
 # Output the merged dataframe as a CSV file
-output_csv_path = "wind_dataset_" + params.int_size + ".csv"
+output_csv_path = (
+    "wind_dataset_"
+    + params.start_date
+    + "_"
+    + params.end_date
+    + "_"
+    + params.int_size
+    + ".csv"
+)
 merged_dataframe.to_csv(output_csv_path, index=True)
 print(f"Merged DataFrame saved as CSV at: {output_csv_path}")
 
-stats = merged_dataframe.describe().round(2)
-stats.to_csv("wind_dataset_stats_" + params.int_size + ".csv")
+# stats = merged_dataframe.describe().round(2)
+# stats.to_csv("wind_dataset_stats_" + params.int_size + ".csv")
 
-corr_matrix = merged_dataframe.corr()
-corr_matrix.to_csv("wind_dataset_" + params.int_size + "_corr_matrix.csv")
+# corr_matrix = merged_dataframe.corr()
+# corr_matrix.to_csv("wind_dataset_" + params.int_size + "_corr_matrix.csv")
