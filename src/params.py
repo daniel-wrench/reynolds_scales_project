@@ -8,10 +8,38 @@
 # https://buildmedia.readthedocs.org/media/pdf/heliopy/0.6.0/heliopy.pdf
 
 start_date = "20160101"
-end_date = "20160107"
+end_date = "20160102"
 
 timestamp = "Epoch"
 int_size = "12H"
+
+mag_params = {
+    "spectrum": False,
+    "f_min_inertial": 0.005,
+    "f_max_inertial": 0.2,
+    "f_min_kinetic": 0.5,
+    "f_max_kinetic": 1.4,
+    "nlags_lr": 2000,
+    "nlags_hr": 100,
+    "dt_lr": "5S",
+    # LR version is used for calculation SFN and ACF; original HR for spectrum and taylor scale
+    "tau_min": 10,
+    "tau_max": 50,
+}
+
+proton_params = {
+    "spectrum": False,
+    "f_min_inertial": None,
+    "f_max_inertial": None,
+    "f_min_kinetic": None,
+    "f_max_kinetic": None,
+    "nlags_lr": 2000,
+    "nlags_hr": None,
+    "dt_lr": "5S",
+    "tau_min": None,
+    "tau_max": None,
+}
+
 
 electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
@@ -39,6 +67,7 @@ proton_thresh = {
     "A_DENS": [0, 1000],
     "A_TEMP": [0, 500],
 }
+
 
 mag_path = "wind/mfi/mfi_h2/"
 Bwind = "BF1"  # not using currently
