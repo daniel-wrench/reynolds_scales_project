@@ -5,11 +5,7 @@ Please feel free to download the dataset and perform your own analysis or adapt 
 
 ## To-do
 
-1. Re-write process_data.py based on discussion with Tulasi (see his dummy script)
-    - compute_stats()
-    - Just use 1/e
-    - Feed b_v (Alfven), zp, zm into function, as well as vp and ve and b
-3. Run on 12h, 8h, 4h, for full dataset again; commit these files
+3. With updated concise funcs, run on 12h, 8h, 4h, for full dataset again; commit these files
 4. Re-run figures to confirm similarity
 6. Publish new version of repo, note no changes to results from v2 which was used and cited for the paper
 
@@ -198,7 +194,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     Figures for the Method section of the paper are produced in `demo_numerical_w_figs.ipynb`, which also steps through the numerical fitting process with code, output, and explanations.
 
 ## Future analysis
-Investigate the following, noting the expected values discussed below:
+Try setting limits of inertial range fit to $2k_{\lambda_C}-20k_{\lambda_C}$ Investigate the following, noting the expected values discussed below:
 
 - Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
 - Notable differences pre-L1 for B and p
@@ -233,9 +229,12 @@ The literature on Taylor scales, correlation scales and Reynolds numbers at 1 au
 
 - **Solar cycle**: See Wicks2009 ApJ 690, Cheng2022 ApJ, Zhou2020Apj
 
+- **Cross-helicity**: has been observed to be anticorrelated with energy cascade rate (i.e. slope steepness?): SmithEA2009, MarinoEA2011a,b
+
 ## Other related work
 
 - [Three-part ApJ/ApJSS article on data product for studying Energy Partition across Interplanetary Shocks](https://iopscience.iop.org/article/10.3847/1538-4365/ab22bd/meta). 
-- [Cool use of using a very large Wind dataset for machine learning (classification) purposes.](https://iopscience.iop.org/article/10.3847/1538-4357/acc8d5/meta)
-- [Another large Wind dataset for calculating a range of different power spectra and cross-helicity](https://pubs.aip.org/aip/pop/article/17/11/112905/108565)
+- [Large Wind dataset for machine learning (classification) purposes.](https://iopscience.iop.org/article/10.3847/1538-4357/acc8d5/meta)
+- [Large Wind dataset for calculating a range of different power spectra and cross-helicity](https://pubs.aip.org/aip/pop/article/17/11/112905/108565)
+- [Large Wind dataset for investigating relationship between solar cycle and cascade rate](https://iopscience.iop.org/article/10.3847/1538-4357/ad4797/pdf)
 - Previously, Master's student Kevin de Lange created a smaller version of this dataset and investigated the correlation between the Taylor scale and the other variables, including training machine learning models to predict the Taylor scale. He found an unexpected, reasonably strong positive correlation between the Taylor scale and correlation scale. Specifically, he found a correlation of 0.77 between the Taylor scale and exponential-fit correlation scale**, and **0.62 between the Taylor scale and the 1/e-trick correlation scale (see Figures 5.17 and 5.18 on page 57 of his VUW thesis, *Mining Solar Wind Data for Turbulence Microscales*). The present work was motivated by validating this correlation with more data and refined techniques for estimating the Taylor scale (and we did not find the same tight relationship).                                                                
