@@ -267,7 +267,7 @@ for date in dates_for_cores[rank]:
             "fb": [np.nan] * n_int,
             "tcf": [np.nan] * n_int,
             "tce": [np.nan] * n_int,
-            "tce_velocity": [np.nan] * n_int,
+            "tce_v": [np.nan] * n_int,
             "tci": [np.nan] * n_int,
             "ttu": [np.nan] * n_int,
             "ttu_std": [np.nan] * n_int,
@@ -360,7 +360,7 @@ for date in dates_for_cores[rank]:
                 velocity_corr_scale_exp_trick = utils.compute_outer_scale_exp_trick(
                     velocity_time_lags_lr, velocity_acf_lr
                 )
-                df.at[i, "tce_velocity"] = velocity_corr_scale_exp_trick
+                df.at[i, "tce_v"] = velocity_corr_scale_exp_trick
 
             if missing_mfi <= 0.1:
                 # Interpolate missing data, then fill any remaining gaps at start or end with nearest value

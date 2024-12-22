@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import src.params as params
 
-df = pd.read_csv("wind_dataset.csv")
+df = pd.read_csv("wind_dataset_" + params.int_size + ".csv")
 df.Timestamp = pd.to_datetime(df.Timestamp)
 df.set_index("Timestamp", inplace=True)
 df.sort_index(inplace=True)

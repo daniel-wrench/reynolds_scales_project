@@ -5,9 +5,12 @@ Please feel free to download the dataset and perform your own analysis or adapt 
 
 ## To-do
 
-1. Create master_stats fn based on version in time series repo and Tulasi's flipbook codes
+1. Re-write process_data.py based on discussion with Tulasi (see his dummy script)
+    - compute_stats()
+    - Just use 1/e
+    - Feed b_v (Alfven), zp, zm into function, as well as vp and ve and b
 3. Run on 12h, 8h, 4h, for full dataset again; commit these files
-4. Merge with master branch
+4. Re-run figures to confirm similarity
 6. Publish new version of repo, note no changes to results from v2 which was used and cited for the paper
 
 ## Research output
@@ -74,7 +77,7 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | tcf | $\tau_C^\text{fit}$ | Correlation time scale (fit method) | 2160 | s | Numerical method  |
 | tce | $\tau_C^\text{exp}$ | Correlation time scale (1/e method) | 2260 | s | Numerical method  |
 | tci | $\tau_C^\text{int}$ | Correlation time scale (integral method) | 2090 | s | Numerical method  |
-| tce_velocity | $\tau_{C,v}^\text{exp}$ | Correlation time scale (1/e method) for velocity |  | s | Numerical method  |
+| tce_v | $\tau_{C,v}^\text{exp}$ | Correlation time scale (1/e method) for velocity |  | s | Numerical method  |
 | ttu | $\tau_{TS}^\text{ext}$ | Taylor time scale (uncorrected) | 11.4 | s | Numerical method  |
 | ttu_std | $\tau_{TS}^\text{ext}$ | Error of Taylor time scale (uncorrected) | 0.12 | s | Numerical method  |
 | ttc | $\tau_{TS}$ | Taylor time scale (corrected) | 7.44 | s | $\tau_{TS}^\text{ext}\times$ Chuychai correction factor |
@@ -98,8 +101,8 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | db_a | $\delta b_A$ | Magnetic field fluctuations (Alfven units, rms) | 42.4 | km/s | $\sqrt{\langle \delta b_{x,A}^2+\delta b_{y,A}^2+\delta b_{z,A}^2\rangle}$ |
 | zp | $z^{+}$ | Positive Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle {z^{+}_x}^2+{z^{+}_y}^2+{z^{+}_z}^2\rangle}$ |
 | zm | $z^{-}$ | Negative Elsasser variable (rms) | 48.9 | km/s | $\sqrt{\langle {z^{-}_x}^2+{z^{-}_y}^2+{z^{-}_z}^2\rangle}$ |
-| zp_decay | | Positive Elsasser variable decay rate | - | m^2/s^3 | ${z^{+}}**3/\lambda_C^\text{fit}$ |
-| zm_decay | | Negative Elsasser variable decay rate | - | m^2/s^3 | ${z^{-}}**3/\lambda_C^\text{fit}$ |
+| zp_decay | | Positive Elsasser variable decay rate | - | m^2/s^3 | ${z^{+}}^3/\lambda_C^\text{fit}$ |
+| zm_decay | | Negative Elsasser variable decay rate | - | m^2/s^3 | ${z^{-}}^3/\lambda_C^\text{fit}$ |
 
 ### Data sources
 Wind data is downloaded from [NASA/GSFC’s Space Physics Data Facility (SPDF)](https://spdf.gsfc.nasa.gov/). The links to the repositories and metadata, used to download many files automatically, are given in `src/params.py`.

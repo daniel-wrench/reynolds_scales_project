@@ -14,6 +14,8 @@ pickle_files = [
 # Import and concatenate all the dataframes
 dataframes = [pd.read_pickle(os.path.join(folder_path, file)) for file in pickle_files]
 merged_dataframe = pd.concat(dataframes)
+# Ensure it matches the expected timeframe
+merged_dataframe = merged_dataframe[params.start_date : params.end_date]
 
 # Bringing in sunspot data
 df_ss = pd.read_csv("data/processed/sunspot_dataset.csv")
@@ -74,7 +76,7 @@ merged_dataframe = merged_dataframe[
         "lambda_t",
         "tcf",
         "tce",
-        "tce_velocity",
+        "tce_v",
         "tci",
         "ttu",
         "ttu_std",
@@ -105,13 +107,7 @@ print(merged_dataframe.head())
 
 # Output the merged dataframe as a CSV file
 output_csv_path = (
-    "wind_dataset_"
-    + params.start_date
-    + "_"
-    + params.end_date
-    + "_"
-    + params.int_size
-    + ".csv"
+    f"wind_dataset_{params.int_size}_{params.start_date}_{params.end_date}.csv"
 )
 merged_dataframe.to_csv(output_csv_path, index=True)
 print(f"Merged DataFrame saved as CSV at: {output_csv_path}")
