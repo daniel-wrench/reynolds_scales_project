@@ -11,7 +11,7 @@ start_date = "20160101"
 end_date = "20160107"
 
 timestamp = "Epoch"
-int_size = "12H"
+int_size = "12h"
 
 electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
@@ -19,6 +19,9 @@ Te = "AVGTEMP"
 
 electron_thresh = {"DENSITY": [0, 200], "AVGTEMP": [0, 1000]}
 
+pwrl_range = [50, 500]
+int_length = 10000
+max_lag_prop = 0.2
 
 # Metadata:
 # https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0SKELTABLES/wi_pm_3dp_00000000_v01.skt
@@ -51,8 +54,8 @@ mag_thresh = None
 # Parameters for estimating numerical variables
 dt_lr = "5S"
 nlags_lr = 2000
-dt_hr = "0.092S"
-dt_protons = "3S"
+dt_hr = "0.092s"
+dt_protons = "3s"
 nlags_hr = 100
 tau_min = 10
 tau_max = 50
