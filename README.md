@@ -52,7 +52,7 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | sigma_r | $\sigma_R$ | Residual energy | -0.44 | - | $\frac{e_{kinetic}-e_{magnetic}}{e_{kinetic}+e_{magnetic}}$ |
 | ra | $R_A$ | Alfv\'en ratio | 0.46 | - | $\frac{e_{kinetic}}{e_{magnetic}}$ |
 | cos_a | $\cos(A)$ | Alignment cosine | 0.01 | - | $\frac{\langle \delta v_x\delta b_{x,A}+\delta v_y\delta b_{y,A}+\delta v_z\delta b_{y,A}\rangle}{\langle \sqrt{\|\delta v\| \|\delta b_A\|}\rangle}$ | |
-| dbob0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | - | $\delta b/B_0$ | 
+| dboB0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | - | $\delta b/B_0$ | 
 | qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method  |
 | qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method  |
 | re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
