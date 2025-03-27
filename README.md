@@ -55,9 +55,9 @@ Column name | Symbol | Name | Mean value | Unit | Source/derivation |
 | dboB0 | $\delta b/B_0$ | Magnetic field fluctuations (normalized) | 0.71 | - | $\delta b/B_0$ | 
 | qi | $q_i$ | Inertial range slope | -1.68 | - | Numerical method  |
 | qk | $q_k$ | Kinetic range slope | -2.63 | - | Numerical method  |
-| re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
-| re_di | $Re_{d_i}$ | Reynolds number | 330,000 | - | $2(tcfV_0/{d_i})^{4/3}$ |
-| re_tb | $Re_{t_b}$ | Reynolds number | 116,000 | - | $2(tcf/tb)^{4/3}$ |
+| Re_lt | $Re_{\lambda_t}$ | Reynolds number | 3,410,000 | - | $27(tcf/ttc)^2$ |
+| Re_di | $Re_{d_i}$ | Reynolds number | 330,000 | - | $2(tcfV_0/{d_i})^{4/3}$ |
+| Re_tb | $Re_{t_b}$ | Reynolds number | 116,000 | - | $2(tcf/tb)^{4/3}$ |
 | fb |$f_b$ | Spectral break frequency | 0.27 | Hz | Numerical method  |
 | fce | $f_{ce}$ | Electron gyrofrequency | - | Hz |  $28 \times B_0$ |
 | fci | $f_{ci}$ | Ion gyrofrequency | - | Hz |  $0.0152 \times B_0$ |
