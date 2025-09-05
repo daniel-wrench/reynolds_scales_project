@@ -198,6 +198,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 Investigate the following, noting the expected values discussed below:
 
 - Typical difference of 1-3% between B and V magnitudes calculated from Wind vs. OMNI values
+- Heaps of slopes also calculated by Koval & Szabo (2013), should compare
 - Notable differences pre-L1 for B and p
 - 6 weird small values of V0 (~70km/s) throughout
 - Spectral breakscale frequencies seem to small, therefore timescales too big, therefore Re_tb too small. But indeed breakscale is still "a few times larger" than di, which is what we would expect (Leamon1998b)
