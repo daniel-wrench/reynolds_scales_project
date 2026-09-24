@@ -140,7 +140,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
 
     Local: 
     - `python -m venv venv`
-    - `venv/Scripts/activate`
+    - `source venv/Scripts/activate`
 
     HPC:
     - `module load Python/3.10.4`
@@ -163,7 +163,7 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     - `bash 0_download_files.sh`
     - (`Ctrl-b d` to detach from session, `tmux attach` to re-attach)
 
-4. **Process the data**
+4. **Process the plasma data**
 
     Local: `python src/process_data.py`
 
@@ -174,6 +174,10 @@ You will need to prefix the commands below with `!`, use `%cd` to move into the 
     This script processes magnetic field and velocity data measured in the solar wind by spacecraft to compute various metrics related to turbulent fluctuations and their statistical properties. It outputs the processed data for each input file into `data/processed/`.
         
     See the notebook **demo_scale_funcs.ipynb** for more on the numerical fitting. Fitting parameters, including the interval length, are specified in `params.py`. The most computationally expensive part of this script is the spectrum-smoothing algorithm, used to create a nice smooth spectrum for fitting slopes to.
+
+5. **Process the sunspot data**
+
+    Local and HPC: `python src/process_sunspot_data.py`
 
 6. **Merge the processed data into a single dataset**
 

@@ -4,7 +4,7 @@ import src.utils as utils
 import src.params as params
 
 # Specify the folder path containing the pickle files
-folder_path = "data/processed"  # Replace with your folder path
+folder_path = "data/processed/"  # Replace with your folder path
 
 # List all pickle files in the folder
 pickle_files = [
@@ -23,7 +23,7 @@ df_ss.set_index("Timestamp", inplace=True)
 df_ss = df_ss["SN"]
 # Limit to only the range of other data
 df_ss = df_ss[
-    merged_dataframe.index.min() : merged_dataframe.index.max() + pd.Timedelta("12H")
+    merged_dataframe.index.min() : merged_dataframe.index.max() + pd.Timedelta("12h")
 ]
 df_ss = df_ss.resample(params.int_size).agg("ffill")[
     :-1

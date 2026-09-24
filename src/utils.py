@@ -97,20 +97,18 @@ def convert_cdf_to_dataframe(
       varlist: list of strings. Specify the variables to include in the resulting DataFrame as they appear in the .cdf file.
                Multi-dimensional attributes are split into multiple columns with the names attribute_x
     """
+    info = cdf_file_object.cdf_info()
+    available_vars = list(info.rVariables) + list(info.zVariables)
+
     if varlist is None:
-        varlist = (
-            cdf_file_object.cdf_info()["rVariables"]
-            + cdf_file_object.cdf_info()["zVariables"]
-        )
+        varlist = available_vars
+
     variables_to_read = varlist.copy()
-    for var_name in varlist:
-        if (
-            var_name
-            not in cdf_file_object.cdf_info()["rVariables"]
-            + cdf_file_object.cdf_info()["zVariables"]
-        ):
+    for var_name in list(varlist):
+        if var_name not in available_vars:
             print(f'variable name "{var_name}" not in cdf file; skipping it')
             variables_to_read.remove(var_name)
+
     result_dict = {}
     for var_name in variables_to_read:
         variable_values = cdf_file_object.varget(var_name)
@@ -160,10 +158,11 @@ def format_epochs(dataframe: pd.DataFrame) -> pd.DataFrame:
         "Epoch" in dataframe.columns or "EPOCH" in dataframe.columns
     ), "Epoch column does not exist"
     result_dataframe = dataframe.copy()
-    result_dataframe["Epoch"] = result_dataframe["Epoch"].apply(
-        lambda x: cdflib.epochs.CDFepoch.to_datetime(x, to_np=True)[0]
+    epoch_col = "Epoch" if "Epoch" in result_dataframe.columns else "EPOCH"
+    result_dataframe[epoch_col] = result_dataframe[epoch_col].apply(
+        lambda x: pd.to_datetime(cdflib.epochs.CDFepoch.to_datetime(x)[0])
     )
-    result_dataframe.rename({"Epoch": "Timestamp"}, axis="columns", inplace=True)
+    result_dataframe.rename({epoch_col: "Timestamp"}, axis="columns", inplace=True)
     return result_dataframe
 
 

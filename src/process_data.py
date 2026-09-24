@@ -32,6 +32,7 @@ import datetime
 import glob
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 # Custom modules
 import utils  # add src. prefix and as ... suffix if running interactively
@@ -118,6 +119,12 @@ def read_dated_file(date, file_list, varlist, newvarnames, cadence, thresholds):
                 thresholds=thresholds,
                 cadence=cadence,
             )
+            if df is None or df.empty or df.shape[1] == 0:
+                print(
+                    f"CORE {rank:03d} skipping {matched_files[0]}: empty or unreadable CDF data"
+                )
+                return None
+
             print(
                 "CORE {0:03d} finished reading {1}: {2:.2f}% missing".format(
                     rank, matched_files[0], df.iloc[:, -1].isna().sum() / len(df) * 100
@@ -222,11 +229,11 @@ for date in dates_for_cores[rank]:
     # First, set a start and end time for the first interval
 
     starttime = pd.to_datetime(date)
-    endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01S")
+    endtime = starttime + pd.to_timedelta(params.int_size) - pd.to_timedelta("0.01s")
     # E.g. 2016-01-01 11:59:59.99
 
     # Number of intervals in the dataset
-    n_int = np.round(pd.to_timedelta("24H") / pd.to_timedelta(params.int_size)).astype(
+    n_int = np.round(pd.to_timedelta("24h") / pd.to_timedelta(params.int_size)).astype(
         int
     )
     # NB: If we subset timestamps that don't exist in the dataframe, they will still be included in the list, just as
@@ -241,7 +248,7 @@ for date in dates_for_cores[rank]:
     # Initialise dataframe
     df = pd.DataFrame(
         {
-            "Timestamp": [np.nan] * n_int,
+            "Timestamp": [pd.NaT] * n_int,
             "missing_mfi": [np.nan] * n_int,
             "missing_3dp": [np.nan] * n_int,
             "np": [np.nan] * n_int,
@@ -275,6 +282,7 @@ for date in dates_for_cores[rank]:
             "ttc_std": [np.nan] * n_int,
         }
     )
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce")
 
     print(
         "CORE {0:03d} CALCULATING STATISTICS FOR EACH {1} INTERVAL".format(
@@ -576,9 +584,14 @@ for date in dates_for_cores[rank]:
 
     #################################################################################
 
+
+    out_dir = Path("data/processed")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    df.to_pickle(out_dir / f"{date}_{params.int_size}.pkl")
+
     #    print("\nFINAL DATAFRAME:\n")
     #    print(df.head())
-    df.to_pickle("data/processed/" + date + "_" + params.int_size + ".pkl")
     print("CORE {0:03d} SAVED STATISTICS FOR {1}".format(rank, date))
 
     # LOCAL: Plotting all ACFs to check calculations

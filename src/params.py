@@ -11,7 +11,7 @@ start_date = "20160101"
 end_date = "20160107"
 
 timestamp = "Epoch"
-int_size = "12H"
+int_size = "12h"
 
 electron_path = "wind/3dp/3dp_elm2/"
 ne = "DENSITY"
@@ -49,10 +49,10 @@ Bz = "BGSE_2"
 mag_thresh = None
 
 # Parameters for estimating numerical variables
-dt_lr = "5S"
+dt_lr = "5s"
 nlags_lr = 2000
-dt_hr = "0.092S"
-dt_protons = "3S"
+dt_hr = "0.092s"
+dt_protons = "3s"
 nlags_hr = 100
 tau_min = 10
 tau_max = 50
